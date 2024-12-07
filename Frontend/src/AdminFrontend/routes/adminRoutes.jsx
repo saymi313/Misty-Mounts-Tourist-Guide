@@ -3,6 +3,7 @@ import Login from "../pages/Login";
 import AdminDashboard from "../pages/AdminDashboard";
 import TouristSpotManagement from "../pages/TouristSpotManagement";
 import AccommodationManagement from "../pages/AccommodationManagement";
+import TransportManagement from "../pages/TransportManagement";
 const AdminRoutes = () => {
   const isAuthenticated = !!localStorage.getItem("adminToken"); // Check if token exists
 
@@ -30,6 +31,16 @@ const AdminRoutes = () => {
         element={
           isAuthenticated ? (
             <AccommodationManagement />
+          ) : (
+            <Navigate to="/admin/login" />
+          )
+        }
+      />
+       <Route
+        path="/admin/transportation"
+        element={
+          isAuthenticated ? (
+            <TransportManagement />
           ) : (
             <Navigate to="/admin/login" />
           )
