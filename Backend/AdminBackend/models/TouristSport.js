@@ -1,12 +1,19 @@
 const mongoose = require("mongoose");
 
-const touristSpotSchema = new mongoose.Schema({
+// Define the structure for nearbyPlaces
+const nearbyPlaceSchema = new mongoose.Schema({
   name: { type: String, required: true },
   location: { type: String, required: true },
   description: { type: String, required: true },
-  picture:{type: String, required:true },
+  picture: { type: String, required: true },
+});
+
+// Define the structure for the main tourist spot
+const touristSpotSchema = new mongoose.Schema({
+  city: { type: String, required: true },
+  nearbyPlaces: [nearbyPlaceSchema], // Array of nearby places
   isApproved: { type: Boolean, default: false },
-  submittedBy: { type: mongoose.Schema.Types.ObjectId, ref: "User" }, // For guides
+
 });
 
 module.exports = mongoose.model("TouristSpot", touristSpotSchema);

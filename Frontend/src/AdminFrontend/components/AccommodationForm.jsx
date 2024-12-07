@@ -32,6 +32,7 @@ const AccommodationForm = ({ onSubmit, accommodation = {}, refreshAccommodations
 
     onSubmit(newAccommodation);
     
+    // Reset form after submission
     setName("");
     setDescription("");
     setPrice("");
@@ -41,55 +42,86 @@ const AccommodationForm = ({ onSubmit, accommodation = {}, refreshAccommodations
   };
 
   return (
-    <form onSubmit={handleSubmit}>
-      <label>Name:</label>
-      <input
-        type="text"
-        value={name}
-        onChange={(e) => setName(e.target.value)}
-        required
-      />
+    <form onSubmit={handleSubmit} className="space-y-6 p-6 bg-white rounded-lg shadow-lg">
+      <div>
+        <label htmlFor="name" className="block text-sm font-medium text-gray-700">Name:</label>
+        <input
+          id="name"
+          type="text"
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+          required
+          className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+        />
+      </div>
 
-      <label>Description:</label>
-      <input
-        type="text"
-        value={description}
-        onChange={(e) => setDescription(e.target.value)}
-        required
-      />
+      <div>
+        <label htmlFor="description" className="block text-sm font-medium text-gray-700">Description:</label>
+        <input
+          id="description"
+          type="text"
+          value={description}
+          onChange={(e) => setDescription(e.target.value)}
+          required
+          className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+        />
+      </div>
 
-      <label>Price:</label>
-      <input
-        type="number"
-        value={price}
-        onChange={(e) => setPrice(e.target.value)}
-        required
-      />
+      <div>
+        <label htmlFor="price" className="block text-sm font-medium text-gray-700">Price:</label>
+        <input
+          id="price"
+          type="number"
+          value={price}
+          onChange={(e) => setPrice(e.target.value)}
+          required
+          className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+        />
+      </div>
 
-      <label>Available:</label>
-      <input
-        type="checkbox"
-        checked={isAvailable}
-        onChange={(e) => setIsAvailable(e.target.checked)}
-      />
+      <div className="flex items-center space-x-3">
+        <label htmlFor="isAvailable" className="text-sm font-medium text-gray-700">Available:</label>
+        <input
+          id="isAvailable"
+          type="checkbox"
+          checked={isAvailable}
+          onChange={(e) => setIsAvailable(e.target.checked)}
+          className="h-5 w-5 text-blue-500 border-gray-300 rounded"
+        />
+      </div>
 
-      <label>Special Offer:</label>
-      <input
-        type="text"
-        value={specialOffer}
-        onChange={(e) => setSpecialOffer(e.target.value)}
-      />
+      <div>
+        <label htmlFor="specialOffer" className="block text-sm font-medium text-gray-700">Special Offer:</label>
+        <input
+          id="specialOffer"
+          type="text"
+          value={specialOffer}
+          onChange={(e) => setSpecialOffer(e.target.value)}
+          className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+        />
+      </div>
 
-      <label>Picture URL:</label>
-      <input
-        type="text"
-        value={picture}
-        onChange={(e) => setPicture(e.target.value)}
-        placeholder="Enter the picture URL"
-        required
-      />
+      <div>
+        <label htmlFor="picture" className="block text-sm font-medium text-gray-700">Picture URL:</label>
+        <input
+          id="picture"
+          type="text"
+          value={picture}
+          onChange={(e) => setPicture(e.target.value)}
+          placeholder="Enter the picture URL"
+          required
+          className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+        />
+      </div>
 
-      <button type="submit">Submit</button>
+      <div className="flex justify-between gap-4">
+        <button
+          type="submit"
+          className="px-6 py-3 bg-blue-500 text-white font-semibold rounded-md hover:bg-blue-600 transition-colors duration-300 w-full"
+        >
+          Submit
+        </button>
+      </div>
     </form>
   );
 };
