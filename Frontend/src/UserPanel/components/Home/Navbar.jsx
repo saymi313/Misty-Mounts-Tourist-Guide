@@ -2,7 +2,7 @@ import React from "react";
 
 const Navbar = () => {
   return (
-    <nav className="bg-white border-b-2">
+    <nav className="border-black rounded-full m-2 border-b-2">
       <div className="container mx-auto flex items-center justify-between px-6 py-4">
         <h1 className="text-2xl font-bold text-indigo-900">
           Misty<span className="text-yellow-500">Mounts</span>

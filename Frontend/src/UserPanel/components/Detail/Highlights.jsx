@@ -11,6 +11,8 @@ const Highlights = () => {
   ];
 
   return (
+    <>
+    <h1 className='ml-8 my-2 text-3xl text-blacl font-bold'>Highlights</h1>
     <div className="grid grid-cols-3 gap-4 px-8 py-4">
       {highlights.map((item, index) => (
         <div key={index} className="flex items-start space-x-4">
@@ -22,6 +24,7 @@ const Highlights = () => {
         </div>
       ))}
     </div>
+    </>
   );
 };
 

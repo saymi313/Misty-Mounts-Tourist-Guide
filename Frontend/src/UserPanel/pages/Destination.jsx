@@ -19,7 +19,7 @@ const Destination = () => {
       <HeroSection
         title="Welcome to Northern Pakistan"
         subtitle="Amet minim mollit non deserunt ullamco est sit aliqua dolor do amet sint."
-        backgroundImage="url('/path-to-background-image.jpg')"
+        backgroundImage="url('hero.jpg')"
       />
       <SearchBar placeholder="Search For A Destination" />
       <section className="px-8 py-12">
@@ -28,18 +28,18 @@ const Destination = () => {
           Amet minim mollit non deserunt ullamco est sit aliqua dolor do amet sint.
         </p>
         <div className="flex justify-center space-x-4 mb-8">
-          {['New York', 'California', 'Alaska', 'Sidney', 'Dubai', 'London', 'Tokyo', 'Delhi'].map((city, index) => (
+          {['Naran', 'Mansehra', 'Kaghan', 'Hunza', 'Gilgit', 'Astor', 'Balakot', 'Swat'].map((city, index) => (
             <button
               key={index}
-              className={`px-4 py-2 border rounded-full ${city === 'Alaska' ? 'bg-green-500 text-white' : 'bg-gray-100 text-gray-700'}`}
+              className={`px-4 py-2 border rounded-full ${city === 'Naran' ? 'bg-green-500 text-white' : 'bg-gray-100 text-gray-700'}`}
             >
               {city}
             </button>
           ))}
         </div>
-        <div className="relative bg-cover bg-center h-96 rounded-md mb-12" style={{ backgroundImage: "url('/path-to-alaska-image.jpg')" }}>
+        <div className="relative bg-cover bg-center h-96 rounded-md mb-12" style={{ backgroundImage: "url('Naran.jpg')" }}>
           <div className="absolute inset-0 bg-black bg-opacity-50 flex flex-col justify-center items-center text-white">
-            <h3 className="text-4xl font-bold">Alaska</h3>
+            <h3 className="text-4xl font-bold">Naran</h3>
             <p className="text-center mt-4 max-w-xl">
               Amet minim mollit non deserunt ullamco est sit aliqua dolor do amet sint. Velit officia consequat.
             </p>
@@ -52,7 +52,9 @@ const Destination = () => {
             </div>
           </div>
         </div>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+          <h3 className="text-4xl font-bold">Popular Hidden Places</h3>
+        <div className="mt-2 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+          
           {destinations.map((destination) => (
             <CityCard key={destination.id} {...destination} />
           ))}

@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Calendar, CreditCard } from 'lucide-react';
+import axios from 'axios';  // Import Axios
 
 const PaymentForm = ({ subtotal, fee, hotelName, hotelImage }) => {
   const [formData, setFormData] = useState({
@@ -13,11 +14,46 @@ const PaymentForm = ({ subtotal, fee, hotelName, hotelImage }) => {
     hasPromoCode: false
   });
 
+  const [loading, setLoading] = useState(false);  // To manage the loading state
+  const [error, setError] = useState("");  // To handle error messages
+  const [successMessage, setSuccessMessage] = useState("");  // To handle success messages
+
   const totalAmount = subtotal + fee;
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log("Form submitted:", formData);
+
+    // Prepare the data to be sent to the backend
+    const paymentData = {
+      ...formData,
+      subtotal,
+      fee,
+      totalAmount,
+    };
+
+    try {
+      setLoading(true);
+      setError("");
+      setSuccessMessage("");
+
+      // Sending POST request to the backend
+      const response = await axios.post('http://localhost:5000/api/payment/create', paymentData, {
+        headers: {
+          'Content-Type': 'application/json',  // Ensure the content type is set
+        }
+      });
+      
+      // Handle the backend response
+      if (response.data.success) {
+        setSuccessMessage("Payment processed successfully!");
+      } else {
+        setError("There was an issue with processing your payment.");
+      }
+    } catch (err) {
+      setError("Error: Unable to reach the server.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleInputChange = (e) => {
@@ -35,19 +71,7 @@ const PaymentForm = ({ subtotal, fee, hotelName, hotelImage }) => {
           <h1 className="text-3xl font-bold mb-6 text-gray-800">Payment details</h1>
           <form onSubmit={handleSubmit} className="space-y-6">
             <div className="space-y-4">
-              <div>
-                <label htmlFor="fullName" className="block text-sm font-medium text-gray-700">Full Name</label>
-                <input
-                  id="fullName"
-                  name="fullName"
-                  type="text"
-                  value={formData.fullName}
-                  onChange={handleInputChange}
-                  placeholder="Enter your full name"
-                  required
-                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50 transition duration-150 ease-in-out"
-                />
-              </div>
+              
               <div className="grid gap-4 sm:grid-cols-2">
                 <div>
                   <label htmlFor="firstName" className="block text-sm font-medium text-gray-700">First Name</label>
@@ -156,12 +180,19 @@ const PaymentForm = ({ subtotal, fee, hotelName, hotelImage }) => {
               <button 
                 type="submit" 
                 className="w-full bg-yellow-400 hover:bg-yellow-500 text-gray-900 font-bold py-3 px-4 rounded-md transition duration-150 ease-in-out flex items-center justify-center"
+                disabled={loading}
               >
-                <CreditCard className="mr-2 h-5 w-5" />
-                Continue to payment
+                {loading ? 'Processing...' : (
+                  <>
+                    <CreditCard className="mr-2 h-5 w-5" />
+                    Continue to payment
+                  </>
+                )}
               </button>
             </div>
           </form>
+          {error && <p className="text-red-500 mt-4">{error}</p>}
+          {successMessage && <p className="text-green-500 mt-4">{successMessage}</p>}
         </div>
         <div className="bg-white shadow-lg rounded-lg overflow-hidden">
           <div className="px-6 py-4">

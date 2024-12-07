@@ -4,7 +4,7 @@ const CityCard = ({ title, duration, transport, familyPlan }) => {
   return (
     <div className="border rounded-lg shadow-lg p-4">
       <img
-        src="/path-to-card-image.jpg"
+        src="hero.jpg"
         alt={title}
         className="w-full h-40 object-cover rounded-t-lg mb-4"
       />

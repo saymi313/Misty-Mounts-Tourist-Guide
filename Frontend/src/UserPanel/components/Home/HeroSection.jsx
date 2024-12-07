@@ -3,10 +3,10 @@ import Navbar from "./Navbar";
 const HeroSection = () => {
   return (
     <>
-    <div className="h-screen overflow-x-hidden">
+    <div className=" overflow-x-hidden">
      <Navbar />
-    <div className="relative bg-cover bg-center" style={{ backgroundImage: "url('')" }}>
-      <div className="absolute inset-0 bg-black opacity-50"></div>
+    <div className="relative h-screen bg-cover bg-center"style={{ backgroundImage: "url('hero.jpg')" }}>
+      
       <div className="container mx-auto text-center py-20 relative z-10">
         <h1 className="text-4xl md:text-6xl font-bold text-white">Let's Make Your Dream Vacation</h1>
         <div className="mt-6 flex justify-center space-x-4">

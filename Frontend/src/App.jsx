@@ -18,7 +18,8 @@ function App() {
 
   return (
     <>
-   <LandingPage/>
+    <Router> <Payment/></Router>
+  
     </>
   )
 }
