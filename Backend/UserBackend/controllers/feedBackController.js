@@ -1,11 +1,10 @@
 const Feedback = require('../models/feedback');
 
-// Add a new feedback
 const addFeedback = async (req, res) => {
   try {
-    const { name, email, message, rating } = req.body;
+    const { locationName, name, email, message, rating } = req.body;
 
-    const newFeedback = new Feedback({ name, email, message, rating });
+    const newFeedback = new Feedback({ locationName, name, email, message, rating });
     await newFeedback.save();
 
     res.status(201).json({ message: 'Feedback submitted successfully', data: newFeedback });
@@ -14,10 +13,17 @@ const addFeedback = async (req, res) => {
   }
 };
 
-// Get all feedbacks
-const getAllFeedbacks = async (req, res) => {
+// Get all feedbacks for a specific location
+const getFeedbacksByLocation = async (req, res) => {
   try {
-    const feedbacks = await Feedback.find();
+    const { locationName } = req.params;
+
+    const feedbacks = await Feedback.find({ locationName });
+
+    if (feedbacks.length === 0) {
+      return res.status(404).json({ error: 'No feedback found for this location' });
+    }
+
     res.status(200).json({ data: feedbacks });
   } catch (error) {
     res.status(500).json({ error: 'An error occurred while fetching feedbacks' });
@@ -43,6 +49,6 @@ const deleteFeedback = async (req, res) => {
 
 module.exports = {
   addFeedback,
-  getAllFeedbacks,
+  getFeedbacksByLocation,
   deleteFeedback,
 };

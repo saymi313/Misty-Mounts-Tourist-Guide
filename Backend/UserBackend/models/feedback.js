@@ -2,6 +2,10 @@ const mongoose = require('mongoose');
 
 const feedbackSchema = new mongoose.Schema(
   {
+    locationName: {
+      type: String,
+      required: [true, 'Location name is required'],
+    },
     name: {
       type: String,
       required: [true, 'Name is required'],
