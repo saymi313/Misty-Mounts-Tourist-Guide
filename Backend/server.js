@@ -4,6 +4,9 @@ const Admin = require("./AdminBackend/models/Admin");
 const mongoose = require("mongoose");
 const authRoutes = require("./AdminBackend/routes/authRoutes");
 const AdminRoutes = require("./AdminBackend/routes/adminRoutes"); // Ensure this is correct
+const feedbackRoutes = require('./UserBackend/routes/feedbackRoutes');
+
+
 
 const cors = require('cors');
 
@@ -25,6 +28,7 @@ app.use(express.json());
 // Routes
 app.use("/api/admin/auth", authRoutes);
 app.use("/api/admin", AdminRoutes); // Mount the spot routes
+app.use('/api/feedback', feedbackRoutes);
 
 // MongoDB Connection
 mongoose.connect(process.env.MONGO_URI)

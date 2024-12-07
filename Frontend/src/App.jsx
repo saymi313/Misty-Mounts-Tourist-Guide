@@ -9,14 +9,16 @@ import Payment from './UserPanel/pages/Payment'
 import { BrowserRouter as Router } from "react-router-dom";
 import Contact from './UserPanel/pages/Contact'
 import About from './UserPanel/pages/About'
+import Authentication from './UserPanel/pages/Authentication'
 import Feedback from './UserPanel/pages/Feedback'
 function App() {
 
 
 
+
   return (
     <>
-    <Feedback></Feedback>
+    <Authentication></Authentication>
     </>
   )
 }
