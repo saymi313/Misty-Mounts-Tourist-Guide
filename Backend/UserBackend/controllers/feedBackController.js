@@ -1,54 +1,69 @@
-const Feedback = require('../models/feedback');
+const Feedback = require('../models/Feedback');
 
-const addFeedback = async (req, res) => {
+// Add new feedback
+exports.addFeedback = async (req, res) => {
+  const { locationName, rating, message } = req.body;
+
+  if (!locationName || !rating || !message) {
+    return res.status(400).json({ error: 'All fields are required' });
+  }
+
   try {
-    const { locationName, name, email, message, rating } = req.body;
+    const newFeedback = new Feedback({
+      locationName,
+      rating,
+      message,
+    });
 
-    const newFeedback = new Feedback({ locationName, name, email, message, rating });
     await newFeedback.save();
 
-    res.status(201).json({ message: 'Feedback submitted successfully', data: newFeedback });
+    res.status(201).json({
+      message: 'Feedback submitted successfully!',
+      feedback: newFeedback,
+    });
   } catch (error) {
-    res.status(500).json({ error: 'An error occurred while submitting feedback' });
+    console.error(error);
+    res.status(500).json({ error: 'Failed to submit feedback' });
   }
 };
 
-// Get all feedbacks for a specific location
-const getFeedbacksByLocation = async (req, res) => {
-  try {
-    const { locationName } = req.params;
+// Get feedback by location name
+exports.getFeedbacksByLocation = async (req, res) => {
+  const { locationName } = req.params;
 
+  try {
     const feedbacks = await Feedback.find({ locationName });
 
     if (feedbacks.length === 0) {
-      return res.status(404).json({ error: 'No feedback found for this location' });
+      return res.status(404).json({ message: 'No feedback found for this location' });
     }
 
-    res.status(200).json({ data: feedbacks });
+    res.status(200).json({
+      message: 'Feedbacks fetched successfully',
+      feedbacks,
+    });
   } catch (error) {
-    res.status(500).json({ error: 'An error occurred while fetching feedbacks' });
+    console.error(error);
+    res.status(500).json({ error: 'Failed to fetch feedbacks' });
   }
 };
 
 // Delete feedback by ID
-const deleteFeedback = async (req, res) => {
+exports.deleteFeedback = async (req, res) => {
+  const { id } = req.params;
+
   try {
-    const { id } = req.params;
+    const feedback = await Feedback.findByIdAndDelete(id);
 
-    const deletedFeedback = await Feedback.findByIdAndDelete(id);
-
-    if (!deletedFeedback) {
-      return res.status(404).json({ error: 'Feedback not found' });
+    if (!feedback) {
+      return res.status(404).json({ message: 'Feedback not found' });
     }
 
-    res.status(200).json({ message: 'Feedback deleted successfully', data: deletedFeedback });
+    res.status(200).json({
+      message: 'Feedback deleted successfully',
+    });
   } catch (error) {
-    res.status(500).json({ error: 'An error occurred while deleting feedback' });
+    console.error(error);
+    res.status(500).json({ error: 'Failed to delete feedback' });
   }
-};
-
-module.exports = {
-  addFeedback,
-  getFeedbacksByLocation,
-  deleteFeedback,
 };

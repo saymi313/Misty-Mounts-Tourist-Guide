@@ -4,27 +4,15 @@ const feedbackSchema = new mongoose.Schema(
   {
     locationName: {
       type: String,
-      required: [true, 'Location name is required'],
-    },
-    name: {
-      type: String,
-      required: [true, 'Name is required'],
-    },
-    email: {
-      type: String,
-      required: [true, 'Email is required'],
-      match: [/.+@.+\..+/, 'Please enter a valid email address'],
-    },
-    message: {
-      type: String,
-      required: [true, 'Message is required'],
-      minlength: [10, 'Message must be at least 10 characters long'],
+      required: true,
     },
     rating: {
       type: Number,
-      required: [true, 'Rating is required'],
-      min: 1,
-      max: 5,
+      required: true,
+    },
+    message: {
+      type: String,
+      required: true,
     },
   },
   { timestamps: true }
