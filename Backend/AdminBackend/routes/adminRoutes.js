@@ -8,6 +8,8 @@ router.post('/accommodations', accommodationController.addAccommodation);
 router.put('/accommodations/:id', accommodationController.updateAccommodation);
 router.delete('/accommodations/:id', accommodationController.deleteAccommodation);
 router.get('/accommodations', accommodationController.getAllAccommodations);
+// Fetch approved tourist spots by city, excluding 'nearbyPlaces'
+router.get('/city/approved', adminController.getApprovedSpotsByCity);
 
 // Add a tourist spot
 router.post('/spots', adminController.addTouristSpot);

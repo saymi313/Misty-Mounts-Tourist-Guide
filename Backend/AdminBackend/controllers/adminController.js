@@ -1,5 +1,21 @@
 const TouristSpot = require("../models/TouristSport");
+// Get approved tourist spots by city, excluding 'nearbyPlaces'
+exports.getApprovedSpotsByCity = async (req, res) => {
+  const { city } = req.query; // Retrieve city from query parameters
 
+  if (!city) {
+    return res.status(400).json({ success: false, message: 'City is required' });
+  }
+
+  try {
+    // Find all spots with the given city and 'isApproved' set to true
+    const approvedSpots = await TouristSpot.find({ city, isApproved: true }).select('-nearbyPlaces');
+    res.status(200).json({ success: true, data: approvedSpots });
+  } catch (error) {
+    console.error('Error fetching approved spots:', error);
+    res.status(500).json({ success: false, message: 'Failed to fetch approved tourist spots' });
+  }
+};
 // Add a tourist spot
 exports.addTouristSpot = async (req, res) => {
   try {
