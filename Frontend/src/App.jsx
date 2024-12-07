@@ -18,7 +18,7 @@ function App() {
 
   return (
     <>
-    <Feedback></Feedback>
+   <LandingPage/>
     </>
   )
 }
