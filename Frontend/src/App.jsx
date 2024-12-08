@@ -30,14 +30,14 @@ import LandingPage from "./UserPanel/pages/LandingPage"
 import FeedbackPage from "./UserPanel/pages/Feedback";
 const App = () => {
   return (
-    <Router>
-      <Routes>
-        {/* Admin-related routes */}
-        <Route path="/*" element={<AdminRoutes />} />
-        {/* Add other routes if needed */}
-      </Routes>
-    </Router>
-    // <LandingPage />
+    // <Router>
+    //   <Routes>
+    //     {/* Admin-related routes */}
+    //     <Route path="/*" element={<AdminRoutes />} />
+    //     {/* Add other routes if needed */}
+    //   </Routes>
+    // </Router>
+    <LandingPage />
     // <FeedbackPage />
   );
 };

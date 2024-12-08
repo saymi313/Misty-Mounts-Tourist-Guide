@@ -16,7 +16,7 @@ const TransportManagement = () => {
   };
   const [formData, setFormData] = useState({
     transportType: "",
-    price: "",
+    Number: "",
     availability: true,
     city: "", // Add city to form data
   });
@@ -69,7 +69,7 @@ const TransportManagement = () => {
         });
       }
       fetchTransportations(selectedSpot._id);
-      setFormData({ transportType: "", price: "", availability: true });
+      setFormData({ transportType: "", Number: "", availability: true });
     } catch (error) {
       console.error("Error adding/updating transportation:", error);
     }
@@ -79,7 +79,7 @@ const TransportManagement = () => {
     setEditingTransport(transport);
     setFormData({
       transportType: transport.transportType,
-      price: transport.price,
+      Number: transport.Number,
       availability: transport.availability,
     });
   };
@@ -190,10 +190,11 @@ const TransportManagement = () => {
                     {transportations.map((transport) => (
                       <li key={transport._id} className="flex justify-between">
                         <span>
-                          {transport.transportType} - ${transport.price} -{" "}
-                          {transport.availability
+                         <p>Type : {transport.transportType}</p>
+                         <p>Phone Number:+92{transport.Number}</p>
+                         <p> {transport.availability
                             ? "Available"
-                            : "Not Available"}
+                            : "Not Available"}</p>
                         </span>
                         <div>
                           <button
@@ -233,9 +234,9 @@ const TransportManagement = () => {
                     />
                     <input
                       type="number"
-                      name="price"
-                      value={formData.price}
-                      placeholder="Price"
+                      name="Number"
+                      value={formData.Number}
+                      placeholder="Phone Number"
                       onChange={handleInputChange}
                       className="w-full p-2 border border-gray-300 rounded mb-2"
                     />
