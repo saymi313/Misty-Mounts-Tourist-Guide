@@ -2,9 +2,12 @@ import React from 'react';
 import ContactForm from '../components/Contactus/ContactForm';
 import ContactInfo from '../components/Contactus/ContactInfo';
 import Map from '../components/Contactus/Map';
+import Navbar from "../components/Navbar";
 
 const Contact = () => {
     return (
+      <>
+      <Navbar></Navbar>
       <div className="min-h-screen bg-gradient-to-b from-blue-100 to-green-100 py-12 px-4 sm:px-6 lg:px-8">
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-12">
@@ -30,6 +33,7 @@ const Contact = () => {
           </div>
         </div>
       </div>
+      </>
     );
   };
   

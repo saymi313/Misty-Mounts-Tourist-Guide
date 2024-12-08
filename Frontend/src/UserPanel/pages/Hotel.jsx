@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import axios from 'axios';
-import Header from '../components/Hotels/Header';
+import Navbar from "../components/Navbar";
 import HeroSection from '../components/Hotels/HeroSection';
 import AboutSection from '../components/Hotels/AboutSection';
 import DetailsComponent from '../components/Hotels/DetailsComponent';
@@ -39,7 +39,7 @@ const Hotel = () => {
 
   return (
     <div>
-      <Header />
+      <Navbar></Navbar>
       <HeroSection name={hotelData.name} picture={hotelData.picture} />
       <AboutSection description={hotelData.description} />
       <DetailsComponent hotel={hotelData} />

@@ -14,10 +14,15 @@ function App() {
   return (
     <Router>
       <Routes>
+        <Route path="/destinations" element={<Destination />} /> {/* Destinations page route */}
+        <Route path="/about" element={<About />} /> {/* About page route */}
+        <Route path="/contact" element={<Contact />} /> {/* Contact page route */}
         <Route path="/city/:city/spot/:spotId" element={<CityDetail />} />
         <Route path="/accommodations/:id" element={<Hotel />} /> {/* Hotel details route */}
         <Route path="/payment" element={<Payment />} />
+        <Route path="/" element={<LandingPage />} />
       </Routes>
+     
     </Router>
   );
 }

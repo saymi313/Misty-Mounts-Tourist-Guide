@@ -1,11 +1,11 @@
 import React from "react";
-import Navbar from "./Navbar";
+import Navbar from "../Navbar";
 const HeroSection = () => {
   return (
     <>
       <div className=" overflow-x-hidden">
-        <Navbar />
-        <div className="relative h-screen w-full">
+      
+        <div className="relative h-screen w-full bg-blue-50">
           <div className="flex w-full justify-between mt-10 px-20">
             <div className="flex flex-col gap-6 justify-center items-start">
               <h1 className="text-4xl md:text-4xl font-bold">

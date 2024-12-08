@@ -1,30 +1,79 @@
-import React from 'react';
+import React, { useEffect, useState } from "react";
+import axios from "axios";
 
 const Highlights = () => {
-  const highlights = [
-    { icon: "🆓", title: "Free Cancellation", desc: "Cancel up to 24 hours in advance for a full refund" },
-    { icon: "🛡️", title: "Health Precautions", desc: "Special health and safety measures apply" },
-    { icon: "📱", title: "Mobile Ticketing", desc: "Use your phone or print your voucher" },
-    { icon: "⏱️", title: "Duration 3.5 Hours", desc: "Check availability to see starting times" },
-    { icon: "⚡", title: "Instant Confirmation", desc: "Don’t wait for the confirmation!" },
-    { icon: "🎤", title: "Live Tour Guide in English", desc: "English" },
-  ];
+  // State for fetched data, loading, and errors
+  const [highlight, setHighlight] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+
+  useEffect(() => {
+    const fetchHighlight = async () => {
+      try {
+        setLoading(true);
+        const response = await axios.get("http://localhost:5000/api/natural-disaster/");
+        const data = response.data.data || [];
+        setHighlight(data[0] || null); // Show the 0th index
+      } catch (error) {
+        setError("Failed to fetch natural disasters. Please try again later.");
+        console.error(error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchHighlight();
+  }, []);
 
   return (
-    <>
-    <h1 className='ml-8 my-2 text-3xl text-blacl font-bold'>Highlights</h1>
-    <div className="grid grid-cols-3 gap-4 px-8 py-4">
-      {highlights.map((item, index) => (
-        <div key={index} className="flex items-start space-x-4">
-          <span className="text-3xl">{item.icon}</span>
-          <div>
-            <h4 className="font-bold">{item.title}</h4>
-            <p className="text-gray-600">{item.desc}</p>
+    <div className="bg-blue-50 text-white min-h-screen">
+      <h1 className="text-center text-4xl font-extrabold py-6 text-yellow-400">
+        🚨 Natural Disaster Alert 🚨
+      </h1>
+      {loading ? (
+        <p className="text-center text-yellow-300 py-10">Loading the latest information...</p>
+      ) : error ? (
+        <p className="text-center text-red-300 py-10">{error}</p>
+      ) : highlight ? (
+        <div className="max-w-4xl mx-auto p-6 bg-red-800 border-4 border-yellow-500 rounded-lg shadow-lg animate-pulse">
+          <div className="flex items-center space-x-4">
+            <span className="text-6xl">⚠️</span>
+            <h2 className="text-3xl font-bold">{highlight.name}</h2>
           </div>
+          <p className="text-lg mt-4">
+            <strong>📍 Location:</strong> {highlight.location}
+          </p>
+          <p className="text-lg mt-2">
+            <strong>📝 Description:</strong> {highlight.description}
+          </p>
+          <p className="text-lg mt-2">
+            <strong>📅 Date:</strong> {new Date(highlight.date).toLocaleDateString()}
+          </p>
+          <p className="text-lg mt-2">
+            <strong>⚡ Severity:</strong>{" "}
+            <span
+              className={
+                highlight.severity === "High"
+                  ? "text-red-500 font-bold"
+                  : highlight.severity === "Medium"
+                  ? "text-yellow-500 font-bold"
+                  : "text-green-500 font-bold"
+              }
+            >
+              {highlight.severity}
+            </span>
+          </p>
+          <p className="text-lg mt-2">
+            <strong>✔️ Resolved:</strong>{" "}
+            <span className={highlight.isResolved ? "text-green-400" : "text-red-400"}>
+              {highlight.isResolved ? "Yes" : "No"}
+            </span>
+          </p>
         </div>
-      ))}
+      ) : (
+        <p className="text-center text-yellow-300 py-10">No natural disasters found.</p>
+      )}
     </div>
-    </>
   );
 };
 

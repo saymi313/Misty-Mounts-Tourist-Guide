@@ -1,8 +1,8 @@
 import React from 'react';
-import Navbar from '../components/Aboutus/Navbar';
+
 import HeroSection from '../components/Aboutus/HeroSection';
 import OwnerCard from '../components/Aboutus/OwnerCard';
-
+import Navbar from "../components/Navbar";
 const About = () => {
   const owners = [
     {
