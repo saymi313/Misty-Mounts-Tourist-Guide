@@ -11,7 +11,7 @@ const Highlights = () => {
     const fetchHighlight = async () => {
       try {
         setLoading(true);
-        const response = await axios.get("http://localhost:5000/api/natural-disaster/");
+        const response = await axios.get("http://localhost:5000/api/natural-disaster/get-disaster");
         const data = response.data.data || [];
         setHighlight(data[0] || null); // Show the 0th index
       } catch (error) {

@@ -22,6 +22,9 @@ const Navbar = () => {
             <li>
               <Link to="/contact" className="hover:text-yellow-300">Contact</Link> {/* Link for Contact */}
             </li>
+            <li>
+              <Link to="/feedback" className="hover:text-yellow-300">Feedback</Link> {/* Link for Contact */}
+            </li>
           </ul>
           <button className="bg-yellow-300 text-black px-4 py-2 rounded-full w-20">
             Login

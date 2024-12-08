@@ -16,7 +16,7 @@ const API_BASE_URL = 'http://localhost:5000/api/admin';
 const CityDetail = () => {
   const [spotData, setSpotData] = useState(null);
   const [hotelData, setHotelData] = useState([]);
-  const [weatherData, setWeatherData] = useState(null); // Can be removed if no longer needed
+  const [weatherData, setWeatherData] = useState(null); 
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
   const { city, spotId } = useParams();
@@ -29,11 +29,14 @@ const CityDetail = () => {
         setIsLoading(false);
         return;
       }
-
+  
       try {
-        const response = await axios.get(`${API_BASE_URL}/spots/${encodeURIComponent(city)}`);
+        // Logging the URL to check what is being requested
+        const url = `${API_BASE_URL}/spots/${encodeURIComponent(city)}`;
+        console.log('Requesting URL:', url); // This will log the full URL
+        const response = await axios.get(url);
         console.log('API Response:', response.data);
-
+  
         if (response.data && response.data.nearbyPlaces && response.data.nearbyPlaces.length > 0) {
           const place = response.data.nearbyPlaces[0];
           setSpotData({
@@ -50,6 +53,7 @@ const CityDetail = () => {
         setError('Failed to fetch spot data');
       }
     };
+  
 
     const fetchHotelData = async () => {
       try {

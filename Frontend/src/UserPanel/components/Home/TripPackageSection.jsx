@@ -1,35 +1,37 @@
 import React from "react";
 import TripPackageCard from "./TripPackageCard";
-
-const tripPackages = [
-  {
-    title: "Beach Paradise",
-    description: "Enjoy a relaxing beach getaway with all-inclusive amenities.",
-    image: "/images/beach.jpg",
-  },
-  {
-    title: "Mountain Adventure",
-    description: "Explore the mountains with guided tours and outdoor activities.",
-    image: "/images/mountain.jpg",
-  },
-  {
-    title: "City Exploration",
-    description: "Discover the best urban experiences with city tours and events.",
-    image: "/images/city.jpg",
-  },
-  {
-    title: "Jungle Safari",
-    description: "Embark on an exciting safari adventure in the heart of the jungle.",
-    image: "/images/safari.jpg",
-  },
-];
+import axios from "axios";
+import { useState,useEffect } from "react";
 
 const TripPackageSection = () => {
+  const [Reviews, setReviews] = useState([]);
+  const [loading, setLoading] = useState(true); // Initialize   state
+
+  useEffect(() => {
+    fetchReviews();
+  }, []);
+  const fetchReviews = async () => {
+    try {
+      const response = await axios.get("http://localhost:5000/api/feedback/");
+
+      // Check if response has a specific structure
+      if (response.data && response.data.feedbacks) {
+        setReviews(response.data.feedbacks);
+      } else {
+        setReviews([]); // Set an empty array if no feedbacks are available
+      }
+
+      setLoading(false); // Stop loading spinner after data is fetched
+    } catch (error) {
+      console.error("Error fetching reviews:", error);
+      setLoading(false); // Stop loading spinner in case of error
+    }
+  };
   return (
-    <div className="py-16 bg-blue-100">
-      <h2 className="text-3xl font-bold text-center">Trip Packages</h2>
+    <div className="py-16 px-20">
+      <h2 className="text-3xl font-bold text-center">Customer Reviews</h2>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mt-8">
-        {tripPackages.map((packageItem, index) => (
+        {Reviews.map((packageItem, index) => (
           <TripPackageCard key={index} {...packageItem} />
         ))}
       </div>

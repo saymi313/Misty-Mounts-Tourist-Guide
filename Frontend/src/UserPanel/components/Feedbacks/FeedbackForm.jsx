@@ -79,7 +79,7 @@ const FeedbackForm = () => {
           value={spotName}
           onChange={(e) => setSpotName(e.target.value)}
           className="w-full px-3 py-2 border border-emerald-300 rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-white bg-opacity-50"
-          placeholder="e.g., Eiffel Tower, Grand Canyon, Taj Mahal"
+          placeholder="Enter a name"
         />
       </div>
 

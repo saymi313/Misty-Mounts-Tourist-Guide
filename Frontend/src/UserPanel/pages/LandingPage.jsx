@@ -9,12 +9,12 @@ import SubscribeSection from "../components/Home/SubscribeSection";
 import Footer from "../components/Home/Footer";
 const LandingPage = () => {
   return (
-    <div>
+    <div className="bg-blue-50">
      <Navbar/>
       <HeroSection />
       <CategorySection />
       <DestinationSection />
-      <TripPackageSection />
+     
       <SubscribeSection />
       <Footer />
     </div>

@@ -2,12 +2,18 @@ import React from 'react';
 
 const Activity = () => {
   const activities = [
-    "Discover London on a classic Routemaster vintage double-decker bus",
-    "Cruise down the River Thames",
-    "See the Changing of the Guard",
-    "Go to Westminster Abbey",
-    "Listen to the chimes of Big Ben",
+    "Trek through the majestic mountain ranges",
+    "Raft on the fast-flowing rivers",
+    "Camp under the starry skies",
+    "Explore serene valleys and lakes",
+    "Drive the famous Karakoram Highway",
+    "Experience traditional festivals and local culture",
+    "Go off-roading to remote destinations",
+    "Enjoy scenic views from high-altitude passes",
+    "Paraglide in breathtaking landscapes",
+    "Hike to stunning viewpoints and peaks",
   ];
+  
 
   return (
     <section className="px-8 py-4">

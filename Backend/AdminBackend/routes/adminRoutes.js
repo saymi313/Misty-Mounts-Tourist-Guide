@@ -14,12 +14,15 @@ router.get('/accommodations', accommodationController.getAllAccommodations);
 router.get('/city/approved', adminController.getApprovedSpotsByCity);
 router.get('/cities', adminController.getAllCities);
 router.get('/spots/:city', adminController.getSpotsByCity);
+
 // Add a tourist spot
 router.post('/spots', adminController.addTouristSpot);
 // Other routes for spot management
 router.put('/spots/:id', adminController.updateTouristSpot);
 router.delete('/spots/:id', adminController.deleteTouristSpot);
 router.get('/spots', adminController.getAllSpots);
+
+
 // Update the approval route to use the correct handler
 router.patch("/api/admin/spots/:id/approve",adminController.approveOrRejectSpot);
 // Transportation routes

@@ -11,6 +11,21 @@ exports.getAllCities = async (req, res) => {
   }
 };
 
+exports.getSpotByCityAndId = async (req, res) => {
+  try {
+    const { city, id } = req.params;
+    const spot = await TouristSpot.findOne({ 'city': city, 'nearbyPlaces._id': id }).select('nearbyPlaces');
+    if (!spot) {
+      return res.status(404).json({ error: 'Spot not found' });
+    }
+    const nearbyPlace = spot.nearbyPlaces.id(id);
+    res.json(nearbyPlace);
+  } catch (error) {
+    console.error('Error fetching spot:', error);
+    res.status(500).json({ error: 'Error fetching spot' });
+  }
+};
+
 exports.getSpotsByCity = async (req, res) => {
   const { city } = req.params;
 
@@ -119,6 +134,25 @@ exports.deleteTouristSpot = async (req, res) => {
     res.json({ message: "Tourist spot deleted successfully" });
   } catch (error) {
     res.status(500).json({ error: "Error deleting tourist spot" });
+  }
+};
+const getTouristSpotById = async (req, res) => {
+  try {
+    const spotId = req.params.id; // Get the spot ID from the request parameters
+
+    // Find the tourist spot by ID in the database
+    const spot = await TouristSpot.findById(spotId);
+
+    // If the spot is not found, send a 404 error
+    if (!spot) {
+      return res.status(404).json({ message: 'Tourist spot not found' });
+    }
+
+    // Return the spot data in the response
+    res.status(200).json(spot);
+  } catch (error) {
+    console.error('Error fetching tourist spot:', error);
+    res.status(500).json({ message: 'Server error' });
   }
 };
 

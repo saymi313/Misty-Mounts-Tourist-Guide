@@ -1,19 +1,17 @@
-const express = require("express");
-const { authenticateUser } = require("../middleware/auth"); 
-const {
-  createTouristSpot,
-  getAllTouristSpots,
-  getTouristSpotById,
-  updateTouristSpot,
-  deleteTouristSpot,
-} = require("../controllers/touristSpotController");
-
+const express = require('express');
 const router = express.Router();
+const localGuideController = require('../controllers/touristSpotController');
 
-router.post("/", createTouristSpot); // Create a spot
-router.get("/",  getAllTouristSpots); // Get all spots
-router.get("/:id", getTouristSpotById); // Get a spot by ID
-router.put("/:id",  updateTouristSpot); // Update a spot
-router.delete("/:id",  deleteTouristSpot); // Delete a spot
+// CRUD operations for tourist spots
+router.post('/spots', localGuideController.addTouristSpot);
+router.put('/spots/:id', localGuideController.updateTouristSpot);
+router.delete('/spots/:id', localGuideController.deleteTouristSpot);
+router.get('/spots', localGuideController.getAllSpots);
+router.get('/spots/:id', localGuideController.getSpotById);
+
+// Nearby places management
+router.post('/spots/:spotId/nearbyPlaces', localGuideController.addNearbyPlace);
+router.put('/spots/:spotId/nearbyPlaces/:nearbyPlaceId', localGuideController.updateNearbyPlace);
+router.delete('/spots/:spotId/nearbyPlaces/:nearbyPlaceId', localGuideController.deleteNearbyPlace);
 
 module.exports = router;

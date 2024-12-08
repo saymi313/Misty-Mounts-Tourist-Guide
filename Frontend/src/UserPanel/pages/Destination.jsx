@@ -83,7 +83,7 @@ const Destination = () => {
   }
 
   return (
-    <div>
+    <div className='bg-blue-50'>
       <div 
         className='h-screen w-full ' 
         style={{ 
