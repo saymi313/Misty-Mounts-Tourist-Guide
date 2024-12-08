@@ -10,7 +10,6 @@ const feedbackRoutes = require('./UserBackend/routes/feedbackRoutes');
 const paymentRoutes = require('./UserBackend/routes/paymentRoutes');
 const localGuideRoutes = require('./LocalGuidePannel/routes/touristSpotRoutes');
 const naturalDisasterRoutes = require("./LocalGuidePannel/routes/naturalDisasterRoutes"); // Add the path for the natural disaster routes
-
 const app = express();
 const PORT = 5000;
 
@@ -30,6 +29,7 @@ app.use('/api/feedback', feedbackRoutes); // Feedback routes
 app.use("/api/payment", paymentRoutes); // Payment routes
 app.use("/api/local-guide", localGuideRoutes); // Local guide routes
 app.use("/api/natural-disaster", naturalDisasterRoutes); // Natural disaster routes
+
 
 // MongoDB Connection
 mongoose.connect(process.env.MONGO_URI)
