@@ -1,16 +1,12 @@
 // TopBar.js
 import React from "react";
 
-const TopBar = ({ toggleNav }) => {
+const TopBar = ({ NavOpen, IsNavOpen }) => {
   return (
-    <div className="px-5 md:px-10 py-5 bg-white flex items-center justify-between w-full fixed z-20">
-      <div className="bg-red-200 flex items-center gap-2 sm:hidden">
-        <img src="/manager.png" alt="logo" />
-        <h1 className="font-semibold text-lg">Salefynno</h1>
-      </div>
+    <div className="topBar px-5 md:px-10 py-5 bg-white flex items-center justify-between w-full fixed z-20">
       <div className="hidden sm:block z-50 bg-transparent">
-        <a href="#_" onClick={toggleNav}>
-          <img className="h-5 w-5" src="/hamburger.png" alt="menu" />
+        <a href="#_" onClick={() => IsNavOpen(!NavOpen)}>
+          <img className="h-5 w-5" src="/hamburger.png" alt="" />
         </a>
       </div>
       <div className="flex gap-12 md:mr-16">
@@ -20,7 +16,7 @@ const TopBar = ({ toggleNav }) => {
             <input
               type="text"
               placeholder="Search.."
-              className="bg-transparent px-4 focus:outline-none group "
+              className="bg-transparent px-4 focus:outline-none group"
             />
           </div>
         </div>
@@ -29,13 +25,13 @@ const TopBar = ({ toggleNav }) => {
             <img src="/search.png" alt="searchicon" />
           </a>
           <a href="#_">
-            <img src="/assets/travelagency-admin/bell.svg" alt="notifications" />
+            <img src="/assets/travelagency-admin/bell.svg" alt="" />
           </a>
           <a href="#_">
-            <img className="h-8 w-8" src="/manager.png" alt="profile" />
+            <img className="h-8 w-8" src="/manager.png" alt="profileicon" />
           </a>
-          <a href="#_" onClick={toggleNav}>
-            <img src="/hamburger.png" alt="menu" className="sm:hidden" />
+          <a href="#_" onClick={() => IsNavOpen(!NavOpen)}>
+            <img src="/hamburger.png" alt="" className="sm:hidden" />
           </a>
         </div>
       </div>
