@@ -12,9 +12,9 @@ exports.getTransportationBySpotId = async (req, res) => {
 
 // Add transportation
 exports.addTransportation = async (req, res) => {
-  const { spotId, transportType, price, availability } = req.body;
+  const { spotId, transportType, Number, availability } = req.body;
   try {
-    const newTransportation = new Transportation({ spotId, transportType, price, availability });
+    const newTransportation = new Transportation({ spotId, transportType, Number, availability });
     await newTransportation.save();
     res.status(201).json({ message: 'Transportation added successfully' });
   } catch (error) {
