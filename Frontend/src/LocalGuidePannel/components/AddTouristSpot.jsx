@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { createTouristSpot } from '../api/touristSpotApi.jsx';
+import { useNavigate } from 'react-router-dom'; // <-- Add this line
 import NearbyPlaceForm from './NearbyPlaceForm';
 import axios from 'axios';
+
 
 const AddTouristSpot = () => {
   const navigate = useNavigate();
@@ -12,14 +12,20 @@ const AddTouristSpot = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    if (nearbyPlaces.length === 0) {
+      alert('Please add at least one nearby place.');
+      return;
+    }
+
     const payload = {
       city,
       nearbyPlaces,
     };
-  
+
     console.log("Payload being sent:", payload);
     try {
-      await axios.post('http://localhost:5000/api/local-guide/spots', payload); // Ensure backend expects `city` and `nearbyPlaces`
+      await axios.post('http://localhost:5000/api/local-guide/spots', payload);
       alert('Spot added successfully!');
       navigate('/local-guide');
     } catch (error) {
@@ -27,7 +33,7 @@ const AddTouristSpot = () => {
       alert('Failed to add the spot. Please try again.');
     }
   };
-  
+
   const handleAddNearbyPlace = (newPlace) => {
     setNearbyPlaces([...nearbyPlaces, newPlace]);
     setShowNearbyPlaceForm(false);
@@ -48,7 +54,7 @@ const AddTouristSpot = () => {
             className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
           />
         </div>
-        
+
         <div>
           <h3 className="text-lg font-semibold mb-2">Nearby Places</h3>
           {nearbyPlaces.map((place, index) => (
@@ -88,6 +94,6 @@ const AddTouristSpot = () => {
       </form>
     </div>
   );
-};  
+};
 
 export default AddTouristSpot;

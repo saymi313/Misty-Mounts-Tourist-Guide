@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 
-const NearbyPlaceForm = ({  onCancel }) => {
+const NearbyPlaceForm = ({ onSubmit, onCancel }) => { // Receive onSubmit prop
   const [place, setPlace] = useState({
     name: '',
     location: '',
@@ -15,14 +15,13 @@ const NearbyPlaceForm = ({  onCancel }) => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    onSubmit(place); // Call parent function to add the nearby place
+    onSubmit(place); // Call the parent's onSubmit function
     setPlace({ name: '', location: '', description: '', picture: '' });
   };
 
   return (
     <div className="bg-gray-100 p-4 rounded-lg mb-4">
       <h4 className="text-lg font-semibold mb-2">Add Nearby Place</h4>
-      {/* Replace <form> with <div> to avoid nesting issues */}
       <div className="space-y-4">
         <div>
           <label htmlFor="name" className="block text-sm font-medium text-gray-700">Name</label>
