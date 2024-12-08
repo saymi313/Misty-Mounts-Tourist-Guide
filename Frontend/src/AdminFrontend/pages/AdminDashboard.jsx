@@ -91,7 +91,30 @@ const AdminDashboard = () => {
   const [payments, setPayments] = useState([]);
   const [loading, setLoading] = useState(true); // Initialize loading state
   const [totalAmount, setTotalAmount] = useState(0);
+  const generateReport = () => {
+    const profit = 0.45 * totalAmount;
 
+    // Example Report Data
+    const reportData = `
+      Profit Report:
+      --------------------
+      Total Revenue: PKR ${totalAmount}
+      Profit Margin: 45%
+      Total Profit: PKR ${profit.toFixed(2)}
+    `;
+
+    // Log Report in Console
+    console.log(reportData);
+
+    // Optionally download as a file
+    const blob = new Blob([reportData], { type: "text/plain" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = "Profit_Report.txt";
+    link.click();
+    URL.revokeObjectURL(url);
+  };
   const fetchSpotAnalytics = async () => {
     try {
       const response = await axios.get("http://localhost:5000/api/admin/spots");
@@ -232,42 +255,43 @@ const AdminDashboard = () => {
                 <div className="flex flex-col gap-7 mb-6 px-5 ">
                   <div className="flex justify-between">
                     <h1 className="font-bold text-2xl">Travel History</h1>
+                    <button
+                      className="bg-green-200 px-4 py-2 rounded-lg hover:scale-105 transition-all"
+                      onClick={generateReport}
+                    >
+                      Generate Report
+                    </button>
                   </div>
                   <div className="flex gap-10 justify-between">
-                  <div className="flex flex-col lg:flex-row w-full gap-5 justify-between">
-                    <div
-                      className="bg-gradient-to-b from-teal-400 to-blue-500 p-[1px] rounded-xl cursor-pointer w-full"
-                    >
-                      <div className="hover:shadow-lg p-5 w-full bg-white flex-col rounded-[11px] xl:rounded-[13px] flex gap-4 ">
-                        <div className="text-[#637381] text-sm font-semibold">
-                          Total Revenue
+                    <div className="flex flex-col lg:flex-row w-full gap-5 justify-between">
+                      <div className="bg-gradient-to-b from-teal-400 to-blue-500 p-[1px] rounded-xl cursor-pointer w-full">
+                        <div className="hover:shadow-lg p-5 w-full bg-white flex-col rounded-[11px] xl:rounded-[13px] flex gap-4 ">
+                          <div className="text-[#637381] text-sm font-semibold">
+                            Total Revenue
+                          </div>
+                          <div className="flex justify-between">
+                            <div className="text-black text-2xl font-extrabold">
+                              PKR {totalAmount}
+                            </div>
+                          </div>
                         </div>
-                        <div className="flex justify-between">
-                          <div className="text-black text-2xl font-extrabold">
-                            PKR {totalAmount}
+                      </div>
+                    </div>
+                    <div className="flex flex-col lg:flex-row w-full gap-5 justify-between">
+                      <div className="bg-gradient-to-b from-teal-400 to-blue-500 p-[1px] rounded-xl cursor-pointer w-full">
+                        <div className="hover:shadow-lg p-5 w-full bg-white flex-col rounded-[11px] xl:rounded-[13px] flex gap-4 ">
+                          <div className="text-[#637381] text-sm font-semibold">
+                            Total Profit
+                          </div>
+                          <div className="flex justify-between">
+                            <div className="text-black text-2xl font-extrabold">
+                              PKR {0.45 * totalAmount}
+                            </div>
                           </div>
                         </div>
                       </div>
                     </div>
                   </div>
-                  <div className="flex flex-col lg:flex-row w-full gap-5 justify-between">
-                    <div
-                      className="bg-gradient-to-b from-teal-400 to-blue-500 p-[1px] rounded-xl cursor-pointer w-full"
-                    >
-                      <div className="hover:shadow-lg p-5 w-full bg-white flex-col rounded-[11px] xl:rounded-[13px] flex gap-4 ">
-                        <div className="text-[#637381] text-sm font-semibold">
-                          Total Profit
-                        </div>
-                        <div className="flex justify-between">
-                          <div className="text-black text-2xl font-extrabold">
-                            PKR {0.45*totalAmount}
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                  </div>
-                  
                 </div>
                 <h1 className="ml-4 text-2xl font-bold">Recent Reviews</h1>
                 <div className="overflow-x-auto flex flex-col min-h-[300px]">
@@ -375,7 +399,8 @@ const AdminDashboard = () => {
                 <div className="lg:h-auto xl:h-1/2 bg-[#FDFDFD] flex flex-col  rounded-xl">
                   <div className="text-[24px] p-5 flex flex-col gap-3 justify-between">
                     <h1 className="text-[#212B36] font-bold ">Expense</h1>
-                    <h2 className="font-extrabold">PKR {(0.2 * totalAmount).toFixed(1)}
+                    <h2 className="font-extrabold">
+                      PKR {(0.2 * totalAmount).toFixed(1)}
                     </h2>
                   </div>
                   <div>

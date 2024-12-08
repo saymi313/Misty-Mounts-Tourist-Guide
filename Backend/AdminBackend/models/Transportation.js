@@ -3,7 +3,7 @@ const mongoose = require('mongoose');
 const TransportationSchema = new mongoose.Schema({
   spotId: { type: mongoose.Schema.Types.ObjectId, ref: 'TouristSpot', required: true },
   transportType: { type: String, required: true },
-  price: { type: Number, required: true },
+  Number: { type: Number, required: true },
   availability: { type: Boolean, default: true },
 });
 
