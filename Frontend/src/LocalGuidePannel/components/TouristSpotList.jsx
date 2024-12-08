@@ -60,7 +60,7 @@ const TouristSpotList = () => {
                 Name
               </th>
               <th className="px-5 py-3 border-b-2 border-gray-200 bg-gray-100 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                Location  
+                Location
               </th>
               <th className="px-5 py-3 border-b-2 border-gray-200 bg-gray-100 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
                 Approved
@@ -72,49 +72,53 @@ const TouristSpotList = () => {
           </thead>
           <tbody>
             {spots.map((spot) => (
-              <tr key={spot._id}>
-                <td className="px-5 py-5 border-b border-gray-200 bg-white text-sm">
-                  <div className="flex items-center">
-                    <div className="flex-shrink-0 w-10 h-10">
-                      {/* Ensure the image path is correct */}
-                      <img className="w-full h-full rounded-full" src={spot.nearbyPlaces[0]?.picture || '/path/to/default/image.jpg'} alt={spot.name || 'No image available'} />
-                    </div>
-                    <div className="ml-3">
-                      <p className="text-gray-900 whitespace-no-wrap">{spot.nearbyPlaces[0]?.name || 'No name available'}</p>
-                    </div>
-                  </div>
-                </td>
-                <td className="px-5 py-5 border-b border-gray-200 bg-white text-sm">
-                  <p className="text-gray-900 whitespace-no-wrap">{spot.nearbyPlaces[0]?.location || 'No location available'}</p>
-                </td>
-                <td className="px-5 py-5 border-b border-gray-200 bg-white text-sm">
-                  {spot.isApproved ? (
-                    <span className="relative inline-block px-3 py-1 font-semibold text-green-900 leading-tight">
-                      <span aria-hidden className="absolute inset-0 bg-green-200 opacity-50 rounded-full"></span>
-                      <span className="relative flex items-center">
-                        <FaCheck className="mr-1" /> Yes
-                      </span>
-                    </span>
-                  ) : (
-                    <span className="relative inline-block px-3 py-1 font-semibold text-red-900 leading-tight">
-                      <span aria-hidden className="absolute inset-0 bg-red-200 opacity-50 rounded-full"></span>
-                      <span className="relative flex items-center">
-                        <FaTimes className="mr-1" /> No
-                      </span>
-                    </span>
-                  )}
-                </td>
-                <td className="px-5 py-5 border-b border-gray-200 bg-white text-sm">
-                  <div className="flex items-center space-x-4">
-                    <button onClick={() => handleEdit(spot._id)} className="text-indigo-600 hover:text-indigo-900">
-                      <FaEdit />
-                    </button>
-                    <button onClick={() => handleDelete(spot._id)} className="text-red-600 hover:text-red-900">
-                      <FaTrash />
-                    </button>
-                  </div>
-                </td>
-              </tr>
+              <React.Fragment key={spot._id}>
+                {spot.nearbyPlaces.map((place, index) => (
+                  <tr key={`${spot._id}-${index}`}>
+                    <td className="px-5 py-5 border-b border-gray-200 bg-white text-sm">
+                      <div className="flex items-center">
+                        <div className="flex-shrink-0 w-10 h-10">
+                          {/* Ensure the image path is correct */}
+                          <img className="w-full h-full rounded-full" src={place.picture || '/path/to/default/image.jpg'} alt={place.name || 'No image available'} />
+                        </div>
+                        <div className="ml-3">
+                          <p className="text-gray-900 whitespace-no-wrap">{place.name || 'No name available'}</p>
+                        </div>
+                      </div>
+                    </td>
+                    <td className="px-5 py-5 border-b border-gray-200 bg-white text-sm">
+                      <p className="text-gray-900 whitespace-no-wrap">{place.location || 'No location available'}</p>
+                    </td>
+                    <td className="px-5 py-5 border-b border-gray-200 bg-white text-sm">
+                      {spot.isApproved ? (
+                        <span className="relative inline-block px-3 py-1 font-semibold text-green-900 leading-tight">
+                          <span aria-hidden className="absolute inset-0 bg-green-200 opacity-50 rounded-full"></span>
+                          <span className="relative flex items-center">
+                            <FaCheck className="mr-1" /> Yes
+                          </span>
+                        </span>
+                      ) : (
+                        <span className="relative inline-block px-3 py-1 font-semibold text-red-900 leading-tight">
+                          <span aria-hidden className="absolute inset-0 bg-red-200 opacity-50 rounded-full"></span>
+                          <span className="relative flex items-center">
+                            <FaTimes className="mr-1" /> No
+                          </span>
+                        </span>
+                      )}
+                    </td>
+                    <td className="px-5 py-5 border-b border-gray-200 bg-white text-sm">
+                      <div className="flex items-center space-x-4">
+                        <button onClick={() => handleEdit(spot._id)} className="text-indigo-600 hover:text-indigo-900">
+                          <FaEdit />
+                        </button>
+                        <button onClick={() => handleDelete(spot._id)} className="text-red-600 hover:text-red-900">
+                          <FaTrash />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </React.Fragment>
             ))}
           </tbody>
         </table>

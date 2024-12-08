@@ -1,13 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom';
+import { Link, Outlet, useLocation } from 'react-router-dom';
 import { FaMapMarkerAlt, FaPlus, FaChartBar, FaUser, FaCog, FaExclamationTriangle } from 'react-icons/fa';
-import { getAllTouristSpots } from '../api/touristSpotApi.jsx';
+import { getAllTouristSpots } from '../api/touristSpotApi';
 
 const Dashboard = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [spots, setSpots] = useState([]);
   const location = useLocation();
-  const navigate = useNavigate();
 
   useEffect(() => {
     fetchSpots();
@@ -26,10 +25,11 @@ const Dashboard = () => {
     { name: 'Tourist Spots', href: '/local-guide', icon: FaMapMarkerAlt },
     { name: 'Add Tourist Spot', href: '/local-guide/add-spot', icon: FaPlus },
     { name: 'Natural Disasters', href: '/local-guide/natural-disasters', icon: FaExclamationTriangle },
-    { name: 'FeedBack', href: '/local-guide/analytics', icon: FaChartBar },
-    { name: 'Messages', href: '/local-guide/profile', icon: FaUser },
+    { name: 'Feedback', href: '/local-guide/feedback', icon: FaChartBar },
+    { name: 'Messages', href: '/local-guide/messages', icon: FaUser }, // This links to the Chatbot
     { name: 'Settings', href: '/local-guide/settings', icon: FaCog },
   ];
+  
 
   return (
     <div className="flex h-screen bg-gray-100">

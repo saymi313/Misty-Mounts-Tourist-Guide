@@ -83,7 +83,6 @@ const PaymentsManagement = () => {
     navigate("/admin/payments"); // Navigating to the tourist spots management page
   };
 
-
   return (
     <div className="flex">
       <SideMenu
