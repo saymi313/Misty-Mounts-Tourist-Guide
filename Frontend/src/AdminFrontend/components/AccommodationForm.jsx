@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 
 const AccommodationForm = ({ onSubmit, accommodation = {}, refreshAccommodations }) => {
   const [name, setName] = useState(accommodation?.name || "");
+  const [location, setlocation] = useState(accommodation?.name || "");
   const [description, setDescription] = useState(accommodation?.description || "");
   const [price, setPrice] = useState(accommodation?.price || "");
   const [isAvailable, setIsAvailable] = useState(accommodation?.isAvailable || false);
@@ -11,6 +12,7 @@ const AccommodationForm = ({ onSubmit, accommodation = {}, refreshAccommodations
   useEffect(() => {
     if (accommodation?.id) {
       setName(accommodation.name || "");
+      setlocation(accommodation.location || "");
       setDescription(accommodation.description || "");
       setPrice(accommodation.price || "");
       setIsAvailable(accommodation.isAvailable || false);
@@ -23,6 +25,7 @@ const AccommodationForm = ({ onSubmit, accommodation = {}, refreshAccommodations
     e.preventDefault();
     const newAccommodation = {
       name,
+      location,
       description,
       price,
       isAvailable,
@@ -34,6 +37,7 @@ const AccommodationForm = ({ onSubmit, accommodation = {}, refreshAccommodations
     
     // Reset form after submission
     setName("");
+    setlocation("");
     setDescription("");
     setPrice("");
     setIsAvailable(false);
@@ -54,7 +58,17 @@ const AccommodationForm = ({ onSubmit, accommodation = {}, refreshAccommodations
           className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
         />
       </div>
-
+      <div>
+        <label htmlFor="location" className="block text-sm font-medium text-gray-700">Location:</label>
+        <input
+          id="location"
+          type="text"
+          value={location}
+          onChange={(e) => setlocation(e.target.value)}
+          required
+          className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+        />
+      </div>
       <div>
         <label htmlFor="description" className="block text-sm font-medium text-gray-700">Description:</label>
         <input

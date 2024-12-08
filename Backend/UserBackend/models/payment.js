@@ -15,6 +15,7 @@ const PaymentSchema = new mongoose.Schema({
   totalAmount: { type: Number, required: true },
   hotelName: { type: String, required: true },
   isApproveBooking: { type: Boolean, default: false }, // Admin approves/rejects the booking
+  
 }, { timestamps: true });
 
 const Payment = mongoose.model('Payment', PaymentSchema);

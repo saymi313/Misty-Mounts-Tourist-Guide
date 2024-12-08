@@ -1,20 +1,21 @@
 import React from 'react';
 
-const Map = () => {
+const Map = ({ name, latitude, longitude }) => {
+  const zoom = 15;
+  const mapUrl = `https://www.openstreetmap.org/export/embed.html?bbox=${longitude-0.01}%2C${latitude-0.01}%2C${longitude+0.01}%2C${latitude+0.01}&layer=mapnik&marker=${latitude}%2C${longitude}`;
+
   return (
-    <section className="px-8 py-4">
-      <h2 className="text-2xl font-bold mb-4">Map</h2>
+    <div>
+      <h2 className="text-2xl font-bold mb-4">Map of {name}</h2>
       <iframe
-        title="Google Map"
-        src="https://www.google.com/maps/embed?...your-map-url"
-        width="100%"
-        height="400"
-        style={{ border: 0 }}
-        allowFullScreen=""
-        loading="lazy"
-      ></iframe>
-    </section>
+        title="map"
+        src={mapUrl}
+        width="600"
+        height="450"
+      />
+    </div>
   );
 };
 
 export default Map;
+

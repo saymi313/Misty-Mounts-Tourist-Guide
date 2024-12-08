@@ -1,5 +1,49 @@
 const TouristSpot = require("../models/TouristSport");
-// Get approved tourist spots by city, excluding 'nearbyPlaces'
+
+exports.getAllCities = async (req, res) => {
+  try {
+    const cities = await TouristSpot.distinct('city');
+    console.log('Fetched cities:', cities); // Log the cities
+    res.status(200).json(cities);
+  } catch (error) {
+    console.error('Error fetching cities:', error);
+    res.status(500).json({ success: false, message: 'Failed to fetch cities' });
+  }
+};
+
+exports.getSpotsByCity = async (req, res) => {
+  const { city } = req.params;
+
+  try {
+    const spot = await TouristSpot.findOne({ city });
+    if (!spot) {
+      return res.status(404).json({ success: false, message: 'City not found' });
+    }
+    console.log('Fetched spot:', spot); // Log the spot
+    res.status(200).json(spot);
+  } catch (error) {
+    console.error('Error fetching spots:', error);
+    res.status(500).json({ success: false, message: 'Failed to fetch spots' });
+  }
+};
+
+// ... (keep other existing controller methods)
+
+
+
+
+// Fetch all approved tourist spots
+exports.getAllApprovedSpots = async (req, res) => {
+  try {
+    const spots = await TouristSpot.find({ isApproved: true });
+    res.status(200).json({ success: true, data: spots });
+  } catch (error) {
+    console.error('Error fetching tourist spots:', error);
+    res.status(500).json({ success: false, message: 'Failed to fetch tourist spots' });
+  }
+};
+
+// Fetch approved tourist spots by city
 exports.getApprovedSpotsByCity = async (req, res) => {
   const { city } = req.query; // Retrieve city from query parameters
 
@@ -8,14 +52,30 @@ exports.getApprovedSpotsByCity = async (req, res) => {
   }
 
   try {
-    // Find all spots with the given city and 'isApproved' set to true
-    const approvedSpots = await TouristSpot.find({ city, isApproved: true }).select('-nearbyPlaces');
+    const approvedSpots = await TouristSpot.find({ city, isApproved: true });
     res.status(200).json({ success: true, data: approvedSpots });
   } catch (error) {
     console.error('Error fetching approved spots:', error);
-    res.status(500).json({ success: false, message: 'Failed to fetch approved tourist spots' });
+    res.status(500).json({ success: false, message: 'Failed to fetch tourist spots' });
   }
 };
+// Fetch nearby places for a specific spot
+exports.getNearbyPlacesBySpot = async (req, res) => {
+  const { id } = req.params; // Get the tourist spot ID from route parameters
+
+  try {
+    const spot = await TouristSpot.findById(id).select('nearbyPlaces');
+    if (!spot) {
+      return res.status(404).json({ success: false, message: 'Tourist spot not found' });
+    }
+
+    res.status(200).json({ success: true, data: spot.nearbyPlaces });
+  } catch (error) {
+    console.error('Error fetching nearby places:', error);
+    res.status(500).json({ success: false, message: 'Failed to fetch nearby places' });
+  }
+};
+
 // Add a tourist spot
 exports.addTouristSpot = async (req, res) => {
   try {

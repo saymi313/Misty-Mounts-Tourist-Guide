@@ -5,6 +5,7 @@ import TouristSpotForm from "../components/TouristSpotForm"; // Assuming this fo
 import "font-awesome/css/font-awesome.min.css";
 import SideMenu from "../components/SideMenu";
 import TopBar from "../components/TopBar";
+import LoadingComponent from "../components/Loading";
 
 const TouristSpotManagement = () => {
   const [NavOpen, IsNavOpen] = useState(false);
@@ -222,7 +223,11 @@ const TouristSpotManagement = () => {
               )}
 
               {loading ? (
-                <p>Loading spots...</p>
+                    <LoadingComponent
+                    message="Fetching data, please wait..."
+                    size="large"
+                    color="#ff5733"
+                  />
               ) : (
                 <>
                   <h2 className="text-center text-2xl font-bold mt-6">

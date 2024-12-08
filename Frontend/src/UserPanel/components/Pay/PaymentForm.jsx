@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Calendar, CreditCard } from 'lucide-react';
-import axios from 'axios';  // Import Axios
+import axios from 'axios'; 
 
 const PaymentForm = ({ subtotal, fee, hotelName, hotelImage }) => {
   const [formData, setFormData] = useState({
@@ -14,43 +14,45 @@ const PaymentForm = ({ subtotal, fee, hotelName, hotelImage }) => {
     hasPromoCode: false
   });
 
-  const [loading, setLoading] = useState(false);  // To manage the loading state
-  const [error, setError] = useState("");  // To handle error messages
-  const [successMessage, setSuccessMessage] = useState("");  // To handle success messages
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+  const [successMessage, setSuccessMessage] = useState("");
+  const [showPopup, setShowPopup] = useState(false); // Popup visibility state
 
   const totalAmount = subtotal + fee;
 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    // Prepare the data to be sent to the backend
     const paymentData = {
       ...formData,
       subtotal,
       fee,
       totalAmount,
+      hotelName
     };
 
     try {
       setLoading(true);
-      setError("");
-      setSuccessMessage("");
-
-      // Sending POST request to the backend
+      console.log("Sending payment data:", paymentData);
       const response = await axios.post('http://localhost:5000/api/payment/create', paymentData, {
         headers: {
-          'Content-Type': 'application/json',  // Ensure the content type is set
-        }
+          'Content-Type': 'application/json',
+        },
       });
-      
-      // Handle the backend response
-      if (response.data.success) {
-        setSuccessMessage("Payment processed successfully!");
-      } else {
-        setError("There was an issue with processing your payment.");
-      }
+      console.log("Response received:", response.data);
+
+      // Trigger success message and popup
+      setSuccessMessage("Payment successful!");
+      setShowPopup(true);
+
+      // Hide popup after 5 seconds
+      setTimeout(() => {
+        setShowPopup(false);
+      }, 5000);
     } catch (err) {
-      setError("Error: Unable to reach the server.");
+      console.error("Error occurred:", err.response?.data || err.message);
+      setError(err.response?.data?.message || "Unable to reach the server.");
     } finally {
       setLoading(false);
     }
@@ -65,13 +67,17 @@ const PaymentForm = ({ subtotal, fee, hotelName, hotelImage }) => {
   };
 
   return (
-    <div className="container mx-auto px-4 py-8">
+    <div className="container mx-auto px-4 py-8 relative">
+      {showPopup && (
+        <div className="fixed top-4 right-4 bg-green-500 text-white py-2 px-4 rounded-lg shadow-lg transition duration-300">
+          Payment successful! 🎉
+        </div>
+      )}
       <div className="grid gap-8 md:grid-cols-2">
         <div className="bg-white shadow-lg rounded-lg p-6">
           <h1 className="text-3xl font-bold mb-6 text-gray-800">Payment details</h1>
           <form onSubmit={handleSubmit} className="space-y-6">
             <div className="space-y-4">
-              
               <div className="grid gap-4 sm:grid-cols-2">
                 <div>
                   <label htmlFor="firstName" className="block text-sm font-medium text-gray-700">First Name</label>
@@ -198,17 +204,13 @@ const PaymentForm = ({ subtotal, fee, hotelName, hotelImage }) => {
           <div className="px-6 py-4">
             <h2 className="font-bold text-2xl mb-2 text-gray-800">{hotelName}</h2>
           </div>
-          {hotelImage ? (
+         
             <img
               src={hotelImage}
               alt={hotelName}
               className="w-full h-64 object-cover"
             />
-          ) : (
-            <div className="w-full h-64 bg-gray-100 flex items-center justify-center text-gray-500">
-              <span className="text-lg font-medium">Add hotel image here</span>
-            </div>
-          )}
+           
         </div>
       </div>
     </div>

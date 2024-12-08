@@ -1,15 +1,15 @@
 import React from 'react';
 
-const Description = () => {
+const Description = ({ description, location }) => {
   return (
-    <section className="px-8 py-4">
+    <section className="bg-white rounded-lg shadow-md p-6 mt-8">
       <h2 className="text-2xl font-bold mb-4">Description</h2>
-      <p className="text-gray-700 leading-7">
-        See the highlights of London via 2 classic modes of transport on this half-day adventure...
-        {/* Add more description */}
-      </p>
+      <p className="text-gray-700 leading-7 mb-4">{description}</p>
+      <h3 className="text-xl font-semibold mb-2">Location</h3>
+      <p className="text-gray-700">{location}</p>
     </section>
   );
 };
 
 export default Description;
+
