@@ -67,3 +67,21 @@ exports.deleteFeedback = async (req, res) => {
     res.status(500).json({ error: 'Failed to delete feedback' });
   }
 };
+
+exports.getAllFeedbacks = async (req, res) => {
+  try {
+    const feedbacks = await Feedback.find();
+
+    if (feedbacks.length === 0) {
+      return res.status(404).json({ message: 'No feedback available' });
+    }
+
+    res.status(200).json({
+      message: 'All feedbacks fetched successfully',
+      feedbacks,
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Failed to fetch all feedbacks' });
+  }
+};

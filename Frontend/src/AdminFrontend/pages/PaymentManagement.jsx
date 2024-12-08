@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import axios from "axios";
 import TopBar from "../components/TopBar";
 import SideMenu from "../components/SideMenu";
+import LoadingComponent from "../components/Loading";
 import { useNavigate } from "react-router-dom"; // Import useNavigate from react-router-dom
 const PaymentsManagement = () => {
   const [payments, setPayments] = useState([]);
@@ -108,7 +109,11 @@ const PaymentsManagement = () => {
               <h2 className="text-2xl font-bold mb-6">Manage Payments</h2>
 
               {loading ? (
-                <div>Loading payments...</div>
+                    <LoadingComponent
+                    message="Fetching data, please wait..."
+                    size="large"
+                    color="#ff5733"
+                  />
               ) : payments.length === 0 ? (
                 <div>No payments found.</div>
               ) : (

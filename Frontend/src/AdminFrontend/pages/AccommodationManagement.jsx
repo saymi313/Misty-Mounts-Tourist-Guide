@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom"; // Import useNavigate from react
 import axios from "axios";
 import AccommodationForm from "../components/AccommodationForm";
 import SideMenu from "../components/SideMenu";
+import LoadingComponent from "../components/Loading";
 import TopBar from "../components/TopBar";
 const AccommodationManagement = () => {
   const [NavOpen, IsNavOpen] = useState(false);
@@ -98,7 +99,7 @@ const AccommodationManagement = () => {
 
   return (
     <div className="flex">
-       <SideMenu
+      <SideMenu
         NavOpen={NavOpen}
         IsNavOpen={IsNavOpen}
         goToAdminDashboard={goToAdminDashboard}
@@ -106,12 +107,11 @@ const AccommodationManagement = () => {
         goToTouristSpotManagement={goToTouristSpotManagement}
         goToTransportManagement={goToTransportManagement}
         goToPaymentManagement={goToPaymentManagement}
-
       />
       <div className="w-full flex flex-col md:ml-20">
         <TopBar NavOpen={NavOpen} IsNavOpen={IsNavOpen} />
         <div className="transition-all duration-1000 ease-in-out">
-        <div
+          <div
             className={`flex flex-col w-full justify-between gap-5 p-5 mt-20 ${
               NavOpen
                 ? "md:max-w-[calc(100vw_-_100px)] sm:max-w-[calc(100vw_-_160px)] md:pl-36 transition-all duration-500"
@@ -123,9 +123,11 @@ const AccommodationManagement = () => {
                 Accommodation Management
               </h1>
               {loading ? (
-                <p className="text-lg text-gray-600">
-                  Loading accommodations...
-                </p>
+                 <LoadingComponent
+                 message="Fetching data, please wait..."
+                 size="large"
+                 color="#ff5733"
+               />
               ) : (
                 <div className="space-y-6">
                   <div className="flex justify-end">
@@ -170,6 +172,9 @@ const AccommodationManagement = () => {
                         <div className="flex flex-col">
                           <h3 className="text-2xl font-semibold text-gray-800 mb-2">
                             {accommodation.name}
+                          </h3>
+                          <h3 className="font-semibold text-gray-800 mb-2">
+                            {accommodation.location}
                           </h3>
                           <p className="text-gray-600 text-base min-h-24 mb-2">
                             {accommodation.description}
