@@ -16,7 +16,6 @@ router.get('/cities', adminController.getAllCities);
 router.get('/spots/:city', adminController.getSpotsByCity);
 // Add a tourist spot
 router.post('/spots', adminController.addTouristSpot);
-
 // Other routes for spot management
 router.put('/spots/:id', adminController.updateTouristSpot);
 router.delete('/spots/:id', adminController.deleteTouristSpot);

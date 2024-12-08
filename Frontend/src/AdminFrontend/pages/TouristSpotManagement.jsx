@@ -3,6 +3,9 @@ import axios from "axios";
 import React, { useState, useEffect } from "react";
 import TouristSpotForm from "../components/TouristSpotForm"; // Assuming this form handles adding and updating spots
 import "font-awesome/css/font-awesome.min.css";
+import SideMenu from "../components/SideMenu";
+import TopBar from "../components/TopBar";
+import LoadingComponent from "../components/Loading";
 
 const TouristSpotManagement = () => {
   const [NavOpen, IsNavOpen] = useState(false);
@@ -146,143 +149,42 @@ const TouristSpotManagement = () => {
   }
 
   // Function to navigate to Tourist Spot Management
+  const navigate = useNavigate(); // Initialize navigate
+
   const goToTouristSpotManagement = () => {
     navigate("/admin/tourist-spots"); // Navigating to the tourist spots management page
   };
 
   const goToAccommodationManagement = () => {
-    navigate("/admin/accommodation"); // Navigating to the accommodation management page
+    navigate("/admin/accommodation"); // Navigating to the tourist spots management page
   };
 
   const goToAdminDashboard = () => {
-    navigate("/admin/dashboard"); // Navigating to the admin dashboard
+    navigate("/admin/dashboard"); // Navigating to the tourist spots management page
   };
+
   const goToTransportManagement = () => {
     navigate("/admin/transportation"); // Navigating to the tourist spots management page
   };
-  const navigate = useNavigate(); // Initialize navigate
+  const goToPaymentManagement = () => {
+    navigate("/admin/payments"); // Navigating to the tourist spots management page
+  };
 
   return (
     <div className="flex">
-      <div
-        className={`bg-white transition-all duration-500 ease-in-out h-screen md:h-[600px] gap-12 pl-4 rounded-br-lg shadow-md flex-col fixed z-10 sm:flex ${
-          NavOpen ? "w-[200px] top-0 left-0" : "w-[78px] -left-52 sm:left-0"
-        }`}
-      >
-        <div className="flex pl-2.5 pt-8 px-5 justify-between items-center">
-          <a href="#_">
-            <img src="/mountain.png" alt="logo" />
-          </a>
-        </div>
-        <div className="flex flex-col items-start gap-14 justify-between pr-5 py-5 h-full mt-5 md:mt-0">
-          <div className="flex flex-col gap-10 h-full">
-            <button
-              onClick={goToAdminDashboard}
-              className={`flex gap-3 items-center ${
-                NavOpen ? "hover:bg-[#D8FFFF] px-1 rounded-sm" : ""
-              }`}
-            >
-              <div className="hover:bg-[#D8FFFF] transition-colors duration-300 w-[42px] h-[42px] flex items-center justify-center rounded-sm">
-                <img className="h-8 w-8" src="/home.png" alt="logo" />
-              </div>
-              <span
-                className={`${
-                  NavOpen ? "block delay-700 delayed-text" : "hidden"
-                }`}
-              >
-                Home
-              </span>
-            </button>
-            <button
-              onClick={goToAccommodationManagement}
-              className={`flex gap-3 items-center ${
-                NavOpen ? "hover:bg-[#D8FFFF] px-1 rounded-sm" : ""
-              }`}
-            >
-              <div className="hover:bg-[#D8FFFF] transition-colors duration-300 w-[42px] h-[42px] flex items-center justify-center rounded-sm">
-                <img className="h-8 w-8" src="/accomodation.png" alt="logo" />
-              </div>
-              <span
-                className={`${
-                  NavOpen ? "block delay-700 delayed-text" : "hidden"
-                }`}
-              >
-                Accommodation
-              </span>
-            </button>
-            <button
-              onClick={goToTouristSpotManagement}
-              className={`flex gap-3 items-center ${
-                NavOpen ? "hover:bg-[#D8FFFF] px-1 rounded-sm" : ""
-              }`}
-            >
-              <div className="hover:bg-[#D8FFFF] transition-colors duration-300 w-[42px] h-[42px] flex items-center justify-center rounded-sm">
-                <img className="h-8 w-8" src="/landmark.png" alt="logo" />
-              </div>
-              <span
-                className={`${
-                  NavOpen ? "block delay-700 delayed-text" : "hidden"
-                }`}
-              >
-                Tourist Spot
-              </span>
-            </button>
-            <button
-              onClick={goToTransportManagement}
-              className={`flex gap-3 items-center ${
-                NavOpen ? "hover:bg-[#D8FFFF] px-1 rounded-sm" : ""
-              }`}
-            >
-              <div className="hover:bg-[#D8FFFF] transition-colors duration-300 w-[42px] h-[42px] flex items-center justify-center rounded-sm">
-                <img className="h-8 w-8" src="/delivery.png" alt="logo" />
-              </div>
-              <span
-                className={` ${
-                  NavOpen ? "block delay-700 delayed-text" : "hidden"
-                }`}
-              >
-                Transport
-              </span>
-            </button>
-          </div>
-        </div>
-      </div>
+      <SideMenu
+        NavOpen={NavOpen}
+        IsNavOpen={IsNavOpen}
+        goToAdminDashboard={goToAdminDashboard}
+        goToAccommodationManagement={goToAccommodationManagement}
+        goToTouristSpotManagement={goToTouristSpotManagement}
+        goToTransportManagement={goToTransportManagement}
+        goToPaymentManagement={goToPaymentManagement}
+      />
       <div className="w-full flex flex-col md:ml-20">
-        <div className="px-5 md:px-10 py-5 bg-white flex items-center justify-between w-full fixed z-20">
-          <div className="hidden sm:block z-50 bg-transparent">
-            <a href="#_" onClick={() => IsNavOpen(!NavOpen)}>
-              <img className="h-5 w-5" src="/hamburger.png" alt="" />
-            </a>
-          </div>
-          <div className="flex gap-12 md:mr-16">
-            <div>
-              <div className="md:flex items-center bg-blue-100 rounded-3xl px-3 py-2.5 hidden border-transparent border-2 group focus-within:border-[#09D7C9]">
-                <img className="h-5 w-5" src="/search.png" alt="search" />
-                <input
-                  type="text"
-                  placeholder="Search.."
-                  className="bg-transparent px-4 focus:outline-none group "
-                />
-              </div>
-            </div>
-            <div className="flex items-center gap-2.5">
-              <a href="#_" className="md:hidden">
-                <img src="/search.png" alt="searchicon" />
-              </a>
-              <a href="#_">
-                <img src="/assets/travelagency-admin/bell.svg" alt="" />
-              </a>
-              <a href="#_">
-                <img className="h-8 w-8" src="/manager.png" alt="profileicon" />
-              </a>
-              <a href="#_" onClick={() => IsNavOpen(!NavOpen)}>
-                <img src="/hamburger.png" alt="" className="sm:hidden" />
-              </a>
-            </div>
-          </div>
-        </div>
+        <TopBar NavOpen={NavOpen} IsNavOpen={IsNavOpen} />
         <div className="transition-all duration-1000 ease-in-out">
-          <div
+        <div
             className={`flex flex-col w-full justify-between gap-5 p-5 mt-20 ${
               NavOpen
                 ? "md:max-w-[calc(100vw_-_100px)] sm:max-w-[calc(100vw_-_160px)] md:pl-36 transition-all duration-500"
@@ -321,7 +223,11 @@ const TouristSpotManagement = () => {
               )}
 
               {loading ? (
-                <p>Loading spots...</p>
+                    <LoadingComponent
+                    message="Fetching data, please wait..."
+                    size="large"
+                    color="#ff5733"
+                  />
               ) : (
                 <>
                   <h2 className="text-center text-2xl font-bold mt-6">
@@ -368,10 +274,10 @@ const TouristSpotManagement = () => {
                             {/* Display the current nearby places */}
                             {nearbyPlaceToShow.map((nearbyPlace, index) => (
                               <div key={index}>
-                                <p className="text-gray-600 text-sm font-semibold mb-2">
+                                <p className="text-gray-600 text-sm min-h-10 font-semibold mb-2">
                                   Location: {nearbyPlace.location}
                                 </p>
-                                <p className="text-gray-600 text-sm mb-2">
+                                <p className="text-gray-600 min-h-20 text-sm mb-2">
                                   {nearbyPlace.description}
                                 </p>
                                 <div className="flex items-center justify-between mb-2">
@@ -459,9 +365,9 @@ const TouristSpotManagement = () => {
                               <button
                                 onClick={handlePreviousPage}
                                 disabled={currentPage === 1}
-                                className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 transition duration-300"
+                                className="text-white px-4 py-2 rounded-full h-16 w-16 hover:bg-gray-200 transition duration-300"
                               >
-                                Previous
+                                <img src="/left.png" alt="" />
                               </button>
                               <button
                                 onClick={handleNextPage}
@@ -469,9 +375,9 @@ const TouristSpotManagement = () => {
                                   currentPage * spotsPerPage >=
                                   spot.nearbyPlaces.length
                                 }
-                                className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 transition duration-300"
+                                className="text-white px-4 py-2 rounded-full h-16 w-16 hover:bg-gray-200 transition duration-300"
                               >
-                                Next
+                                <img src="/next.png" alt="" />
                               </button>
                             </div>
                           </div>
@@ -488,5 +394,4 @@ const TouristSpotManagement = () => {
     </div>
   );
 };
-
 export default TouristSpotManagement;

@@ -14,8 +14,8 @@ exports.getAccommodationById = async (req, res) => {
 // Add an accommodation
 exports.addAccommodation = async (req, res) => {
   try {
-    const { name, description,picture, price, isAvailable, specialOffer } = req.body;
-    const accommodation = new Accommodation({ name, description, picture, price, isAvailable, specialOffer });
+    const { name, location, description,picture, price, isAvailable, specialOffer } = req.body;
+    const accommodation = new Accommodation({ name, location, description, picture, price, isAvailable, specialOffer });
     await accommodation.save();
     res.status(201).json({ message: "Accommodation added successfully", accommodation });
   } catch (error) {
