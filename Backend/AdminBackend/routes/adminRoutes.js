@@ -7,10 +7,13 @@ const transportationController = require('../controllers/TransportationControlle
 router.post('/accommodations', accommodationController.addAccommodation);
 router.put('/accommodations/:id', accommodationController.updateAccommodation);
 router.delete('/accommodations/:id', accommodationController.deleteAccommodation);
+router.get('/accommodations/:id', accommodationController.getAccommodationById);
+
 router.get('/accommodations', accommodationController.getAllAccommodations);
 // Fetch approved tourist spots by city, excluding 'nearbyPlaces'
 router.get('/city/approved', adminController.getApprovedSpotsByCity);
-
+router.get('/cities', adminController.getAllCities);
+router.get('/spots/:city', adminController.getSpotsByCity);
 // Add a tourist spot
 router.post('/spots', adminController.addTouristSpot);
 

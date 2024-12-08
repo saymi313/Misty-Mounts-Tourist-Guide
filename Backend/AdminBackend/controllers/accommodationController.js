@@ -1,5 +1,16 @@
 const Accommodation = require("../models/Accommodation");
-
+exports.getAccommodationById = async (req, res) => {
+  const { id } = req.params;
+  try {
+    const hotel = await Accommodation.findById(id);
+    if (!hotel) {
+      return res.status(404).json({ message: 'Hotel not found' });
+    }
+    res.status(200).json(hotel);
+  } catch (err) {
+    res.status(500).json({ message: 'Server error' });
+  }
+};
 // Add an accommodation
 exports.addAccommodation = async (req, res) => {
   try {

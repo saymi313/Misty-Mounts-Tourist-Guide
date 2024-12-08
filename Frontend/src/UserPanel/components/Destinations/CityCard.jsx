@@ -1,19 +1,16 @@
 import React from 'react';
 
-const CityCard = ({ title, duration, transport, familyPlan }) => {
+const CityCard = ({ name, location, picture }) => {
   return (
-    <div className="border rounded-lg shadow-lg p-4">
-      <img
-        src="hero.jpg"
-        alt={title}
-        className="w-full h-40 object-cover rounded-t-lg mb-4"
-      />
-      <h3 className="text-xl font-semibold">{title}</h3>
-      <p className="text-gray-600 mt-2">Duration: {duration}</p>
-      <p className="text-gray-600">Transport: {transport}</p>
-      <p className="text-gray-600">Plan: {familyPlan}</p>
+    <div className="bg-white rounded-lg shadow-md overflow-hidden">
+      <img src={picture} alt={name} className="w-full h-48 object-cover" />
+      <div className="p-4">
+        <h3 className="text-xl font-semibold mb-2">{name}</h3>
+        <p className="text-gray-600">{location}</p>
+      </div>
     </div>
   );
 };
 
 export default CityCard;
+

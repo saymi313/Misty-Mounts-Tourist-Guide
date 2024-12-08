@@ -1,62 +1,114 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
+import axios from 'axios';
 import Navbar from '../components/Destinations/Navbar';
 import HeroSection from '../components/Destinations/HeroSection';
 import SearchBar from '../components/Destinations/SearchBar';
 import CityCard from '../components/Destinations/CityCard';
 import Pagination from '../components/Destinations/Pagination';
 
+const API_BASE_URL = 'http://localhost:5000/api/admin';
+
 const Destination = () => {
-  const destinations = [
-    { id: 1, title: 'Alaska: Westminster to Greenwich River Thames', duration: '2 hours', transport: 'Transport Facility', familyPlan: 'Family Plan' },
-    { id: 2, title: 'Alaska: Vintage Double Decker Bus Tour & Thames', duration: '2 hours', transport: 'Transport Facility', familyPlan: 'Family Plan' },
-    { id: 3, title: 'Alaska: Magic of London Tour with Afternoon Tea', duration: '2 hours', transport: 'Transport Facility', familyPlan: 'Family Plan' },
-    { id: 4, title: 'Alaska: Magic of London Tour with Afternoon Tea', duration: '2 hours', transport: 'Transport Facility', familyPlan: 'Family Plan' },
-  ];
+  const [selectedCity, setSelectedCity] = useState('');
+  const [cities, setCities] = useState([]);
+  const [nearbyPlaces, setNearbyPlaces] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    const fetchCities = async () => {
+      setIsLoading(true);
+      try {
+        const response = await axios.get(`${API_BASE_URL}/cities`, { withCredentials: true });
+        console.log('Cities response:', response.data); // Log the response
+        if (Array.isArray(response.data)) {
+          setCities(response.data);
+          if (response.data.length > 0) {
+            setSelectedCity(response.data[0]);
+          }
+        } else {
+          throw new Error('Received invalid data for cities');
+        }
+      } catch (error) {
+        console.error('Error fetching cities:', error);
+        setError('Failed to fetch cities. Please try again later.');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchCities();
+  }, []);
+
+  useEffect(() => {
+    const fetchNearbyPlaces = async () => {
+      if (selectedCity) {
+        setIsLoading(true);
+        try {
+          const response = await axios.get(`${API_BASE_URL}/spots/${selectedCity}`, { withCredentials: true });
+          console.log('Nearby places response:', response.data); // Log the response
+          setNearbyPlaces(response.data.nearbyPlaces || []);
+        } catch (error) {
+          console.error('Error fetching nearby places:', error);
+          setError('Failed to fetch nearby places. Please try again later.');
+        } finally {
+          setIsLoading(false);
+        }
+      }
+    };
+
+    fetchNearbyPlaces();
+  }, [selectedCity]);
+
+  if (isLoading) {
+    return <div className="text-center py-10">Loading...</div>;
+  }
+
+  if (error) {
+    return <div className="text-center py-10 text-red-500">Error: {error}</div>;
+  }
 
   return (
     <div>
       <Navbar />
       <HeroSection
-        title="Welcome to Northern Pakistan"
-        subtitle="Amet minim mollit non deserunt ullamco est sit aliqua dolor do amet sint."
+        title="Welcome to our platform"
+        subtitle="Explore the beauty of Northern Pakistan"
         backgroundImage="url('hero.jpg')"
       />
       <SearchBar placeholder="Search For A Destination" />
-      <section className="px-8 py-12">
+      <section className="px-4 sm:px-8 py-12">
         <h2 className="text-3xl font-bold text-center mb-6">Explore Popular Cities</h2>
         <p className="text-center text-gray-500 mb-12">
-          Amet minim mollit non deserunt ullamco est sit aliqua dolor do amet sint.
+          Discover the hidden gems of Northern Pakistan
         </p>
-        <div className="flex justify-center space-x-4 mb-8">
-          {['Naran', 'Mansehra', 'Kaghan', 'Hunza', 'Gilgit', 'Astor', 'Balakot', 'Swat'].map((city, index) => (
+        <div className="flex flex-wrap justify-center gap-4 mb-8">
+          {cities.map((city, index) => (
             <button
               key={index}
-              className={`px-4 py-2 border rounded-full ${city === 'Naran' ? 'bg-green-500 text-white' : 'bg-gray-100 text-gray-700'}`}
+              onClick={() => setSelectedCity(city)}
+              className={`px-4 py-2 border rounded-full ${
+                selectedCity === city ? 'bg-green-500 text-white' : 'bg-gray-100 text-gray-700'
+              }`}
             >
               {city}
             </button>
           ))}
         </div>
-        <div className="relative bg-cover bg-center h-96 rounded-md mb-12" style={{ backgroundImage: "url('Naran.jpg')" }}>
-          <div className="absolute inset-0 bg-black bg-opacity-50 flex flex-col justify-center items-center text-white">
-            <h3 className="text-4xl font-bold">Naran</h3>
-            <p className="text-center mt-4 max-w-xl">
-              Amet minim mollit non deserunt ullamco est sit aliqua dolor do amet sint. Velit officia consequat.
-            </p>
-            <div className="flex mt-6 space-x-4">
-              {['Public Transportations', 'Nature & Adventure', 'Private Transportations', 'Business Tours', 'Local Visit'].map((tag, idx) => (
-                <span key={idx} className="px-3 py-1 bg-gray-800 rounded-full text-sm">
-                  {tag}
-                </span>
-              ))}
+        {selectedCity && (
+          <div className="relative bg-cover bg-center h-96 rounded-md mb-12" style={{ backgroundImage: `url('${selectedCity}.jpg')` }}>
+            <div className="absolute inset-0 bg-black bg-opacity-50 flex flex-col justify-center items-center text-white">
+              <h3 className="text-4xl font-bold">{selectedCity}</h3>
+              <p className="text-center mt-4 max-w-xl">
+                Explore the beauty and culture of {selectedCity}
+              </p>
             </div>
           </div>
-        </div>
-          <h3 className="text-4xl font-bold">Popular Hidden Places</h3>
-        <div className="mt-2 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-          
-          {destinations.map((destination) => (
-            <CityCard key={destination.id} {...destination} />
+        )}
+        <h3 className="text-4xl font-bold">Popular Hidden Places</h3>
+        <div className="mt-2 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+          {nearbyPlaces.map((place) => (
+            <CityCard key={place._id} {...place} />
           ))}
         </div>
         <Pagination />
@@ -66,3 +118,4 @@ const Destination = () => {
 };
 
 export default Destination;
+
