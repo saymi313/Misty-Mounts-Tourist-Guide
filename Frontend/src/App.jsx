@@ -7,7 +7,7 @@ function App() {
   return (
     <Router>
       <Routes>
-        <Route path="/" element={<LandingPage />} /> {/* Landing page route */}
+        <Route path="/Home" element={<LandingPage />} /> {/* Landing page route */}
         {/* Add the RoutesFile component */}
         <Route path="/*" element={<RoutesFile />} /> {/* All other routes */}
       </Routes>
