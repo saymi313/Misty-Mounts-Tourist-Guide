@@ -9,7 +9,7 @@ const CityCard = ({ name, location, picture, city, spotId }) => {
         <h3 className="text-xl font-semibold mb-2">{name}</h3>
         <p className="text-gray-600">{location}</p>
         <Link
-          to={`/city/${city}/spot/${spotId}`}
+          to={`/city/${encodeURIComponent(city)}/spot/${encodeURIComponent(spotId)}`}
           className="mt-4 inline-block bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
         >
           View
@@ -20,3 +20,4 @@ const CityCard = ({ name, location, picture, city, spotId }) => {
 };
 
 export default CityCard;
+
