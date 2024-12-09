@@ -7,6 +7,7 @@ import Navbar from "../components/Navbar";
 const Contact = () => {
     return (
       <>
+      <div className='min-h-screen bg-blue-50 '>
       <Navbar />
       <div className="min-h-screen bg-gradient-to-b bg-blue-50 py-12 px-4 sm:px-6 lg:px-8">
         <div className="max-w-7xl mx-auto">
@@ -48,6 +49,7 @@ const Contact = () => {
             </div>
           </div>
         </div>
+      </div>
       </div>
       </>
     );

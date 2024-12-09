@@ -141,7 +141,14 @@ const Destination = () => {
         <h3 className="text-4xl font-bold">Popular Hidden Places</h3>
         <div className="mt-2 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
           {nearbyPlaces.map((place) => (
-            <CityCard key={place._id} {...place} />
+            <CityCard 
+              key={place._id} 
+              name={place.name}
+              location={place.location}
+              picture={place.picture}
+              city={selectedCity}
+              spotId={place._id}
+            />
           ))}
         </div>
 

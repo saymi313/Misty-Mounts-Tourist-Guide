@@ -38,7 +38,7 @@ const Hotel = () => {
   }
 
   return (
-    <div>
+    <div className="bg-blue-50 min-h-screen">
       <Navbar></Navbar>
       <HeroSection name={hotelData.name} picture={hotelData.picture} />
       <AboutSection description={hotelData.description} />

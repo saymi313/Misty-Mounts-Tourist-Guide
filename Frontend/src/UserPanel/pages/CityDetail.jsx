@@ -8,15 +8,15 @@ import Description from '../components/Detail/Description';
 import Activity from '../components/Detail/Activity';
 import Map from '../components/Detail/Map';
 import HotelCard from '../components/Detail/HotelCard';
+import TransportationSection from '../components/Detail/TransportationSection';
 
 const API_BASE_URL = 'http://localhost:5000/api/admin';
-// const OPENWEATHER_API_URL = 'https://api.openweathermap.org/data/2.5/weather';
-// const OPENWEATHER_API_KEY = '31482d8c80f1287453faeba18e909692'; // Replace with your OpenWeather API key
 
 const CityDetail = () => {
   const [spotData, setSpotData] = useState(null);
   const [hotelData, setHotelData] = useState([]);
-  const [weatherData, setWeatherData] = useState(null); 
+  const [weatherData, setWeatherData] = useState(null);
+  const [transportationData, setTransportationData] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
   const { city, spotId } = useParams();
@@ -29,22 +29,25 @@ const CityDetail = () => {
         setIsLoading(false);
         return;
       }
-  
+
       try {
-        // Logging the URL to check what is being requested
         const url = `${API_BASE_URL}/spots/${encodeURIComponent(city)}`;
-        console.log('Requesting URL:', url); // This will log the full URL
+        console.log('Requesting URL:', url);
         const response = await axios.get(url);
         console.log('API Response:', response.data);
-  
-        if (response.data && response.data.nearbyPlaces && response.data.nearbyPlaces.length > 0) {
-          const place = response.data.nearbyPlaces[0];
-          setSpotData({
-            ...place,
-            city: response.data.city,
-            latitude: place.latitude || 0,
-            longitude: place.longitude || 0,
-          });
+
+        if (response.data && response.data.nearbyPlaces) {
+          const place = response.data.nearbyPlaces.find(p => p._id === spotId);
+          if (place) {
+            setSpotData({
+              ...place,
+              city: response.data.city,
+              latitude: place.latitude || 0,
+              longitude: place.longitude || 0,
+            });
+          } else {
+            setError('Spot not found');
+          }
         } else {
           setError('Spot not found');
         }
@@ -53,7 +56,6 @@ const CityDetail = () => {
         setError('Failed to fetch spot data');
       }
     };
-  
 
     const fetchHotelData = async () => {
       try {
@@ -71,29 +73,10 @@ const CityDetail = () => {
       }
     };
 
-    // Dummy weather data simulating cold weather
     const fetchWeatherData = async () => {
-      // Commenting out the actual API call
-      // if (city) {
-      //   try {
-      //     const response = await axios.get(OPENWEATHER_API_URL, {
-      //       params: {
-      //         q: city, // Use the city from URL params
-      //         appid: OPENWEATHER_API_KEY,
-      //         units: 'metric', // For Celsius
-      //       },
-      //     });
-      //     setWeatherData(response.data);
-      //   } catch (err) {
-      //     console.error('Error fetching weather data:', err);
-      //     setError('Failed to fetch weather data');
-      //   }
-      // }
-
-      // Simulating cold weather data
       setWeatherData({
         main: {
-          temp: -5, // Simulating cold temperature
+          temp: -5,
           humidity: 80,
         },
         weather: [{ description: 'Snowy' }],
@@ -101,17 +84,26 @@ const CityDetail = () => {
       });
     };
 
-    // Fetch spot, hotel, and weather data concurrently
+    const fetchTransportationData = async () => {
+      try {
+        const response = await axios.get(`${API_BASE_URL}/transportation/${spotId}`);
+        console.log('Transportation Data Response:', response.data);
+        setTransportationData(response.data);
+      } catch (err) {
+        console.error('Error fetching transportation data:', err);
+        setError('Failed to fetch transportation data');
+      }
+    };
+
     const fetchData = async () => {
-      await Promise.all([fetchSpotData(), fetchHotelData()]);
+      await Promise.all([fetchSpotData(), fetchHotelData(), fetchTransportationData()]);
       setIsLoading(false);
-      fetchWeatherData(); // Call this after fetching spot data
+      fetchWeatherData();
     };
 
     fetchData();
-  }, [city, spotId, spotData?.name]);
+  }, [city, spotId]);
 
-  // Handle loading and errors
   if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
@@ -139,15 +131,16 @@ const CityDetail = () => {
 
   return (
     <>
-      <Navbar />
+     
       <div className="bg-blue-50 min-h-screen">
+      <Navbar />
         <main className="container mx-auto px-4 py-8">
           <HeroSection name={spotData?.name} city={spotData?.city} picture={spotData?.picture} />
           <Highlights />
           <Description description={spotData?.description} location={spotData?.location} />
+          <TransportationSection transportationData={transportationData} />
           <Activity />
 
-          {/* Weather Section */}
           {weatherData && (
             <section className="mt-12">
               <h2 className="text-3xl font-semibold mb-6">Current Weather</h2>
@@ -160,7 +153,6 @@ const CityDetail = () => {
             </section>
           )}
 
-          {/* Nearby Hotels Section */}
           <section className="mt-12">
             <h2 className="text-3xl font-semibold mb-6">Nearby Hotels</h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
@@ -170,7 +162,6 @@ const CityDetail = () => {
             </div>
           </section>
 
-          {/* Map Section */}
           <Map
             name={spotData?.name}
             latitude={spotData?.latitude}
@@ -183,3 +174,4 @@ const CityDetail = () => {
 };
 
 export default CityDetail;
+

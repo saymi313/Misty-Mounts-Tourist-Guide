@@ -3,7 +3,7 @@ import { Link } from "react-router-dom"; // Import Link for navigation
 
 const Navbar = () => {
   return (
-    <div className="w-full flex justify-center mt-4">
+    <div className="w-full flex justify-center ">
       <nav className="border-black rounded-full m-2 border w-[86vw]">
         <div className="container mx-auto flex items-center justify-between pl-6 pr-2 py-2">
           <h1 className="text-2xl font-bold text-indigo-900">

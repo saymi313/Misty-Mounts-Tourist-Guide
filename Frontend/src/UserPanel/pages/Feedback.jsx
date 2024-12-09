@@ -6,10 +6,12 @@ import Navbar from '../components/Navbar';
 const FeedbackPage = () => {
   return (
   <>
-  <Navbar></Navbar>
-    <div className="min-h-screen bg-gradient-to-b from-sky-400 to-emerald-600 py-12 px-4 sm:px-6 lg:px-8">
+  <div className=''></div>
+  
+    <div className="min-h-screen bg-blue-50 pb-12 px-4 sm:px-6 lg:px-8">
+    <Navbar></Navbar>
       <div className="max-w-7xl mx-auto">
-        <h1 className="text-5xl font-extrabold text-white text-center mb-8 drop-shadow-lg">
+        <h1 className="text-5xl font-extrabold text-blue-800 text-center mb-8 drop-shadow-lg">
           Rate Your Tourist Spot Experience
         </h1>
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">

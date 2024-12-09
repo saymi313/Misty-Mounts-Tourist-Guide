@@ -16,7 +16,7 @@ const FeedbackForm = () => {
     e.preventDefault();
     setError('');
     setSuccess('');
-    
+
     // Validate form fields
     if (!spotName.trim() || !rating || !feedback.trim()) {
       setError('Please fill out all fields.');
@@ -54,7 +54,7 @@ const FeedbackForm = () => {
           {error}
         </div>
       )}
-      
+
       {/* Display Success Message */}
       {success && (
         <div className="text-green-600 border border-green-600 p-2 rounded-md">
@@ -63,13 +63,13 @@ const FeedbackForm = () => {
       )}
 
       <div className="flex items-center space-x-2 mb-4">
-        <MapPin className="h-8 w-8 text-emerald-600" />
-        <h2 className="text-2xl font-bold text-emerald-800">Share Your Tourist Spot Experience</h2>
+        <MapPin className="h-8 w-8 text-blue-800" />
+        <h2 className="text-2xl font-bold text-blue-800">Share Your Tourist Spot Experience</h2>
       </div>
 
       {/* Spot Name Input */}
       <div>
-        <label htmlFor="spotName" className="block text-sm font-medium text-emerald-700 mb-1">
+        <label htmlFor="spotName" className="block text-sm font-medium text-blue-800 mb-1">
           Tourist Spot Name
         </label>
         <input
@@ -78,14 +78,14 @@ const FeedbackForm = () => {
           name="spotName"
           value={spotName}
           onChange={(e) => setSpotName(e.target.value)}
-          className="w-full px-3 py-2 border border-emerald-300 rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-white bg-opacity-50"
+          className="w-full px-3 py-2 border border-blue-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white bg-opacity-50"
           placeholder="Enter a name"
         />
       </div>
 
       {/* Rating */}
       <div>
-        <label className="block text-sm font-medium text-emerald-700 mb-1">Your Rating</label>
+        <label className="block text-sm font-medium text-blue-800 mb-1">Your Rating</label>
         <div className="flex items-center">
           {[1, 2, 3, 4, 5].map((star) => (
             <Star
@@ -103,7 +103,7 @@ const FeedbackForm = () => {
 
       {/* Feedback Input */}
       <div>
-        <label htmlFor="feedback" className="block text-sm font-medium text-emerald-700 mb-1">
+        <label htmlFor="feedback" className="block text-sm font-medium text-blue-800 mb-1">
           Your Feedback
         </label>
         <textarea
@@ -112,7 +112,7 @@ const FeedbackForm = () => {
           value={feedback}
           onChange={(e) => setFeedback(e.target.value)}
           rows="4"
-          className="w-full px-3 py-2 border border-emerald-300 rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-white bg-opacity-50"
+          className="w-full px-3 py-2 border border-blue-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white bg-opacity-50"
           placeholder="Describe your experience, the sights, the atmosphere..."
         ></textarea>
       </div>
@@ -120,7 +120,7 @@ const FeedbackForm = () => {
       {/* Submit Button */}
       <button
         type="submit"
-        className="w-full flex items-center justify-center px-4 py-2 border border-transparent text-base font-medium rounded-md text-white bg-emerald-600 hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500 transition duration-300"
+        className="w-full flex items-center justify-center px-4 py-2 border border-transparent text-base font-medium rounded-md text-white bg-blue-800 hover:bg-yellow-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500 transition duration-300"
         disabled={isSubmitting}
       >
         {isSubmitting ? 'Submitting...' : 'Submit Feedback'}
