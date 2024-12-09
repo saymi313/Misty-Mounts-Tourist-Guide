@@ -8,17 +8,19 @@ import {
   Alert,
 } from '@mui/material';
 import { Visibility, VisibilityOff } from '@mui/icons-material';
+import { useNavigate } from 'react-router-dom'; // Import useNavigate for navigation
 
 const Login = () => {
-  const [showPassword, setShowPassword] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const navigate = useNavigate(); // Initialize useNavigate
 
   const handleClickShowPassword = () => setShowPassword((show) => !show);
 
-  const handleSubmit = async (e) => {
+  const handleLogin = async (e) => {
     e.preventDefault();
     setError('');
     setLoading(true);
@@ -31,16 +33,19 @@ const Login = () => {
       });
 
       const data = await response.json();
-
+      console.log(data);
       if (!response.ok) {
-        throw new Error(data.message || 'Something went wrong');
+        throw new Error(data.message || 'Login failed');
       }
 
-      // Save token to localStorage or state management
-      localStorage.setItem('token', data.token);
-
-      // Optionally redirect the user
-      alert('Login successful');
+      // Navigate based on user type
+      if (data.type === 'local guide') {
+        navigate('/local-guide');
+      } else if (data.type === 'user') {
+        navigate('/user');
+      } else {
+        throw new Error('Unknown user type');
+      }
     } catch (err) {
       setError(err.message);
     } finally {
@@ -49,9 +54,9 @@ const Login = () => {
   };
 
   return (
-    <form className="space-y-6" onSubmit={handleSubmit}>
+    <form className="space-y-6" onSubmit={handleLogin}>
       <Typography variant="h5" className="text-center mb-6">
-        Welcome back to Misty Mounts
+        Login to Misty Mounts
       </Typography>
       {error && <Alert severity="error">{error}</Alert>}
       <TextField

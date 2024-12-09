@@ -8,6 +8,11 @@ const userSchema = new mongoose.Schema({
     unique: true,
     lowercase: true,
   },
+  username: {
+    type: String,
+    required: true,
+    unique: true,
+  },
   password: {
     type: String,
     required: true,
@@ -15,10 +20,6 @@ const userSchema = new mongoose.Schema({
   type: {
     type: String,
     enum: ['user', 'local guide'],
-    required: true,
-  },
-  name: {
-    type: String,
     required: true,
   },
 });
@@ -40,3 +41,4 @@ userSchema.methods.matchPassword = async function (enteredPassword) {
 const User = mongoose.model('User', userSchema);
 
 module.exports = User;
+

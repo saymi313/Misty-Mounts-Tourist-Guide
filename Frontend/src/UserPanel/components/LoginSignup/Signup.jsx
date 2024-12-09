@@ -6,22 +6,21 @@ import {
   InputAdornment,
   IconButton,
   Alert,
+  MenuItem,
 } from '@mui/material';
 import { Visibility, VisibilityOff } from '@mui/icons-material';
 
 const Signup = () => {
   const [showPassword, setShowPassword] = useState(false);
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [email, setEmail] = useState('');
+  const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
+  const [type, setType] = useState('');
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [loading, setLoading] = useState(false);
 
   const handleClickShowPassword = () => setShowPassword((show) => !show);
-  const handleClickShowConfirmPassword = () =>
-    setShowConfirmPassword((show) => !show);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -29,14 +28,8 @@ const Signup = () => {
     setSuccess('');
     setLoading(true);
 
-    // Trim spaces before comparing passwords
-    const trimmedPassword = password.trim();
-    const trimmedConfirmPassword = confirmPassword.trim();
-
-    // Check if passwords match
-    if (trimmedPassword !== trimmedConfirmPassword) {
-      console.log(trimmedPassword, trimmedConfirmPassword); // Debugging line
-      setError('Passwords do not match');
+    if (!type) {
+      setError('Please select a user type');
       setLoading(false);
       return;
     }
@@ -45,7 +38,7 @@ const Signup = () => {
       const response = await fetch('http://localhost:5000/api/user/auth/signup', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password: trimmedPassword }),
+        body: JSON.stringify({ email, username, password, type }),
       });
 
       const data = await response.json();
@@ -56,8 +49,9 @@ const Signup = () => {
 
       setSuccess('Signup successful! You can now log in.');
       setEmail('');
+      setUsername('');
       setPassword('');
-      setConfirmPassword('');
+      setType('');
     } catch (err) {
       setError(err.message);
     } finally {
@@ -79,6 +73,14 @@ const Signup = () => {
         type="email"
         value={email}
         onChange={(e) => setEmail(e.target.value)}
+        required
+      />
+      <TextField
+        fullWidth
+        label="Username"
+        variant="outlined"
+        value={username}
+        onChange={(e) => setUsername(e.target.value)}
         required
       />
       <TextField
@@ -105,26 +107,15 @@ const Signup = () => {
       />
       <TextField
         fullWidth
-        label="Confirm Password"
-        variant="outlined"
-        type={showConfirmPassword ? 'text' : 'password'}
-        value={confirmPassword}
-        onChange={(e) => setConfirmPassword(e.target.value)}
+        select
+        label="User Type"
+        value={type}
+        onChange={(e) => setType(e.target.value)}
         required
-        InputProps={{
-          endAdornment: (
-            <InputAdornment position="end">
-              <IconButton
-                aria-label="toggle confirm password visibility"
-                onClick={handleClickShowConfirmPassword}
-                edge="end"
-              >
-                {showConfirmPassword ? <VisibilityOff /> : <Visibility />}
-              </IconButton>
-            </InputAdornment>
-          ),
-        }}
-      />
+      >
+        <MenuItem value="user">User</MenuItem>
+        <MenuItem value="local guide">Local Guide</MenuItem>
+      </TextField>
       <Button
         fullWidth
         variant="contained"
@@ -140,3 +131,4 @@ const Signup = () => {
 };
 
 export default Signup;
+

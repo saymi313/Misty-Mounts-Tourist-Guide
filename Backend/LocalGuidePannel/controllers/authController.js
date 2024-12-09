@@ -4,11 +4,11 @@ const bcrypt = require('bcryptjs');
 
 // Signup Controller
 const signup = async (req, res) => {
-  const { email, password, name, type } = req.body;
+  const { email, username, password, type } = req.body;
 
   try {
     // Check if the user already exists
-    const userExists = await User.findOne({ email });
+    const userExists = await User.findOne({ $or: [{ email }, { username }] });
     if (userExists) {
       return res.status(400).json({ message: 'User already exists' });
     }
@@ -16,8 +16,8 @@ const signup = async (req, res) => {
     // Create a new user
     const newUser = new User({
       email,
+      username,
       password,
-      name,
       type,
     });
 
@@ -61,7 +61,7 @@ const login = async (req, res) => {
       { expiresIn: '30d' }
     );
 
-    res.status(200).json({ message: 'Login successful', token });
+    res.status(200).json({ message: 'Login successful', token, type: user.type });
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: 'Server error' });
@@ -69,3 +69,4 @@ const login = async (req, res) => {
 };
 
 module.exports = { signup, login };
+

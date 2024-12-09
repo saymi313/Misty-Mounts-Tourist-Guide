@@ -13,7 +13,7 @@ const AdminRoutes = require("./AdminBackend/routes/adminRoutes");
 const feedbackRoutes = require('./UserBackend/routes/feedbackRoutes');
 const paymentRoutes = require('./UserBackend/routes/paymentRoutes');
 const naturalDisasterRoutes = require("./LocalGuidePannel/routes/naturalDisasterRoutes");
-
+const userAuthRoutes=require("./LocalGuidePannel/routes/authRoutes")
 
 
 
@@ -43,11 +43,13 @@ app.use(express.json()); // Parse incoming JSON data
 
 // Routes
 app.use("/api/admin/auth", authRoutes);
+app.use("/api/user/auth", userAuthRoutes);
 app.use("/api/admin", AdminRoutes); // Mount the spot routes
 app.use('/api/feedback', feedbackRoutes);
 app.use("/api/payment", paymentRoutes);
 app.use("/api/natural-disaster", naturalDisasterRoutes); // Natural disaster routes
 // MongoDB Connection
+
 mongoose.connect(process.env.MONGO_URI)
   .then(() => console.log("MongoDB connected successfully"))
   .catch((err) => console.error("Failed to connect to MongoDB", err));
