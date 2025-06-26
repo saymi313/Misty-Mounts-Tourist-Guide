@@ -5,6 +5,7 @@ import DestinationCard from "./DestinationCard";
 const DestinationSection = () => {
   const [destinations, setDestinations] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
     // Fetch tourist spots using axios
@@ -12,23 +13,60 @@ const DestinationSection = () => {
       .then((response) => {
         const data = response.data;
 
-        // Limit the total number of cards to 4 by flattening all nearby places
-        const allNearbyPlaces = data.flatMap((spot) => spot.nearbyPlaces);
+        // Check if data exists and is an array
+        if (data && Array.isArray(data)) {
+          // Limit the total number of cards to 4 by flattening all nearby places
+          const allNearbyPlaces = data.flatMap((spot) => 
+            spot.nearbyPlaces && Array.isArray(spot.nearbyPlaces) ? spot.nearbyPlaces : []
+          );
 
-        // Get the first 4 places
-        const limitedNearbyPlaces = allNearbyPlaces.slice(0, 4);
+          // Get the first 4 places
+          const limitedNearbyPlaces = allNearbyPlaces.slice(0, 4);
 
-        setDestinations(limitedNearbyPlaces); // Update the destinations state with limited places
+          setDestinations(limitedNearbyPlaces); // Update the destinations state with limited places
+        } else {
+          setDestinations([]); // Set empty array if no data
+        }
         setLoading(false); // Stop loading once data is fetched
       })
       .catch((error) => {
         console.error("Error fetching destinations:", error);
+        setError("Failed to load destinations");
         setLoading(false); // Stop loading in case of error
       });
   }, []);
 
   if (loading) {
-    return <div>Loading...</div>; // Show a loading message while fetching data
+    return (
+      <div className="py-16 px-2">
+        <h2 className="text-3xl font-bold text-center">Most Popular Destinations</h2>
+        <div className="flex justify-center items-center mt-8">
+          <div className="text-lg text-gray-600">Loading destinations...</div>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="py-16 px-2">
+        <h2 className="text-3xl font-bold text-center">Most Popular Destinations</h2>
+        <div className="flex justify-center items-center mt-8">
+          <div className="text-lg text-red-600">{error}</div>
+        </div>
+      </div>
+    );
+  }
+
+  if (destinations.length === 0) {
+    return (
+      <div className="py-16 px-2">
+        <h2 className="text-3xl font-bold text-center">Most Popular Destinations</h2>
+        <div className="flex justify-center items-center mt-8">
+          <div className="text-lg text-gray-600">No destinations available at the moment.</div>
+        </div>
+      </div>
+    );
   }
 
   return (

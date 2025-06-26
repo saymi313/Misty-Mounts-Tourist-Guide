@@ -14,18 +14,13 @@ const FeedbackSection = () => {
   const fetchReviews = async () => {
     try {
       const response = await getFeedback();
-    
-      // Check if the response contains feedbacks directly, not inside data
-      if (response && Array.isArray(response.feedbacks)) {
-        setReviews(response.feedbacks);
-      } else {
-        console.error('Feedbacks are not available in the response:', response);
-        setReviews([]); // Set an empty array if no feedbacks are found
-      }
-    
+      console.log('Feedback response:', response);
+      // The API returns { message, feedbacks: [] }
+      setReviews(response.feedbacks || []);
       setLoading(false);
     } catch (error) {
       console.error('Error fetching reviews:', error);
+      setReviews([]); // Set empty array on error
       setLoading(false);
     }
   };

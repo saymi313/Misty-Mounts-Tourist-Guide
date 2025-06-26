@@ -17,10 +17,12 @@ const TouristSpotList = () => {
     try {
       setLoading(true);
       const response = await getAllTouristSpots();
-      console.log(response);  // Log the entire response object to check the data structure
-      setSpots(response.data || response.spots || []);  // Adjust the data access if needed
+      console.log('API Response:', response);  // Log the entire response object to check the data structure
+      // The API returns the spots array directly, not wrapped in a data property
+      setSpots(response || []);
       setLoading(false);
     } catch (error) {
+      console.error('Error fetching spots:', error);
       setError('Error fetching spots. Please try again later.');
       setLoading(false);
     }

@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API_URL = 'http://localhost:5000/api/local-guide';
+const API_URL = 'http://localhost:5000/api/admin';
 
 export const createTouristSpot = async (spotData) => {
   try {

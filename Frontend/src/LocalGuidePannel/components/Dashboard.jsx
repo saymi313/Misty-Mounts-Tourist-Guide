@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link, Outlet, useLocation } from 'react-router-dom';
 import { FaMapMarkerAlt, FaPlus, FaChartBar, FaUser, FaCog, FaExclamationTriangle } from 'react-icons/fa';
 import { getAllTouristSpots } from '../api/touristSpotApi';
+import NotificationSystem from '../../components/NotificationSystem';
 
 const Dashboard = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -67,10 +68,11 @@ const Dashboard = () => {
               </svg>
             </button>
           </div>
-          <div className="flex items-center">
+          <div className="flex items-center space-x-4">
+            <NotificationSystem />
             <Link
               to="/local-guide/add-spot"
-              className="bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700 transition duration-300 mr-2"
+              className="bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700 transition duration-300"
             >
               Add Tourist Spot
             </Link>

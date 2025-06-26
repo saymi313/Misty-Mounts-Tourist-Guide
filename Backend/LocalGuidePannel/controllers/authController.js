@@ -61,7 +61,13 @@ const login = async (req, res) => {
       { expiresIn: '30d' }
     );
 
-    res.status(200).json({ message: 'Login successful', token, type: user.type });
+    res.status(200).json({ 
+      message: 'Login successful', 
+      token, 
+      type: user.type,
+      name: user.username,
+      email: user.email
+    });
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: 'Server error' });

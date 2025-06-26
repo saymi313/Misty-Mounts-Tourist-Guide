@@ -14,10 +14,13 @@ const Feedback = () => {
   const fetchReviews = async () => {
     try {
       const response = await getFeedback();
+      console.log('Feedback response:', response);
+      // The API returns { message, feedbacks: [] }
       setReviews(response.feedbacks || []);
       setLoading(false);
     } catch (error) {
       console.error('Error fetching reviews:', error);
+      setReviews([]); // Set empty array on error
       setLoading(false);
     }
   };

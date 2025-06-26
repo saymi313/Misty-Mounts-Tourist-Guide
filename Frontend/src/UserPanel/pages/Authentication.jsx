@@ -1,37 +1,56 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Login from '../components/LoginSignup/Login';
 import Signup from '../components/LoginSignup/Signup';
-import WelcomeMessage from '../components/LoginSignup/WelcomeMessage';
-import { Paper, Tabs, Tab } from '@mui/material';
+import { Tabs, Tab } from '@mui/material';
 
 const Authentication = () => {
   const [isLogin, setIsLogin] = useState(true);
+  const [activeTab, setActiveTab] = useState(0);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const handleChange = (event, newValue) => {
+    setActiveTab(newValue);
     setIsLogin(newValue === 0);
   };
 
   return (
-    <div className="flex h-screen bg-gray-100">
-      <Paper elevation={3} className="m-auto w-full max-w-4xl flex overflow-hidden rounded-lg shadow-lg">
-        <div className="w-2/5 bg-navy-blue p-8 flex items-center justify-center">
-          <WelcomeMessage isLogin={isLogin} />
-        </div>
-        <div className="w-3/5 p-8">
+    <div className="min-h-screen w-full flex items-center justify-center bg-gradient-to-br from-gray-950 via-gray-900 to-gray-800">
+      <div className="w-full max-w-2xl mx-auto p-6">
+        <div className="bg-gradient-to-br from-gray-900/90 via-gray-800/80 to-gray-900/90 rounded-2xl shadow-2xl border border-gray-700/60 backdrop-blur-xl">
+          <div className="p-8">
+            <div className="flex justify-center mb-8">
           <Tabs
-            value={isLogin ? 0 : 1}
+                value={activeTab}
             onChange={handleChange}
             indicatorColor="primary"
             textColor="primary"
             centered
-            className="mb-6"
+                className="mb-2"
+                sx={{
+                  '& .MuiTab-root': {
+                    color: '#e5e7eb',
+                    fontWeight: 600,
+                    fontSize: '1.1rem',
+                  },
+                  '& .MuiTabs-indicator': {
+                    backgroundColor: '#c0c0c0',
+                  },
+                }}
           >
-            <Tab label="Login" />
+                <Tab label="Sign In" />
             <Tab label="Sign Up" />
           </Tabs>
+            </div>
+            <div className="w-full">
           {isLogin ? <Login /> : <Signup />}
+            </div>
+          </div>
         </div>
-      </Paper>
+      </div>
     </div>
   );
 };

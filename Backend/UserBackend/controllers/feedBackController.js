@@ -72,13 +72,10 @@ exports.getAllFeedbacks = async (req, res) => {
   try {
     const feedbacks = await Feedback.find();
 
-    if (feedbacks.length === 0) {
-      return res.status(404).json({ message: 'No feedback available' });
-    }
-
+    // Return empty array instead of 404 when no feedbacks exist
     res.status(200).json({
-      message: 'All feedbacks fetched successfully',
-      feedbacks,
+      message: feedbacks.length > 0 ? 'All feedbacks fetched successfully' : 'No feedbacks available',
+      feedbacks: feedbacks || [],
     });
   } catch (error) {
     console.error(error);

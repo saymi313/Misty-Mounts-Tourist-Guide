@@ -1,273 +1,240 @@
-# Misty Mounts – A Tourist Guide for Northern Pakistan
+# MistyMounts Tourist Guide
 
-<div align="center">
-  <img src="Frontend/public/Logo.png" alt="Misty Mounts Logo" width="200"/>
-  <h3>Discover the Hidden Gems of Northern Pakistan</h3>
-</div>
-
-## 📋 Project Overview
-
-Misty Mounts is a comprehensive MERN stack-based web application designed to promote tourism in Northern Pakistan by providing travelers with detailed information about popular and hidden tourist spots. The platform offers users comprehensive guides to nearby locations, accommodations, food points, historical context, and exciting activities. Users can plan their trips by booking hotels, transportation, and exploring local experiences curated by guides.
-
-The application supports CRUD operations, integrates free third-party APIs, and is designed to function seamlessly across all user types. Its ultimate goal is to boost tourism while preserving and showcasing the cultural and natural beauty of Northern Pakistan.
+A comprehensive tourist guide application with real-time chat functionality, user authentication, and local guide management system.
 
 ## 🚀 Features
 
-### 1. User Panel
-The main interface for visitors planning their trips to Northern Pakistan.
+### Core Features
+- **User Authentication & Authorization**
+  - Secure login/signup system
+  - Role-based access control (User, Local Guide, Admin)
+  - JWT token-based authentication
+  - Protected routes and components
 
-#### 🔐 User Registration & Authentication
-- Secure user sign-up and login with social login options
-- **Integration**: Firebase Authentication (free tier)
+### Real-Time Communication
+- **WebSocket Chat System**
+  - Real-time messaging between users and local guides
+  - Active users tracking
+  - Typing indicators
+  - Message history and persistence
+  - Broadcast messages from guides to all users
+  - Direct messaging capabilities
+  - Chat deletion functionality for guides
 
-#### 🗺️ Tourist Spot Discovery
-- Select a region to explore nearby spots, including hidden gems curated by local guides
-- View detailed information about each spot, including weather, history, and activities
-- **APIs Used**:
-  - **OpenWeatherMap**: For weather data at selected locations
-  - **Wikipedia API**: To fetch historical and contextual information
-  - **Google Places API** (free tier): For basic tourist spot details
+### User Panel
+- **Tourist Information**
+  - Browse tourist destinations
+  - View detailed information about locations
+  - Search and filter destinations
+  - Interactive maps integration
+- **Booking & Payments**
+  - Hotel booking system
+  - Payment processing
+  - Booking management
+- **Feedback System**
+  - Submit feedback and reviews
+  - Real-time chat with local guides
+  - Rating system
 
-#### 🏨 Hotel and Food Spot Booking
-- Discover nearby hotels and restaurants for accommodation and dining
-- Make direct bookings for accommodations or food spots
+### Local Guide Panel
+- **Tourist Spot Management**
+  - Add, edit, and delete tourist spots
+  - Upload images and descriptions
+  - Manage location details
+- **Natural Disaster Alerts**
+  - Post emergency alerts
+  - Update safety information
+  - Real-time notifications
+- **Chat Management**
+  - Respond to user queries
+  - Broadcast announcements
+  - Manage chat history
+  - View active users
 
-#### 🚌 Transportation Assistance
-- View available routes, including local transport and bus services, to reach the selected spot
-- Book tickets for transport options
-
-#### 🗺️ Interactive Map and Navigation
-- View spot locations, nearby facilities, and travel routes
-- **Integration**: Leaflet.js and OpenStreetMap for free map services
-
-#### ⭐ Review and Rating System
-- Submit reviews and ratings for visited spots, accommodations, and activities
-- Help other users by sharing experiences
-
-### 2. Admin Panel
-Ensures the smooth operation and management of the platform.
-
-#### 🔐 Admin Authentication
-- Secure admin login system with role-based access control
-- **Integration**: Firebase Authentication
-
-#### 🏞️ Tourist Spot Management
-- Add, update, and remove tourist spots from the database
-- Approve or reject submissions of hidden spots by guides
-
-#### 🏨 Accommodation Management
-- Manage hotel and food spot details, availability, and bookings
-- Update pricing and special offers
-
-#### 🚌 Transport Management
-- Add, update, and manage transportation options
-
-#### 💳 Payment Management
-- Monitor and process payments made by users for bookings
-- **Integration**: Razorpay or Stripe (free tier)
-
-#### 📊 Reports and Analytics
-- View and generate reports on user activity, popular spots, and revenue
-- Analyze booking trends and user feedback
-
-### 3. Local Guide Panel
-Empowers local guides to contribute to the platform and connect with travelers.
-
-#### 🔐 Guide Registration and Login
-- Secure sign-up and login for guides to manage their profiles
-- **Integration**: Firebase Authentication
-
-#### 🗺️ Hidden Spot Management
-- Submit new spots with descriptions, images, and local insights
-- Edit or remove existing submissions
-
-#### 💬 Feedback and Reviews
-- Receive and respond to user reviews on submitted spots
-
-#### 💬 Communication with Travelers
-- Real-time chat with users for trip guidance and recommendations
-- **Integration**: Socket.io for messaging
-
-## 🗄️ Database Design
-
-**Database**: MongoDB (cloud-hosted via MongoDB Atlas free tier)
-
-### Collections:
-1. **users**: Stores user details, preferences, and booking history
-2. **tourist_spots**: Stores spot details, including curated hidden spots
-3. **hotels**: Contains information on hotels, availability, and pricing
-4. **food_points**: Stores dining options near tourist attractions
-5. **transport_options**: Stores transport routes and availability
-6. **guides**: Stores local guide details, submissions, and reviews
-7. **reviews**: Stores reviews and ratings from users
-
-## 🔌 APIs and Integrations
-
-1. **Firebase Authentication**: User, admin, and guide authentication
-2. **OpenWeatherMap**: Provides weather information for tourist spots
-3. **Wikipedia API**: Fetches historical and cultural information for spots
-4. **Google Places API** (Free Tier): Retrieves details about popular landmarks and local attractions
-5. **Leaflet.js & OpenStreetMap**: Embeds maps for navigation and travel routes
-6. **Razorpay/Stripe** (Free Tier): Handles secure payments for bookings
-7. **Socket.io**: Enables real-time communication between users and guides
+### Admin Panel
+- **System Management**
+  - User management
+  - Content moderation
+  - System analytics
+  - Payment management
 
 ## 🛠️ Technology Stack
 
 ### Frontend
-- **React 18.3.1** - Modern UI library for building interactive user interfaces
-- **Vite 6.0.1** - Fast build tool and development server
-- **Tailwind CSS 3.4.16** - Utility-first CSS framework for styling
-- **Material-UI 6.1.10** - React component library for consistent design
-- **React Router DOM 7.0.2** - Client-side routing
-- **Axios 1.7.9** - HTTP client for API requests
-- **Leaflet 1.7.1** - Interactive maps
-- **Socket.io Client 4.8.1** - Real-time communication
+- **React.js** - UI framework
+- **Vite** - Build tool
+- **Tailwind CSS** - Styling
+- **Socket.io Client** - Real-time communication
+- **React Router** - Navigation
+- **Context API** - State management
 
 ### Backend
-- **Node.js** - JavaScript runtime environment
-- **Express 4.21.2** - Web application framework
-- **MongoDB 8.8.4** - NoSQL database
-- **Mongoose** - MongoDB object modeling
-- **JWT 9.0.2** - JSON Web Tokens for authentication
-- **Bcrypt 5.1.1** - Password hashing
-- **CORS 2.8.5** - Cross-origin resource sharing
-- **Socket.io 4.8.1** - Real-time bidirectional communication
+- **Node.js** - Runtime environment
+- **Express.js** - Web framework
+- **MongoDB** - Database
+- **Mongoose** - ODM
+- **Socket.io** - Real-time server
+- **JWT** - Authentication
+- **bcrypt** - Password hashing
 
-## 📁 Project Structure
-
-```
-Misty-Mounts-Tourist-Guide/
-├── Backend/
-│   ├── AdminBackend/
-│   │   ├── controllers/
-│   │   ├── models/
-│   │   └── routes/
-│   ├── LocalGuidePannel/
-│   │   ├── controllers/
-│   │   ├── middleware/
-│   │   ├── models/
-│   │   └── routes/
-│   ├── UserBackend/
-│   │   ├── controllers/
-│   │   ├── models/
-│   │   └── routes/
-│   ├── config/
-│   ├── package.json
-│   └── server.js
-├── Frontend/
-│   ├── src/
-│   │   ├── AdminFrontend/
-│   │   ├── LocalGuidePannel/
-│   │   ├── UserPanel/
-│   │   ├── App.jsx
-│   │   └── main.jsx
-│   ├── public/
-│   ├── package.json
-│   └── vite.config.js
-└── README.md
-```
-
-## 🚀 Getting Started
+## 📦 Installation
 
 ### Prerequisites
-- Node.js (v16 or higher)
-- MongoDB Atlas account
-- Firebase project
-- API keys for integrated services
+- Node.js (v14 or higher)
+- MongoDB
+- npm or yarn
 
-### Installation
+### Backend Setup
+```bash
+cd Misty-Mounts-Tourist-Guide/Backend
+npm install
+```
 
-1. **Clone the repository**
-   ```bash
-   git clone <repository-url>
-   cd Misty-Mounts-Tourist-Guide
-   ```
+Create a `.env` file in the Backend directory:
+```env
+MONGO_URI=your_mongodb_connection_string
+JWT_SECRET=your_jwt_secret_key
+PORT=5000
+```
 
-2. **Install Backend Dependencies**
-   ```bash
-   cd Backend
-   npm install
-   ```
+Start the backend server:
+```bash
+npm start
+```
 
-3. **Install Frontend Dependencies**
-   ```bash
-   cd ../Frontend
-   npm install
-   ```
+### Frontend Setup
+```bash
+cd Misty-Mounts-Tourist-Guide/Frontend
+npm install
+```
 
-4. **Environment Setup**
-   
-   Create `.env` files in the Backend directory:
-   ```env
-   MONGODB_URI=your_mongodb_atlas_connection_string
-   JWT_SECRET=your_jwt_secret
-   FIREBASE_API_KEY=your_firebase_api_key
-   OPENWEATHER_API_KEY=your_openweather_api_key
-   GOOGLE_PLACES_API_KEY=your_google_places_api_key
-   RAZORPAY_KEY_ID=your_razorpay_key_id
-   RAZORPAY_KEY_SECRET=your_razorpay_secret
-   ```
+Start the frontend development server:
+```bash
+npm run dev
+```
 
-5. **Start the Development Servers**
+### Create Test Users
+```bash
+cd Misty-Mounts-Tourist-Guide/Backend
+node createTestUser.js
+```
 
-   **Backend:**
-   ```bash
-   cd Backend
-   npm start
-   ```
+This creates test users:
+- **Regular User:** test@example.com / password123
+- **Local Guide:** guide@example.com / password123
 
-   **Frontend:**
-   ```bash
-   cd Frontend
-   npm run dev
-   ```
+## 🔧 Configuration
 
-6. **Access the Application**
-   - Frontend: http://localhost:5173
-   - Backend: http://localhost:5000
+### WebSocket Configuration
+The application uses Socket.io for real-time communication:
+- Automatic reconnection
+- Connection status tracking
+- User identification and tracking
+- Message routing between users and guides
 
-## 🏗️ Development Approach
+### Authentication Flow
+1. User logs in with email/password
+2. JWT token is generated and stored
+3. User is redirected based on role:
+   - Regular users → User panel
+   - Local guides → Guide panel
+   - Admins → Admin panel
 
-1. **Frontend**:
-   - Developed using React for a responsive and interactive user experience
-   - Styled with Material-UI and Tailwind CSS for a professional, consistent look
+## 📱 Usage
 
-2. **Backend**:
-   - Built using Node.js and Express to handle server-side logic
-   - RESTful APIs for seamless communication between the frontend and backend
+### For Tourists
+1. Visit the application
+2. Log in or create an account
+3. Browse tourist destinations
+4. Use the chat feature to connect with local guides
+5. Book accommodations and make payments
+6. Submit feedback and reviews
 
-3. **Database**:
-   - MongoDB for efficient, scalable data storage
+### For Local Guides
+1. Log in with guide credentials
+2. Access the guide panel
+3. Manage tourist spots and information
+4. Respond to user queries via chat
+5. Post emergency alerts and updates
+6. Broadcast announcements to all users
 
-4. **Version Control**:
-   - Each developer maintains their code repository on GitHub
-   - Code commits pushed consistently for proper version tracking
+### For Admins
+1. Access the admin panel
+2. Manage users and content
+3. Monitor system activity
+4. Handle payment processing
 
-## 🎯 Expected Outcomes
+## 🔒 Security Features
 
-1. **User-Friendly Interface**: An engaging website to plan trips easily and discover hidden spots
-2. **Enhanced Tourism Promotion**: Highlight hidden gems and local experiences in Northern Pakistan
-3. **Community Involvement**: Empower local guides to share insights and generate income
-4. **Scalable System**: A robust and expandable platform for future features and more destinations
+- **Password Hashing** - bcrypt encryption
+- **JWT Tokens** - Secure authentication
+- **Protected Routes** - Role-based access control
+- **Input Validation** - Server-side validation
+- **CORS Configuration** - Cross-origin security
+
+## 🌐 API Endpoints
+
+### Authentication
+- `POST /api/user/auth/login` - User login
+- `POST /api/user/auth/signup` - User registration
+
+### Tourist Spots
+- `GET /api/admin/spots` - Get all tourist spots
+- `POST /api/admin/spots` - Add new tourist spot
+- `PUT /api/admin/spots/:id` - Update tourist spot
+- `DELETE /api/admin/spots/:id` - Delete tourist spot
+
+### Feedback
+- `GET /api/feedback` - Get feedback
+- `POST /api/feedback` - Submit feedback
+
+### Natural Disasters
+- `GET /api/natural-disaster` - Get disaster alerts
+- `POST /api/natural-disaster` - Post new alert
+
+## 🚨 Troubleshooting
+
+### Common Issues
+
+1. **WebSocket Connection Issues**
+   - Ensure backend server is running on port 5000
+   - Check CORS configuration
+   - Verify Socket.io client configuration
+
+2. **Authentication Problems**
+   - Clear browser cache and localStorage
+   - Check JWT token expiration
+   - Verify user credentials
+
+3. **Database Connection**
+   - Ensure MongoDB is running
+   - Check MONGO_URI in .env file
+   - Verify network connectivity
+
+### Debug Mode
+Enable debug logging by checking browser console for detailed error messages and connection status.
 
 ## 🤝 Contributing
 
 1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/AmazingFeature`)
-3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
-4. Push to the branch (`git push origin feature/AmazingFeature`)
-5. Open a Pull Request
+2. Create a feature branch
+3. Make your changes
+4. Test thoroughly
+5. Submit a pull request
 
-## 📝 License
+## 📄 License
 
-This project is licensed under the ISC License.
+This project is licensed under the MIT License.
 
-## 📞 Contact
+## 📞 Support
 
-For any queries or support, please reach out to the development team.
+For support and questions:
+- Check the troubleshooting section
+- Review the API documentation
+- Contact the development team
 
 ---
 
-<div align="center">
-  <p><strong>Discover the beauty of Northern Pakistan with Misty Mounts! 🏔️</strong></p>
-</div>
+**Last Updated:** December 2024
+**Version:** 2.0.0
+**Status:** Production Ready
