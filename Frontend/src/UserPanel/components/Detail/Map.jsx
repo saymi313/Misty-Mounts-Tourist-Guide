@@ -1,6 +1,7 @@
 import React, { useEffect, useRef } from 'react';
 import L from 'leaflet';
 import { MapPin, ExternalLink } from 'lucide-react';
+import { Eyebrow } from '../bento/tiles';
 
 // Interactive map (Leaflet + OpenStreetMap), driven imperatively so it works
 // regardless of the react-leaflet / React version pairing.
@@ -26,15 +27,15 @@ const Map = ({ name, latitude, longitude }) => {
       attribution: '© OpenStreetMap contributors',
     }).addTo(map);
 
-    // Custom pine-and-sun pin to match the design system.
+    // Custom night-and-lime pin to match the bento design system.
     const pin = L.divIcon({
       className: 'mm-pin',
       html: `<span style="
         display:flex;align-items:center;justify-content:center;
         width:34px;height:34px;border-radius:50% 50% 50% 0;
-        background:#0e3a44;transform:rotate(-45deg);
-        box-shadow:0 6px 14px rgba(15,30,26,.4);border:2px solid #38cbd6;">
-        <span style="width:10px;height:10px;border-radius:50%;background:#38cbd6;transform:rotate(45deg);"></span>
+        background:#111813;transform:rotate(-45deg);
+        box-shadow:0 6px 14px rgba(0,0,0,.5);border:2px solid #a3e635;">
+        <span style="width:10px;height:10px;border-radius:50%;background:#a3e635;transform:rotate(45deg);"></span>
       </span>`,
       iconSize: [34, 34],
       iconAnchor: [17, 34],
@@ -54,28 +55,28 @@ const Map = ({ name, latitude, longitude }) => {
   }, [lat, lng, name]);
 
   return (
-    <section className="mt-12">
-      <div className="mb-5 flex items-center justify-between">
+    <section>
+      <div className="mb-5 flex items-end justify-between gap-4">
         <div>
-          <p className="eyebrow">Find your way</p>
-          <h2 className="mt-2 font-display text-2xl font-semibold text-abyss-900 dark:text-frost-50">
-            {name} on the map
+          <Eyebrow><MapPin className="h-3.5 w-3.5" /> Find your way</Eyebrow>
+          <h2 className="mt-2 text-2xl font-extrabold tracking-tight text-white sm:text-3xl">
+            {name} on the <span className="text-lime-400">map</span>
           </h2>
         </div>
         <a
           href={`https://www.openstreetmap.org/?mlat=${lat}&mlon=${lng}#map=12/${lat}/${lng}`}
           target="_blank"
           rel="noreferrer"
-          className="btn-ghost hidden sm:inline-flex"
+          className="hidden items-center gap-2 rounded-full border border-white/20 px-5 py-2.5 text-sm font-bold text-white transition-colors hover:border-lime-400 hover:text-lime-400 sm:inline-flex"
         >
           Open in OpenStreetMap <ExternalLink className="h-4 w-4" />
         </a>
       </div>
 
-      <div className="relative overflow-hidden rounded-3xl shadow-card ring-1 ring-abyss-900/10 dark:ring-frost-50/10">
+      <div className="relative overflow-hidden rounded-[1.4rem] border border-white/[0.07]">
         <div ref={containerRef} className="h-[440px] w-full" />
-        <div className="pointer-events-none absolute left-4 top-4 z-[400] flex items-center gap-2 rounded-full bg-white/95 dark:bg-abyss-900/95 px-3.5 py-2 text-sm font-medium text-abyss-900 dark:text-frost-50 shadow-sm backdrop-blur">
-          <MapPin className="h-4 w-4 text-glacier-700 dark:text-glacier-300" />
+        <div className="pointer-events-none absolute left-4 top-4 z-[400] flex items-center gap-2 rounded-full border border-white/10 bg-night-800/90 px-3.5 py-2 text-sm font-semibold text-white shadow-lg backdrop-blur">
+          <MapPin className="h-4 w-4 text-lime-400" />
           {lat.toFixed(4)}, {lng.toFixed(4)}
         </div>
       </div>

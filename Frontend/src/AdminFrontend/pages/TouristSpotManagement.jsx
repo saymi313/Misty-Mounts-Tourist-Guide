@@ -1,9 +1,10 @@
 import React, { useState } from "react";
 import { Map as MapIcon, Gem, Building2, Plus, Pencil, Trash2 } from "lucide-react";
 import AdminLayout from "../AdminLayout";
-import { Card, SectionHead, StatCard, StatusPill, Btn, BtnGhost } from "../../components/dashboard/ui";
+import { Card, SectionHead, StatCard, StatusPill, Btn, BtnGhost, Field, adminInputCls } from "../../components/dashboard/ui";
 import Modal from "../../components/dashboard/Modal";
 import { allPlaces } from "../../data/mockData";
+import { required, validate, hasErrors } from "../../utils/validation";
 
 // Seed local state from the mock layer, deriving a moderation status per spot.
 const seed = allPlaces.map((p) => ({ ...p, status: p.hiddenGem ? "Pending" : "Approved" }));
@@ -15,16 +16,24 @@ const TouristSpotManagement = () => {
   const [modalOpen, setModalOpen] = useState(false);
   const [editing, setEditing] = useState(null); // row being edited, or null when adding
   const [form, setForm] = useState(emptyForm);
+  const [errors, setErrors] = useState({});
+
+  const update = (key, val) => {
+    setForm((f) => ({ ...f, [key]: val }));
+    if (errors[key]) setErrors((e) => ({ ...e, [key]: undefined }));
+  };
 
   const openAdd = () => {
     setEditing(null);
     setForm(emptyForm);
+    setErrors({});
     setModalOpen(true);
   };
 
   const openEdit = (spot) => {
     setEditing(spot);
     setForm({ name: spot.name, city: spot.city, location: spot.location, status: spot.status });
+    setErrors({});
     setModalOpen(true);
   };
 
@@ -32,6 +41,14 @@ const TouristSpotManagement = () => {
 
   const handleSave = (e) => {
     e.preventDefault();
+    const found = validate(form, {
+      name: [required("Name is required")],
+      city: [required("City is required")],
+    });
+    if (hasErrors(found)) {
+      setErrors(found);
+      return;
+    }
     if (editing) {
       setSpots((prev) => prev.map((s) => (s._id === editing._id ? { ...s, ...form } : s)));
     } else {
@@ -141,8 +158,15 @@ const TouristSpotManagement = () => {
       <Modal
         open={modalOpen}
         onClose={() => setModalOpen(false)}
-        title={editing ? "Edit spot" : "Add spot"}
+        icon={MapIcon}
+        title={editing ? "Edit spot" : "Add a tourist spot"}
+        subtitle={
+          editing
+            ? "Update the details for this place."
+            : "Add a new place to the interactive map and destination pages."
+        }
         onSubmit={handleSave}
+        size="lg"
         footer={
           <>
             <BtnGhost type="button" onClick={() => setModalOpen(false)}>Cancel</BtnGhost>
@@ -150,36 +174,51 @@ const TouristSpotManagement = () => {
           </>
         }
       >
-        <div className="space-y-4">
-          <Field label="Name" value={form.name} onChange={(v) => setForm({ ...form, name: v })} />
-          <Field label="City" value={form.city} onChange={(v) => setForm({ ...form, city: v })} />
-          <Field label="Location" value={form.location} onChange={(v) => setForm({ ...form, location: v })} />
-          <div>
-            <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-slate-400">Status</label>
+        <div className="space-y-5">
+          <Field
+            label="Spot name"
+            required
+            value={form.name}
+            onChange={(v) => update("name", v)}
+            placeholder="e.g. Attabad Lake"
+            hint="The public name shown on the map, cards and search."
+            error={errors.name}
+          />
+          <div className="grid gap-5 sm:grid-cols-2">
+            <Field
+              label="City / valley"
+              required
+              value={form.city}
+              onChange={(v) => update("city", v)}
+              placeholder="e.g. Hunza"
+              hint="Which city or valley this spot belongs to."
+              error={errors.city}
+            />
+            <Field
+              label="Location"
+              value={form.location}
+              onChange={(v) => update("location", v)}
+              placeholder="e.g. Gojal, Upper Hunza"
+              hint="A short area or district description."
+            />
+          </div>
+          <Field
+            label="Moderation status"
+            hint="Approved spots are visible to tourists; pending ones await review."
+          >
             <select
               value={form.status}
               onChange={(e) => setForm({ ...form, status: e.target.value })}
-              className="w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm text-slate-700 outline-none focus:border-emerald-400"
+              className={adminInputCls}
             >
               <option>Pending</option>
               <option>Approved</option>
             </select>
-          </div>
+          </Field>
         </div>
       </Modal>
     </AdminLayout>
   );
 };
-
-const Field = ({ label, value, onChange }) => (
-  <div>
-    <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-slate-400">{label}</label>
-    <input
-      value={value}
-      onChange={(e) => onChange(e.target.value)}
-      className="w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm text-slate-700 outline-none focus:border-emerald-400"
-    />
-  </div>
-);
 
 export default TouristSpotManagement;

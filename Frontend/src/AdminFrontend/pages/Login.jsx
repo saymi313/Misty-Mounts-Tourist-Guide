@@ -1,16 +1,36 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Mountain, Mail, Lock, ArrowRight } from "lucide-react";
+import { Mountain, Mail, Lock, ArrowRight, AlertCircle } from "lucide-react";
 import { img } from "../../data/mockData";
+import { required, email as emailRule, minLen, validate, hasErrors } from "../../utils/validation";
+
+const inputBase =
+  "w-full rounded-2xl border border-slate-200 bg-white py-3.5 pl-11 pr-4 text-sm text-slate-800 outline-none [color-scheme:light] focus:border-emerald-400";
 
 const Login = () => {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
+  const [email, setEmail] = useState("admin@mistymounts.pk");
+  const [password, setPassword] = useState("admin123");
+  const [errors, setErrors] = useState({});
+
+  const clear = (key) => errors[key] && setErrors((e) => ({ ...e, [key]: undefined }));
 
   const handleSubmit = (e) => {
     e.preventDefault();
+    const found = validate(
+      { email, password },
+      {
+        email: [required("Email is required"), emailRule()],
+        password: [required("Password is required"), minLen(4, "Password must be at least 4 characters")],
+      }
+    );
+    if (hasErrors(found)) {
+      setErrors(found);
+      return;
+    }
     setLoading(true);
-    // Backend disconnected (dummy-data phase): any credentials sign in.
+    // Backend disconnected (dummy-data phase): any valid-looking credentials sign in.
     setTimeout(() => {
       localStorage.setItem("adminToken", "mock-admin-token");
       navigate("/admin/dashboard");
@@ -56,16 +76,48 @@ const Login = () => {
           <h2 className="mt-2 text-3xl font-bold text-slate-900">Sign in to admin</h2>
           <p className="mt-2 text-sm text-slate-400">Demo mode — any email &amp; password works.</p>
 
-          <form onSubmit={handleSubmit} className="mt-8 space-y-4">
-            <div className="relative">
-              <Mail className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
-              <input type="email" defaultValue="admin@mistymounts.pk" required
-                className="w-full rounded-2xl border border-slate-200 bg-white py-3.5 pl-11 pr-4 text-sm text-slate-800 outline-none focus:border-emerald-400" />
+          <form onSubmit={handleSubmit} noValidate className="mt-8 space-y-4">
+            <div>
+              <div className="relative">
+                <Mail className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+                <input
+                  type="email"
+                  value={email}
+                  onChange={(e) => {
+                    setEmail(e.target.value);
+                    clear("email");
+                  }}
+                  placeholder="you@example.com"
+                  aria-invalid={!!errors.email}
+                  className={`${inputBase} ${errors.email ? "!border-rose-300 focus:!border-rose-400" : ""}`}
+                />
+              </div>
+              {errors.email && (
+                <p className="mt-1.5 flex items-center gap-1 text-xs font-medium text-rose-500">
+                  <AlertCircle className="h-3.5 w-3.5 shrink-0" /> {errors.email}
+                </p>
+              )}
             </div>
-            <div className="relative">
-              <Lock className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
-              <input type="password" defaultValue="admin123" required
-                className="w-full rounded-2xl border border-slate-200 bg-white py-3.5 pl-11 pr-4 text-sm text-slate-800 outline-none focus:border-emerald-400" />
+            <div>
+              <div className="relative">
+                <Lock className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+                <input
+                  type="password"
+                  value={password}
+                  onChange={(e) => {
+                    setPassword(e.target.value);
+                    clear("password");
+                  }}
+                  placeholder="Enter your password"
+                  aria-invalid={!!errors.password}
+                  className={`${inputBase} ${errors.password ? "!border-rose-300 focus:!border-rose-400" : ""}`}
+                />
+              </div>
+              {errors.password && (
+                <p className="mt-1.5 flex items-center gap-1 text-xs font-medium text-rose-500">
+                  <AlertCircle className="h-3.5 w-3.5 shrink-0" /> {errors.password}
+                </p>
+              )}
             </div>
             <button type="submit" disabled={loading}
               className="flex w-full items-center justify-center gap-2 rounded-2xl bg-emerald-500 py-3.5 text-sm font-semibold text-white transition-colors hover:bg-emerald-600 disabled:opacity-60">

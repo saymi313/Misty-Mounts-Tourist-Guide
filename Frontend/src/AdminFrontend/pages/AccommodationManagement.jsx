@@ -1,9 +1,11 @@
 import React, { useState } from "react";
-import { BedDouble, DollarSign, Star, Plus, Pencil, Trash2, MapPin, UtensilsCrossed } from "lucide-react";
+import { BedDouble, Banknote, Star, Plus, Pencil, Trash2, MapPin, UtensilsCrossed } from "lucide-react";
 import AdminLayout from "../AdminLayout";
-import { Card, SectionHead, StatCard, Btn, BtnGhost } from "../../components/dashboard/ui";
+import { Card, SectionHead, StatCard, Btn, BtnGhost, Field, adminInputCls } from "../../components/dashboard/ui";
 import Modal from "../../components/dashboard/Modal";
 import { accommodations as seed } from "../../data/mockData";
+import { required, number, min, max, validate, hasErrors } from "../../utils/validation";
+import { formatPKR } from "../../utils/currency";
 
 const emptyForm = { name: "", type: "hotel", location: "", city: "", price: "", rating: "" };
 
@@ -26,10 +28,17 @@ const AccommodationManagement = () => {
   const [modalOpen, setModalOpen] = useState(false);
   const [editing, setEditing] = useState(null);
   const [form, setForm] = useState(emptyForm);
+  const [errors, setErrors] = useState({});
+
+  const update = (key, val) => {
+    setForm((f) => ({ ...f, [key]: val }));
+    if (errors[key]) setErrors((e) => ({ ...e, [key]: undefined }));
+  };
 
   const openAdd = () => {
     setEditing(null);
     setForm(emptyForm);
+    setErrors({});
     setModalOpen(true);
   };
 
@@ -43,6 +52,7 @@ const AccommodationManagement = () => {
       price: item.price,
       rating: item.rating,
     });
+    setErrors({});
     setModalOpen(true);
   };
 
@@ -50,6 +60,17 @@ const AccommodationManagement = () => {
 
   const handleSave = (e) => {
     e.preventDefault();
+    const found = validate(form, {
+      name: [required("Name is required")],
+      location: [required("Location is required")],
+      city: [required("City is required")],
+      price: [required("Price is required"), number(), min(0, "Price can't be negative")],
+      rating: [number(), min(0), max(5, "Rating is out of 5")],
+    });
+    if (hasErrors(found)) {
+      setErrors(found);
+      return;
+    }
     const parsed = { ...form, price: Number(form.price) || 0, rating: Number(form.rating) || 0 };
     if (editing) {
       setStays((prev) => prev.map((s) => (s._id === editing._id ? { ...s, ...parsed } : s)));
@@ -71,7 +92,7 @@ const AccommodationManagement = () => {
       {/* Stats */}
       <div className="grid gap-4 sm:grid-cols-3">
         <StatCard icon={BedDouble} tone="emerald" label="Total stays & food" value={total} />
-        <StatCard icon={DollarSign} tone="sky" label="Average price" value={`$${avgPrice}`} />
+        <StatCard icon={Banknote} tone="sky" label="Average price" value={formatPKR(avgPrice)} />
         <StatCard icon={Star} tone="amber" label="Average rating" value={avgRating} />
       </div>
 
@@ -111,7 +132,7 @@ const AccommodationManagement = () => {
                 </p>
                 <div className="mt-4 flex items-end justify-between">
                   <div>
-                    <span className="text-lg font-extrabold text-slate-900">${item.price}</span>
+                    <span className="text-lg font-extrabold text-slate-900">{formatPKR(item.price)}</span>
                     <span className="text-xs text-slate-400"> / {item.type === "food" ? "avg" : "night"}</span>
                   </div>
                   <div className="flex items-center gap-2">
@@ -144,8 +165,15 @@ const AccommodationManagement = () => {
       <Modal
         open={modalOpen}
         onClose={() => setModalOpen(false)}
+        icon={BedDouble}
         title={editing ? "Edit accommodation" : "Add accommodation"}
+        subtitle={
+          editing
+            ? "Update this listing's details."
+            : "Add a hotel, café or restaurant travelers can find and book."
+        }
         onSubmit={handleSave}
+        size="lg"
         footer={
           <>
             <BtnGhost type="button" onClick={() => setModalOpen(false)}>Cancel</BtnGhost>
@@ -153,41 +181,80 @@ const AccommodationManagement = () => {
           </>
         }
       >
-        <div className="space-y-4">
-          <Field label="Name" value={form.name} onChange={(v) => setForm({ ...form, name: v })} />
-          <div>
-            <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-slate-400">Type</label>
-            <select
-              value={form.type}
-              onChange={(e) => setForm({ ...form, type: e.target.value })}
-              className="w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm text-slate-700 outline-none focus:border-emerald-400"
-            >
-              <option value="hotel">Hotel</option>
-              <option value="food">Food</option>
-            </select>
+        <div className="space-y-5">
+          <div className="grid gap-5 sm:grid-cols-2">
+            <Field
+              label="Listing name"
+              required
+              value={form.name}
+              onChange={(v) => update("name", v)}
+              placeholder="e.g. Luxus Hunza Resort"
+              hint="Business name as travelers will see it."
+              error={errors.name}
+            />
+            <Field label="Type" hint="Whether this is a stay or a food spot.">
+              <select
+                value={form.type}
+                onChange={(e) => update("type", e.target.value)}
+                className={adminInputCls}
+              >
+                <option value="hotel">Hotel</option>
+                <option value="food">Food</option>
+              </select>
+            </Field>
           </div>
-          <Field label="Location" value={form.location} onChange={(v) => setForm({ ...form, location: v })} />
-          <Field label="City" value={form.city} onChange={(v) => setForm({ ...form, city: v })} />
-          <div className="grid grid-cols-2 gap-3">
-            <Field label="Price ($)" type="number" value={form.price} onChange={(v) => setForm({ ...form, price: v })} />
-            <Field label="Rating" type="number" value={form.rating} onChange={(v) => setForm({ ...form, rating: v })} />
+          <div className="grid gap-5 sm:grid-cols-2">
+            <Field
+              label="Location"
+              required
+              value={form.location}
+              onChange={(v) => update("location", v)}
+              placeholder="e.g. Karimabad, Hunza"
+              hint="Street or area within the city."
+              error={errors.location}
+            />
+            <Field
+              label="City"
+              required
+              value={form.city}
+              onChange={(v) => update("city", v)}
+              placeholder="e.g. Hunza"
+              hint="The city this listing sits in."
+              error={errors.city}
+            />
+          </div>
+          <div className="grid gap-5 sm:grid-cols-2">
+            <Field
+              label="Price (PKR)"
+              required
+              type="number"
+              min="0"
+              step="100"
+              inputMode="numeric"
+              value={form.price}
+              onChange={(v) => update("price", v)}
+              placeholder="27000"
+              hint="Per night for hotels, average spend for food — in rupees."
+              error={errors.price}
+            />
+            <Field
+              label="Rating"
+              type="number"
+              min="0"
+              max="5"
+              step="0.1"
+              inputMode="decimal"
+              value={form.rating}
+              onChange={(v) => update("rating", v)}
+              placeholder="4.5"
+              hint="Average guest rating out of 5."
+              error={errors.rating}
+            />
           </div>
         </div>
       </Modal>
     </AdminLayout>
   );
 };
-
-const Field = ({ label, value, onChange, type = "text" }) => (
-  <div>
-    <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-slate-400">{label}</label>
-    <input
-      type={type}
-      value={value}
-      onChange={(e) => onChange(e.target.value)}
-      className="w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm text-slate-700 outline-none focus:border-emerald-400"
-    />
-  </div>
-);
 
 export default AccommodationManagement;

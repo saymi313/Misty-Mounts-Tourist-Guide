@@ -69,33 +69,33 @@ export default {
           600: "#a34d2c",
         },
 
-        // ── Glacial Turquoise (landing redesign) ──────────────────────────
-        // Abyss — midnight/deep teal darks (cinematic backgrounds)
+        // ── Vibrant-nature (matches the bento landing) ────────────────────
+        // Abyss — dark forest darks with clear layering (page → card → raised)
         abyss: {
-          50: "#e7eef0",
-          100: "#c4d6da",
-          200: "#8fb2ba",
-          300: "#568b96",
-          400: "#2c6773",
-          500: "#134f5c",
-          600: "#0e3a44", // deep teal
-          700: "#0b2c34",
-          800: "#071a21", // midnight teal
-          900: "#05131a",
-          950: "#020b10",
+          50: "#eef2ef",
+          100: "#cfd8d2",
+          200: "#a6b5ab",
+          300: "#748a7d",
+          400: "#4c6354",
+          500: "#33463b",
+          600: "#28362d",
+          700: "#1e2a23",
+          800: "#18211b", // inputs / raised panels
+          900: "#111813", // card surfaces
+          950: "#070b08", // page background
         },
-        // Glacier — turquoise highlight / primary accent
+        // Glacier — lime / green highlight (primary accent, matches landing)
         glacier: {
-          50: "#eafbfd",
-          100: "#c9f4f8",
-          200: "#9de9f0",
-          300: "#66dae6",
-          400: "#38cbd6", // primary glacier
-          500: "#18aeba",
-          600: "#0f8a97",
-          700: "#116e79",
-          800: "#155862",
-          900: "#164952",
+          50: "#f7fee7",
+          100: "#ecfccb",
+          200: "#d9f99d",
+          300: "#bef264",
+          400: "#a3e635", // neon lime — primary accent
+          500: "#84cc16",
+          600: "#65a30d",
+          700: "#4d7c0f",
+          800: "#3f6212",
+          900: "#365314",
         },
         // Sand — warm counter-accent (the warm in cold-meets-warm)
         sand: {
@@ -105,6 +105,15 @@ export default {
           400: "#dcb076",
           500: "#c9945a",
           600: "#a9743f",
+        },
+        // Night — dark forest canvas for the vibrant bento landing
+        night: {
+          950: "#070b08",
+          900: "#0b110d",
+          850: "#0f1712",
+          800: "#141f18",
+          700: "#1c2a22",
+          600: "#26362c",
         },
         // Apricot — Hunza's apricot orchards & autumn poplars (dashboard warm accent)
         apricot: {
@@ -132,9 +141,10 @@ export default {
         },
       },
       fontFamily: {
-        display: ['"Space Grotesk"', 'ui-sans-serif', 'system-ui', 'sans-serif'],
+        // Unified on Poppins (rounded & friendly) to match the bento landing.
+        display: ['Poppins', 'ui-sans-serif', 'system-ui', 'sans-serif'],
         sans: ['Poppins', 'ui-sans-serif', 'system-ui', 'sans-serif'],
-        accent: ['"Space Grotesk"', 'ui-sans-serif', 'system-ui', 'sans-serif'],
+        accent: ['Poppins', 'ui-sans-serif', 'system-ui', 'sans-serif'],
       },
       letterSpacing: {
         tightest: '-0.04em',

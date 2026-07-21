@@ -283,7 +283,7 @@ export const accommodations = [
     city: "Hunza",
     description:
       "A stone-and-timber retreat built in traditional Hunza style, terraced into the hillside with every room facing Rakaposhi. Apricot-wood interiors, a garden of walnut trees, and slow mornings.",
-    price: 180,
+    price: 27000,
     rating: 4.8,
     reviews: 214,
     amenities: ["Mountain-view rooms", "Garden restaurant", "Fireplace lounge", "Free Wi-Fi", "Airport pickup"],
@@ -298,7 +298,7 @@ export const accommodations = [
     city: "Hunza",
     description:
       "Glass-fronted chalets stepping down to the turquoise shoreline of Attabad Lake. Wake to the water, breakfast on the deck, and take a boat straight from the jetty.",
-    price: 240,
+    price: 36000,
     rating: 4.7,
     reviews: 168,
     amenities: ["Lakefront", "Private jetty", "Heated rooms", "Restaurant", "Boat tours"],
@@ -313,7 +313,7 @@ export const accommodations = [
     city: "Skardu",
     description:
       "The original 'Heaven on Earth' resort — red-roofed cottages set among poplars around a heart-shaped lake, with a restaurant built into the fuselage of an old aircraft.",
-    price: 160,
+    price: 24000,
     rating: 4.6,
     reviews: 302,
     amenities: ["Lakeside cottages", "Trout restaurant", "Gardens", "Boating", "Family rooms"],
@@ -328,7 +328,7 @@ export const accommodations = [
     city: "Hunza",
     description:
       "The valley's most-loved café, famous for walnut cake and organic apricot-kernel coffee. A tiny stone terrace that catches the afternoon sun over Karimabad's rooftops.",
-    price: 12,
+    price: 1800,
     rating: 4.9,
     reviews: 540,
     amenities: ["Walnut cake", "Apricot coffee", "Terrace seating", "Vegetarian"],
@@ -343,7 +343,7 @@ export const accommodations = [
     city: "Swat",
     description:
       "Riverside grill serving fresh Swat trout the same day it's caught — charcoal-grilled, served with local bread beside the rushing Ushu river.",
-    price: 18,
+    price: 2700,
     rating: 4.7,
     reviews: 176,
     amenities: ["Fresh trout", "Riverside seating", "Halal", "Local bread"],
@@ -358,7 +358,7 @@ export const accommodations = [
     city: "Naran Kaghan",
     description:
       "A dependable riverside base in the heart of Naran, walking distance to the bazaar and the jeep stand for Saif-ul-Malook. Simple, warm rooms with the Kunhar rushing below.",
-    price: 95,
+    price: 14000,
     rating: 4.3,
     reviews: 128,
     amenities: ["Riverside", "Restaurant", "Jeep tours", "Heating", "Parking"],
@@ -376,7 +376,7 @@ export const transportationBySpot = {
       to: "Trailhead",
       provider: "Hunza Adventure Jeeps",
       duration: "45 min",
-      price: 40,
+      price: 6000,
       schedule: "On demand, 6:00 AM – 5:00 PM",
       seats: 6,
     },
@@ -387,7 +387,7 @@ export const transportationBySpot = {
       to: "Regional hub",
       provider: "NATCO",
       duration: "2 hr 30 min",
-      price: 9,
+      price: 1500,
       schedule: "Daily 7:00 AM, 1:00 PM",
       seats: 14,
     },
@@ -398,7 +398,7 @@ export const transportationBySpot = {
       to: "Town centre",
       provider: "Silk Route Cars",
       duration: "1 hr 10 min",
-      price: 55,
+      price: 8000,
       schedule: "24/7 on booking",
       seats: 4,
     },
@@ -525,12 +525,12 @@ export const categories = [
 
 // ── Bookings / payments (admin dashboard) ─────────────────────────────────────
 export const bookings = [
-  { _id: "bk-1", guest: "Ayesha Khan", avatar: img("avatar-ayesha", 120, 120), hotel: "Hunza Serena Inn", city: "Hunza", date: "2026-05-20", nights: 3, amount: 540, status: "Confirmed" },
-  { _id: "bk-2", guest: "Daniyal Raza", avatar: img("avatar-daniyal", 120, 120), hotel: "Shangrila Resort Skardu", city: "Skardu", date: "2026-05-18", nights: 4, amount: 640, status: "Confirmed" },
-  { _id: "bk-3", guest: "Sara Malik", avatar: img("avatar-sara", 120, 120), hotel: "Luxus Hunza — Attabad Lake", city: "Hunza", date: "2026-05-22", nights: 2, amount: 480, status: "Pending" },
-  { _id: "bk-4", guest: "Bilal Ahmed", avatar: img("avatar-bilal", 120, 120), hotel: "PTDC Motel Naran", city: "Naran Kaghan", date: "2026-05-15", nights: 5, amount: 475, status: "Confirmed" },
-  { _id: "bk-5", guest: "Hina Yousafzai", avatar: img("avatar-hina", 120, 120), hotel: "Café de Hunza", city: "Hunza", date: "2026-05-24", nights: 1, amount: 120, status: "Cancelled" },
-  { _id: "bk-6", guest: "Usman Tariq", avatar: img("avatar-usman", 120, 120), hotel: "Ushu Trout House", city: "Swat", date: "2026-05-19", nights: 2, amount: 180, status: "Pending" },
+  { _id: "bk-1", guest: "Ayesha Khan", avatar: img("avatar-ayesha", 120, 120), hotel: "Hunza Serena Inn", city: "Hunza", date: "2026-05-20", nights: 3, amount: 81000, status: "Confirmed" },
+  { _id: "bk-2", guest: "Daniyal Raza", avatar: img("avatar-daniyal", 120, 120), hotel: "Shangrila Resort Skardu", city: "Skardu", date: "2026-05-18", nights: 4, amount: 96000, status: "Confirmed" },
+  { _id: "bk-3", guest: "Sara Malik", avatar: img("avatar-sara", 120, 120), hotel: "Luxus Hunza — Attabad Lake", city: "Hunza", date: "2026-05-22", nights: 2, amount: 72000, status: "Pending" },
+  { _id: "bk-4", guest: "Bilal Ahmed", avatar: img("avatar-bilal", 120, 120), hotel: "PTDC Motel Naran", city: "Naran Kaghan", date: "2026-05-15", nights: 5, amount: 70000, status: "Confirmed" },
+  { _id: "bk-5", guest: "Hina Yousafzai", avatar: img("avatar-hina", 120, 120), hotel: "Café de Hunza", city: "Hunza", date: "2026-05-24", nights: 1, amount: 1800, status: "Cancelled" },
+  { _id: "bk-6", guest: "Usman Tariq", avatar: img("avatar-usman", 120, 120), hotel: "Ushu Trout House", city: "Swat", date: "2026-05-19", nights: 2, amount: 5400, status: "Pending" },
 ];
 
 // ── Schedule (right-rail "My Schedule") ───────────────────────────────────────

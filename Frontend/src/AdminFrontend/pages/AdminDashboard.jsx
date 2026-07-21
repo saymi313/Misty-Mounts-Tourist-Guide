@@ -5,6 +5,7 @@ import AdminLayout from "../AdminLayout";
 import { Card, SectionHead, StatCard, DestinationCard, ListRow, BtnGhost, Contour } from "../../components/dashboard/ui";
 import { Stagger, Reveal } from "../../components/dashboard/motion";
 import { allPlaces, accommodations, bookings, img } from "../../data/mockData";
+import { formatPKR, PKR_PREFIX } from "../../utils/currency";
 
 const AdminDashboard = () => {
   const navigate = useNavigate();
@@ -19,7 +20,7 @@ const AdminDashboard = () => {
         {/* Stats — one featured metric + three supporting (not four clones) */}
         <Reveal>
           <div className="grid gap-4 lg:grid-cols-3">
-            <StatCard featured tone="emerald" label="Total revenue" count={revenue} prefix="$" delta="+12%" spark={trend} />
+            <StatCard featured tone="emerald" label="Total revenue" count={revenue} prefix={PKR_PREFIX} delta="+12%" spark={trend} />
             <div className="grid gap-4 sm:grid-cols-3 lg:col-span-2">
               <StatCard icon={CalendarCheck} tone="apricot" label="Bookings" count={bookings.length} delta="+4" />
               <StatCard icon={MapIcon} tone="emerald" label="Tourist spots" count={allPlaces.length} />
@@ -58,7 +59,7 @@ const AdminDashboard = () => {
                     hoverMeta={<><span className="text-apricot-600">●</span> {a.reviews} reviews</>}
                     right={
                       <span className="text-right">
-                        <span className="block font-display text-base font-bold text-slate-900">${a.price}</span>
+                        <span className="block font-display text-base font-bold text-slate-900">{formatPKR(a.price)}</span>
                         <span className="text-xs text-slate-400">/ night</span>
                       </span>
                     }

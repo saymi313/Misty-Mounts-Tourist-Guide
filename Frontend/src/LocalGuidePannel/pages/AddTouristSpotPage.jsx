@@ -1,12 +1,14 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, Save, ImageIcon } from "lucide-react";
+import { ArrowLeft, Save, ImageIcon, AlertCircle } from "lucide-react";
 import GuideLayout from "../GuideLayout";
 import { Card, SectionHead, Btn, BtnGhost } from "../../components/dashboard/ui";
+import { required, url, minLen, validate, hasErrors } from "../../utils/validation";
 
 const inputCls =
-  "w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-800 outline-none focus:border-emerald-400";
+  "w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-800 outline-none [color-scheme:light] focus:border-emerald-400";
 const labelCls = "text-sm font-medium text-slate-700";
+const errNote = "mt-1.5 flex items-center gap-1 text-xs font-medium text-rose-500";
 
 /** Local Guide — add a new tourist spot (local only, no backend). */
 export default function AddTouristSpotPage() {
@@ -19,14 +21,29 @@ export default function AddTouristSpotPage() {
     picture: "",
     activities: "",
   });
+  const [errors, setErrors] = useState({});
 
   const handleChange = (e) => {
     const { name, value } = e.target;
     setForm((f) => ({ ...f, [name]: value }));
+    if (errors[name]) setErrors((er) => ({ ...er, [name]: undefined }));
   };
+
+  const errCls = (k) => (errors[k] ? " !border-rose-300 focus:!border-rose-400" : "");
 
   const handleSubmit = (e) => {
     e.preventDefault();
+    const found = validate(form, {
+      name: [required("Name is required")],
+      city: [required("City is required")],
+      location: [required("Location is required")],
+      description: [required("Description is required"), minLen(10, "Add at least 10 characters")],
+      picture: [url("Enter a valid image URL (https://…)")],
+    });
+    if (hasErrors(found)) {
+      setErrors(found);
+      return;
+    }
     // Local only — the backend is disconnected. Navigate back to the list.
     navigate("/local-guide/spots");
   };
@@ -36,7 +53,7 @@ export default function AddTouristSpotPage() {
       greeting="Add a tourist spot"
       subtitle="Share a new place for travellers to discover."
     >
-      <form onSubmit={handleSubmit}>
+      <form onSubmit={handleSubmit} noValidate>
         <Card className="mx-auto max-w-3xl">
           <SectionHead
             title="Spot details"
@@ -51,10 +68,11 @@ export default function AddTouristSpotPage() {
                 name="name"
                 value={form.name}
                 onChange={handleChange}
-                required
                 placeholder="e.g. Attabad Lake"
-                className={inputCls}
+                aria-invalid={!!errors.name}
+                className={inputCls + errCls("name")}
               />
+              {errors.name && <p className={errNote}><AlertCircle className="h-3.5 w-3.5 shrink-0" /> {errors.name}</p>}
             </div>
             <div className="space-y-1.5">
               <label htmlFor="city" className={labelCls}>City</label>
@@ -63,10 +81,11 @@ export default function AddTouristSpotPage() {
                 name="city"
                 value={form.city}
                 onChange={handleChange}
-                required
                 placeholder="e.g. Hunza"
-                className={inputCls}
+                aria-invalid={!!errors.city}
+                className={inputCls + errCls("city")}
               />
+              {errors.city && <p className={errNote}><AlertCircle className="h-3.5 w-3.5 shrink-0" /> {errors.city}</p>}
             </div>
           </div>
 
@@ -77,10 +96,11 @@ export default function AddTouristSpotPage() {
               name="location"
               value={form.location}
               onChange={handleChange}
-              required
               placeholder="e.g. Gojal, Upper Hunza"
-              className={inputCls}
+              aria-invalid={!!errors.location}
+              className={inputCls + errCls("location")}
             />
+            {errors.location && <p className={errNote}><AlertCircle className="h-3.5 w-3.5 shrink-0" /> {errors.location}</p>}
           </div>
 
           <div className="mt-5 space-y-1.5">
@@ -90,11 +110,12 @@ export default function AddTouristSpotPage() {
               name="description"
               value={form.description}
               onChange={handleChange}
-              required
               rows={4}
               placeholder="What should travellers know about this place?"
-              className={`${inputCls} resize-none`}
+              aria-invalid={!!errors.description}
+              className={`${inputCls} resize-none${errCls("description")}`}
             />
+            {errors.description && <p className={errNote}><AlertCircle className="h-3.5 w-3.5 shrink-0" /> {errors.description}</p>}
           </div>
 
           <div className="mt-5 space-y-1.5">
@@ -102,11 +123,14 @@ export default function AddTouristSpotPage() {
             <input
               id="picture"
               name="picture"
+              type="url"
               value={form.picture}
               onChange={handleChange}
               placeholder="https://..."
-              className={inputCls}
+              aria-invalid={!!errors.picture}
+              className={inputCls + errCls("picture")}
             />
+            {errors.picture && <p className={errNote}><AlertCircle className="h-3.5 w-3.5 shrink-0" /> {errors.picture}</p>}
           </div>
 
           {form.picture ? (

@@ -22,7 +22,7 @@ const Map = () => {
 
     const pin = L.divIcon({
       className: 'mm-pin',
-      html: `<span style="display:flex;align-items:center;justify-content:center;width:30px;height:30px;border-radius:50% 50% 50% 0;background:#0e3a44;transform:rotate(-45deg);box-shadow:0 6px 14px rgba(15,30,26,.4);border:2px solid #38cbd6;"><span style="width:9px;height:9px;border-radius:50%;background:#38cbd6;transform:rotate(45deg);"></span></span>`,
+      html: `<span style="display:flex;align-items:center;justify-content:center;width:30px;height:30px;border-radius:50% 50% 50% 0;background:#111813;transform:rotate(-45deg);box-shadow:0 6px 14px rgba(15,30,26,.4);border:2px solid #a3e635;"><span style="width:9px;height:9px;border-radius:50%;background:#a3e635;transform:rotate(45deg);"></span></span>`,
       iconSize: [30, 30],
       iconAnchor: [15, 30],
     });

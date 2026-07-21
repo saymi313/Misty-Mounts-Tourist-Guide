@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { MapPin, Plus, Pencil, Trash2, Map as MapIcon, Sparkles, Building2 } from "lucide-react";
+import { MapPin, Plus, Pencil, Trash2, Map as MapIcon, Gem, Building2 } from "lucide-react";
 import GuideLayout from "../GuideLayout";
 import { Card, SectionHead, StatCard, Btn } from "../../components/dashboard/ui";
 import { allPlaces } from "../../data/mockData";
@@ -23,7 +23,7 @@ export default function TouristSpotListPage() {
       <div className="space-y-6">
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
           <StatCard icon={MapIcon} label="Curated spots" value={spots.length} tone="emerald" />
-          <StatCard icon={Sparkles} label="Hidden gems" value={hiddenGems} tone="amber" />
+          <StatCard icon={Gem} label="Hidden gems" value={hiddenGems} tone="amber" />
           <StatCard icon={Building2} label="Cities covered" value={citiesCovered} tone="sky" />
         </div>
 
@@ -64,7 +64,7 @@ export default function TouristSpotListPage() {
                     />
                     {spot.hiddenGem && (
                       <span className="absolute left-3 top-3 inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2.5 py-1 text-xs font-semibold text-emerald-600">
-                        <Sparkles className="h-3 w-3" /> Hidden gem
+                        Hidden gem
                       </span>
                     )}
                   </div>

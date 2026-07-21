@@ -1,11 +1,12 @@
 import React, { useState } from "react";
 import { Wallet, Receipt, Clock, Pencil, Trash2 } from "lucide-react";
 import AdminLayout from "../AdminLayout";
-import { Card, SectionHead, StatCard, StatusPill, Btn, BtnGhost } from "../../components/dashboard/ui";
+import { Card, SectionHead, StatCard, StatusPill, Btn, BtnGhost, adminInputCls, Field } from "../../components/dashboard/ui";
 import Modal from "../../components/dashboard/Modal";
 import { bookings as seed } from "../../data/mockData";
+import { formatPKR } from "../../utils/currency";
 
-const money = (n) => `$${Number(n).toLocaleString()}`;
+const money = formatPKR;
 
 const PaymentManagement = () => {
   const [payments, setPayments] = useState(seed);
@@ -111,7 +112,9 @@ const PaymentManagement = () => {
       <Modal
         open={modalOpen && !!editing}
         onClose={() => setModalOpen(false)}
+        icon={Wallet}
         title="Update payment"
+        subtitle="Change the settlement status for this booking."
         onSubmit={handleSave}
         footer={
           <>
@@ -121,27 +124,34 @@ const PaymentManagement = () => {
         }
       >
         {editing && (
-          <>
-            <div className="mb-4 flex items-center gap-3 rounded-2xl bg-slate-50 p-3">
-              <img src={editing.avatar} alt={editing.guest} className="h-11 w-11 rounded-full object-cover" />
-              <div>
+          <div className="space-y-5">
+            <div className="flex items-center gap-3.5 rounded-2xl border border-slate-100 bg-slate-50 p-4">
+              <img src={editing.avatar} alt={editing.guest} className="h-12 w-12 rounded-full object-cover" />
+              <div className="min-w-0">
                 <p className="text-sm font-semibold text-slate-900">{editing.guest}</p>
-                <p className="text-xs text-slate-400">{editing.hotel} · {money(editing.amount)}</p>
+                <p className="truncate text-xs text-slate-400">
+                  {editing.hotel} · {editing.nights} nights · {money(editing.amount)}
+                </p>
               </div>
+              <span className="ml-auto shrink-0">
+                <StatusPill status={editing.status} />
+              </span>
             </div>
-            <div>
-              <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-slate-400">Status</label>
+            <Field
+              label="Payment status"
+              hint="Mark as confirmed once payment clears, or cancelled to void the booking."
+            >
               <select
                 value={status}
                 onChange={(e) => setStatus(e.target.value)}
-                className="w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm text-slate-700 outline-none focus:border-emerald-400"
+                className={adminInputCls}
               >
                 <option>Pending</option>
                 <option>Confirmed</option>
                 <option>Cancelled</option>
               </select>
-            </div>
-          </>
+            </Field>
+          </div>
         )}
       </Modal>
     </AdminLayout>

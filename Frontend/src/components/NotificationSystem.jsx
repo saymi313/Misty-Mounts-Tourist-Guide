@@ -99,11 +99,11 @@ const NotificationSystem = () => {
       {/* Notification Bell */}
       <button
         onClick={() => setShowNotifications(!showNotifications)}
-        className="relative rounded-xl p-2 text-frost-600 transition-colors duration-200 hover:bg-glacier-50 hover:text-abyss-900 dark:text-frost-300 dark:hover:bg-abyss-800 dark:hover:text-frost-50"
+        className="relative rounded-xl p-2 text-white/70 transition-colors duration-200 hover:bg-white/10 hover:text-white"
       >
         <Bell className="h-5 w-5" />
         {unreadCount > 0 && (
-          <span className="absolute -top-0.5 -right-0.5 bg-clay-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+          <span className="absolute -top-0.5 -right-0.5 bg-lime-400 text-night-950 text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center">
             {unreadCount > 9 ? '9+' : unreadCount}
           </span>
         )}
@@ -111,22 +111,22 @@ const NotificationSystem = () => {
 
       {/* Notification Dropdown */}
       {showNotifications && (
-        <div className="absolute right-0 mt-2 w-80 bg-white dark:bg-abyss-900 rounded-2xl shadow-lift border border-abyss-900/10 dark:border-frost-50/10 z-50 overflow-hidden">
-          <div className="p-4 border-b border-abyss-900/8 dark:border-frost-50/8">
+        <div className="absolute right-0 mt-2 w-80 bg-night-800 rounded-2xl shadow-2xl border border-white/10 z-50 overflow-hidden">
+          <div className="p-4 border-b border-white/8">
             <div className="flex items-center justify-between">
-              <h3 className="font-display text-lg font-semibold text-abyss-900 dark:text-frost-50">Notifications</h3>
+              <h3 className="text-lg font-bold text-white">Notifications</h3>
               <div className="flex space-x-2">
                 {unreadCount > 0 && (
                   <button
                     onClick={markAllAsRead}
-                    className="text-sm text-glacier-700 hover:text-glacier-600 dark:text-glacier-300"
+                    className="text-sm text-lime-400 hover:text-lime-300"
                   >
                     Mark all read
                   </button>
                 )}
                 <button
                   onClick={() => setShowNotifications(false)}
-                  className="text-frost-400 hover:text-abyss-700 dark:hover:text-frost-100"
+                  className="text-white/40 hover:text-white"
                 >
                   <X className="h-4 w-4" />
                 </button>
@@ -136,15 +136,15 @@ const NotificationSystem = () => {
 
           <div className="max-h-96 overflow-y-auto">
             {notifications.length === 0 ? (
-              <div className="p-4 text-center text-frost-500 dark:text-frost-400">
+              <div className="p-4 text-center text-white/40">
                 No notifications
               </div>
             ) : (
               notifications.map((notification) => (
                 <div
                   key={notification.id}
-                  className={`p-4 border-b border-abyss-900/8 dark:border-frost-50/8 hover:bg-frost-50 dark:hover:bg-abyss-800 transition-colors duration-200 ${
-                    !notification.read ? 'bg-glacier-50 dark:bg-abyss-800/60' : ''
+                  className={`p-4 border-b border-white/8 hover:bg-night-700 transition-colors duration-200 ${
+                    !notification.read ? 'bg-lime-400/5' : ''
                   }`}
                 >
                   <div className="flex items-start space-x-3">
@@ -153,11 +153,11 @@ const NotificationSystem = () => {
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center justify-between">
-                        <p className="text-sm font-medium text-abyss-900 dark:text-frost-50">
+                        <p className="text-sm font-semibold text-white">
                           {notification.title}
                         </p>
                         <div className="flex items-center space-x-2">
-                          <span className="text-xs text-frost-500 dark:text-frost-400">
+                          <span className="text-xs text-white/40">
                             {new Date(notification.timestamp).toLocaleTimeString([], {
                               hour: '2-digit',
                               minute: '2-digit'
@@ -165,19 +165,19 @@ const NotificationSystem = () => {
                           </span>
                           <button
                             onClick={() => removeNotification(notification.id)}
-                            className="text-frost-400 hover:text-abyss-700 dark:hover:text-frost-100"
+                            className="text-white/40 hover:text-white"
                           >
                             <X className="h-3 w-3" />
                           </button>
                         </div>
                       </div>
-                      <p className="text-sm text-frost-600 dark:text-frost-300 mt-1">
+                      <p className="text-sm text-white/60 mt-1">
                         {notification.body}
                       </p>
                       {!notification.read && (
                         <button
                           onClick={() => markAsRead(notification.id)}
-                          className="text-xs text-blue-600 hover:text-blue-800 mt-2"
+                          className="text-xs text-lime-400 hover:text-lime-300 mt-2"
                         >
                           Mark as read
                         </button>

@@ -1,5 +1,5 @@
 import React from "react";
-import { MapPin, Star, ArrowUpRight } from "lucide-react";
+import { MapPin, Star, ArrowUpRight, AlertCircle } from "lucide-react";
 import { useCountUp, Sparkline } from "./motion";
 
 /** White rounded card container. */
@@ -209,5 +209,63 @@ export const PromoCard = ({ title, body, cta, image, onClick }) => (
         {cta} <ArrowUpRight className="h-3.5 w-3.5" />
       </button>
     </div>
+  </div>
+);
+
+/**
+ * Shared admin form input class — explicit white background so native controls
+ * never inherit the app's global dark color-scheme, plus an emerald focus ring.
+ * Apply `[color-scheme:light]` too so date/select popups stay light.
+ */
+export const adminInputCls =
+  "w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-800 placeholder-slate-400 shadow-sm outline-none transition-all [color-scheme:light] focus:border-emerald-400 focus:ring-4 focus:ring-emerald-500/10";
+
+/** Error-state overrides for `adminInputCls` (rose border + ring). */
+export const adminInputErr =
+  "!border-rose-300 focus:!border-rose-400 focus:!ring-rose-500/10";
+
+/**
+ * Labelled admin field with an optional helper line, required marker and
+ * inline validation error. Pass `children` (e.g. a <select>) to override the
+ * default text input; pass `error` to show a rose message + border.
+ */
+export const Field = ({
+  label,
+  type = "text",
+  value,
+  onChange,
+  hint,
+  required,
+  placeholder,
+  error,
+  className = "",
+  children,
+  ...props
+}) => (
+  <div className={className}>
+    {label && (
+      <label className="mb-1.5 flex items-center gap-1 text-xs font-semibold uppercase tracking-wide text-slate-500">
+        {label}
+        {required && <span className="text-rose-400">*</span>}
+      </label>
+    )}
+    {children ?? (
+      <input
+        type={type}
+        value={value}
+        onChange={(e) => onChange?.(e.target.value)}
+        placeholder={placeholder}
+        aria-invalid={!!error}
+        className={`${adminInputCls} ${error ? adminInputErr : ""}`}
+        {...props}
+      />
+    )}
+    {error ? (
+      <p className="mt-1.5 flex items-center gap-1 text-xs font-medium text-rose-500">
+        <AlertCircle className="h-3.5 w-3.5 shrink-0" /> {error}
+      </p>
+    ) : hint ? (
+      <p className="mt-1.5 text-xs leading-relaxed text-slate-400">{hint}</p>
+    ) : null}
   </div>
 );

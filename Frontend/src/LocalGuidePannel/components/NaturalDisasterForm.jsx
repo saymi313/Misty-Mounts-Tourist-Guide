@@ -1,13 +1,15 @@
 import React, { useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { ArrowLeft, Save } from "lucide-react";
+import { ArrowLeft, Save, AlertCircle } from "lucide-react";
 import GuideLayout from "../GuideLayout";
 import { Card, SectionHead, Btn, BtnGhost } from "../../components/dashboard/ui";
 import { disasters } from "../../data/mockData";
+import { required, minLen, validate, hasErrors } from "../../utils/validation";
 
 const inputCls =
-  "w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-800 outline-none focus:border-emerald-400";
+  "w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-800 outline-none [color-scheme:light] focus:border-emerald-400";
 const labelCls = "text-sm font-medium text-slate-700";
+const errNote = "mt-1.5 flex items-center gap-1 text-xs font-medium text-rose-500";
 
 /** Local Guide — post or edit a safety alert (local only, no backend). */
 export default function NaturalDisasterForm() {
@@ -24,13 +26,28 @@ export default function NaturalDisasterForm() {
     isResolved: existing?.isResolved || false,
   });
 
+  const [errors, setErrors] = useState({});
+
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
     setForm((f) => ({ ...f, [name]: type === "checkbox" ? checked : value }));
+    if (errors[name]) setErrors((er) => ({ ...er, [name]: undefined }));
   };
+
+  const errCls = (k) => (errors[k] ? " !border-rose-300 focus:!border-rose-400" : "");
 
   const handleSubmit = (e) => {
     e.preventDefault();
+    const found = validate(form, {
+      name: [required("Alert name is required")],
+      location: [required("Location is required")],
+      description: [required("Description is required"), minLen(10, "Add at least 10 characters")],
+      date: [required("Pick a date")],
+    });
+    if (hasErrors(found)) {
+      setErrors(found);
+      return;
+    }
     // Local only — the backend is disconnected. Navigate back to the list.
     navigate("/local-guide/natural-disasters");
   };
@@ -40,7 +57,7 @@ export default function NaturalDisasterForm() {
       greeting={id ? "Edit alert" : "Post an alert"}
       subtitle="Share real-time safety information with travellers."
     >
-      <form onSubmit={handleSubmit}>
+      <form onSubmit={handleSubmit} noValidate>
         <Card className="mx-auto max-w-3xl">
           <SectionHead
             title="Alert details"
@@ -54,10 +71,11 @@ export default function NaturalDisasterForm() {
               name="name"
               value={form.name}
               onChange={handleChange}
-              required
               placeholder="e.g. Flash-flood Advisory — Hunza River"
-              className={inputCls}
+              aria-invalid={!!errors.name}
+              className={inputCls + errCls("name")}
             />
+            {errors.name && <p className={errNote}><AlertCircle className="h-3.5 w-3.5 shrink-0" /> {errors.name}</p>}
           </div>
 
           <div className="mt-5 space-y-1.5">
@@ -67,10 +85,11 @@ export default function NaturalDisasterForm() {
               name="location"
               value={form.location}
               onChange={handleChange}
-              required
               placeholder="e.g. Lower Hunza & Nagar"
-              className={inputCls}
+              aria-invalid={!!errors.location}
+              className={inputCls + errCls("location")}
             />
+            {errors.location && <p className={errNote}><AlertCircle className="h-3.5 w-3.5 shrink-0" /> {errors.location}</p>}
           </div>
 
           <div className="mt-5 space-y-1.5">
@@ -80,11 +99,12 @@ export default function NaturalDisasterForm() {
               name="description"
               value={form.description}
               onChange={handleChange}
-              required
               rows={4}
               placeholder="Describe the situation and any advice for travellers."
-              className={`${inputCls} resize-none`}
+              aria-invalid={!!errors.description}
+              className={`${inputCls} resize-none${errCls("description")}`}
             />
+            {errors.description && <p className={errNote}><AlertCircle className="h-3.5 w-3.5 shrink-0" /> {errors.description}</p>}
           </div>
 
           <div className="mt-5 grid grid-cols-1 gap-5 sm:grid-cols-2">
@@ -110,9 +130,10 @@ export default function NaturalDisasterForm() {
                 type="date"
                 value={form.date}
                 onChange={handleChange}
-                required
-                className={inputCls}
+                aria-invalid={!!errors.date}
+                className={inputCls + errCls("date")}
               />
+              {errors.date && <p className={errNote}><AlertCircle className="h-3.5 w-3.5 shrink-0" /> {errors.date}</p>}
             </div>
           </div>
 

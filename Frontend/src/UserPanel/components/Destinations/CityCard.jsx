@@ -1,43 +1,69 @@
-import React from 'react';
-import { Link } from 'react-router-dom';
-import { MapPin, Sparkles, ArrowUpRight } from 'lucide-react';
+import React from "react";
+import { Link } from "react-router-dom";
+import { motion } from "framer-motion";
+import { MapPin, ArrowUpRight } from "lucide-react";
 
-const CityCard = ({ name, location, picture, city, spotId, hiddenGem, curatedBy }) => {
-  return (
-    <Link
-      to={`/city/${encodeURIComponent(city)}/spot/${encodeURIComponent(spotId)}`}
-      className="group flex flex-col overflow-hidden rounded-3xl bg-white shadow-card ring-1 ring-abyss-900/10 transition-all duration-300 ease-editorial hover:-translate-y-1 hover:shadow-lift dark:bg-abyss-900 dark:ring-frost-50/10"
-    >
-      <div className="relative overflow-hidden">
-        <img
-          src={picture}
-          alt={name}
-          className="h-56 w-full object-cover transition-transform duration-700 ease-editorial group-hover:scale-105"
-        />
-        <div className="absolute inset-0 bg-gradient-to-t from-abyss-950/40 to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
-        {hiddenGem && (
-          <span className="absolute left-3 top-3 inline-flex items-center gap-1 rounded-full bg-glacier-400/95 px-2.5 py-1 text-xs font-semibold text-abyss-950 shadow-sm backdrop-blur">
-            <Sparkles className="h-3 w-3" /> Hidden gem
-          </span>
-        )}
-        <span className="absolute right-3 top-3 flex h-9 w-9 translate-y-1 items-center justify-center rounded-full bg-white/90 text-abyss-800 opacity-0 shadow-sm backdrop-blur transition-all duration-300 group-hover:translate-y-0 group-hover:opacity-100">
-          <ArrowUpRight className="h-4 w-4" />
-        </span>
-      </div>
+const EASE = [0.16, 1, 0.3, 1];
+const MotionLink = motion.create(Link);
 
-      <div className="flex flex-1 flex-col p-5">
-        <div className="flex items-center gap-1 text-xs font-medium text-glacier-700 dark:text-glacier-300">
-          <MapPin className="h-3.5 w-3.5" /> {location}
-        </div>
-        <h3 className="mt-1.5 font-display text-lg font-semibold text-abyss-900 dark:text-frost-50">{name}</h3>
-        {curatedBy && (
-          <p className="mt-auto pt-3 text-xs text-frost-500 dark:text-frost-400">
-            Curated by <span className="font-medium text-glacier-700 dark:text-glacier-300">{curatedBy}</span>
-          </p>
-        )}
-      </div>
-    </Link>
-  );
-};
+/**
+ * Night bento spot card — a linked PhotoTile in the bento landing language:
+ * full-bleed image with a dark gradient, a lime hidden-gem badge, location meta,
+ * an optional "curated by" credit and a hover zoom + arrow reveal.
+ *
+ * Height/span is driven by the `className` passed from the bento grid so it can
+ * act as either the big featured tile or a smaller one.
+ */
+const CityCard = ({
+  name,
+  location,
+  picture,
+  city,
+  spotId,
+  hiddenGem,
+  curatedBy,
+  className = "min-h-[200px]",
+  delay = 0,
+}) => (
+  <MotionLink
+    to={`/city/${encodeURIComponent(city)}/spot/${encodeURIComponent(spotId)}`}
+    initial={{ opacity: 0, y: 22 }}
+    whileInView={{ opacity: 1, y: 0 }}
+    viewport={{ once: true, amount: 0.15 }}
+    transition={{ duration: 0.6, delay, ease: EASE }}
+    className={`group relative block overflow-hidden rounded-[1.4rem] border border-white/[0.07] bg-night-800 ${className}`}
+  >
+    <img
+      src={picture}
+      alt={name}
+      className="absolute inset-0 h-full w-full object-cover transition-transform duration-[800ms] ease-out group-hover:scale-[1.07]"
+    />
+    <div className="absolute inset-0 bg-gradient-to-t from-night-950 via-night-950/30 to-transparent" />
+
+    {hiddenGem && (
+      <span className="absolute left-3 top-3 inline-flex items-center gap-1 rounded-full bg-lime-400 px-2.5 py-1 text-[0.65rem] font-bold uppercase tracking-wider text-night-950">
+        Hidden gem
+      </span>
+    )}
+
+    <span className="absolute right-3 top-3 flex h-9 w-9 translate-y-1 items-center justify-center rounded-full bg-white/15 text-white opacity-0 backdrop-blur transition-all duration-300 group-hover:translate-y-0 group-hover:opacity-100">
+      <ArrowUpRight className="h-4 w-4" />
+    </span>
+
+    <div className="absolute inset-x-0 bottom-0 p-4">
+      {location && (
+        <p className="flex items-center gap-1 text-xs font-medium text-lime-300">
+          <MapPin className="h-3 w-3" /> {location}
+        </p>
+      )}
+      <h3 className="mt-0.5 text-lg font-extrabold leading-tight text-white">{name}</h3>
+      {curatedBy && (
+        <p className="mt-1 text-xs text-white/60">
+          Curated by <span className="text-lime-400">{curatedBy}</span>
+        </p>
+      )}
+    </div>
+  </MotionLink>
+);
 
 export default CityCard;

@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { Send, MessageSquare, Mountain, Bell, Check, CheckCheck } from "lucide-react";
 import { useAuth } from "../../../context/AuthContext";
+import { inputCls } from "../bento/tiles";
 
 const ChatBox = () => {
   const { user, socket, socketConnected } = useAuth();
@@ -96,41 +97,41 @@ const ChatBox = () => {
 
   if (!user) {
     return (
-      <div className="flex h-full flex-col items-center justify-center rounded-3xl bg-frost-100 dark:bg-abyss-800 p-10 text-center">
-        <MessageSquare className="mb-4 h-14 w-14 text-frost-500 dark:text-frost-400" />
-        <p className="text-frost-500 dark:text-frost-400">Please sign in to chat with a local guide.</p>
+      <div className="flex h-full min-h-[520px] flex-col items-center justify-center rounded-[1.4rem] border border-white/[0.07] bg-night-800 p-10 text-center">
+        <MessageSquare className="mb-4 h-14 w-14 text-white/25" />
+        <p className="text-white/60">Please sign in to chat with a local guide.</p>
       </div>
     );
   }
 
   return (
-    <div className="flex h-full min-h-[520px] flex-col overflow-hidden rounded-3xl bg-white dark:bg-abyss-900 shadow-card ring-1 ring-abyss-900/10 dark:ring-frost-50/10">
+    <div className="flex h-full min-h-[520px] flex-col overflow-hidden rounded-[1.4rem] border border-white/[0.07] bg-night-900">
       {/* Header */}
-      <div className="flex items-center justify-between bg-abyss-800 px-5 py-4">
+      <div className="flex items-center justify-between border-b border-white/[0.06] bg-night-800 px-5 py-4">
         <div className="flex items-center gap-3">
-          <span className="flex h-10 w-10 items-center justify-center rounded-full bg-abyss-700 text-glacier-300">
+          <span className="flex h-10 w-10 items-center justify-center rounded-full bg-lime-400/15 text-lime-400">
             <Mountain className="h-5 w-5" />
           </span>
           <div>
-            <h2 className="font-display text-base font-semibold text-frost-50">Guide chat · Karim</h2>
+            <h2 className="text-base font-extrabold tracking-tight text-white">Guide chat · Karim</h2>
             <div className="flex items-center gap-1.5">
-              <span className={`h-2 w-2 rounded-full ${socketConnected ? "bg-glacier-400" : "bg-clay-400"}`} />
-              <span className="text-xs text-frost-300">{socketConnected ? "Online" : "Connecting…"}</span>
+              <span className={`h-2 w-2 rounded-full ${socketConnected ? "bg-lime-400" : "bg-rose-400"}`} />
+              <span className="text-xs text-white/50">{socketConnected ? "Online" : "Connecting…"}</span>
             </div>
           </div>
         </div>
         {hasUnreadMessages && (
           <span className="relative">
-            <Bell className="h-5 w-5 text-frost-100" />
-            <span className="absolute -right-0.5 -top-0.5 h-2.5 w-2.5 rounded-full bg-glacier-400" />
+            <Bell className="h-5 w-5 text-white/70" />
+            <span className="absolute -right-0.5 -top-0.5 h-2.5 w-2.5 rounded-full bg-lime-400" />
           </span>
         )}
       </div>
 
       {/* Messages */}
-      <div className="flex-1 space-y-4 overflow-y-auto bg-frost-100 dark:bg-abyss-800 p-4">
+      <div className="flex-1 space-y-4 overflow-y-auto bg-night-900 p-4">
         {messages.length === 0 && (
-          <p className="mt-8 text-center text-sm text-frost-500 dark:text-frost-400">
+          <p className="mt-8 text-center text-sm text-white/50">
             Say hello — your guide is ready to help plan the trip.
           </p>
         )}
@@ -140,14 +141,14 @@ const ChatBox = () => {
             <div key={message.id}>
               {showDate && (
                 <div className="mb-4 flex justify-center">
-                  <span className="rounded-full bg-frost-100 dark:bg-abyss-800 px-3 py-1 text-xs text-frost-600 dark:text-frost-300">
+                  <span className="rounded-full bg-night-800 px-3 py-1 text-xs text-white/50">
                     {formatDate(message.timestamp)}
                   </span>
                 </div>
               )}
               <div className={`flex ${message.sender === "user" ? "justify-end" : "justify-start"}`}>
                 {message.sender !== "user" && message.sender !== "system" && (
-                  <span className="mr-2 flex h-8 w-8 shrink-0 items-center justify-center self-end rounded-full bg-glacier-500/15 text-glacier-700 dark:bg-glacier-400/15 dark:text-glacier-300">
+                  <span className="mr-2 flex h-8 w-8 shrink-0 items-center justify-center self-end rounded-full bg-lime-400/15 text-lime-400">
                     <Mountain className="h-4 w-4" />
                   </span>
                 )}
@@ -155,26 +156,26 @@ const ChatBox = () => {
                   <div
                     className={`px-4 py-2.5 text-sm ${
                       message.sender === "user"
-                        ? "rounded-2xl rounded-br-md bg-glacier-500 text-abyss-950"
+                        ? "rounded-2xl rounded-br-md bg-lime-400 text-night-950"
                         : message.sender === "system"
-                        ? "rounded-xl bg-sand-100 text-sand-600 ring-1 ring-sand-300/50 dark:bg-abyss-800 dark:text-sand-300"
+                        ? "rounded-xl bg-night-800 text-white/60 ring-1 ring-white/10"
                         : message.isBroadcast
-                        ? "rounded-2xl rounded-bl-md border-l-4 border-clay-400 bg-clay-50 text-clay-700 dark:bg-abyss-800 dark:text-clay-300"
-                        : "rounded-2xl rounded-bl-md bg-white text-abyss-900 shadow-sm ring-1 ring-abyss-900/10 dark:bg-abyss-900 dark:text-frost-50 dark:ring-frost-50/10"
+                        ? "rounded-2xl rounded-bl-md border-l-4 border-lime-400 bg-night-700 text-white"
+                        : "rounded-2xl rounded-bl-md bg-night-700 text-white"
                     }`}
                   >
                     {message.text}
                   </div>
                   <div className={`mt-1 flex items-center gap-1 ${message.sender === "user" ? "justify-end" : "justify-start"}`}>
                     {message.username && message.sender === "guide" && (
-                      <span className="text-xs text-frost-500 dark:text-frost-400">{message.username}</span>
+                      <span className="text-xs text-white/45">{message.username}</span>
                     )}
-                    <span className="text-xs text-frost-500 dark:text-frost-400">{formatTime(message.timestamp)}</span>
+                    <span className="text-xs text-white/45">{formatTime(message.timestamp)}</span>
                     {message.sender === "user" &&
                       (message.isRead ? (
-                        <CheckCheck className="h-3 w-3 text-glacier-500" />
+                        <CheckCheck className="h-3 w-3 text-lime-400" />
                       ) : (
-                        <Check className="h-3 w-3 text-frost-500 dark:text-frost-400" />
+                        <Check className="h-3 w-3 text-white/40" />
                       ))}
                   </div>
                 </div>
@@ -185,11 +186,11 @@ const ChatBox = () => {
 
         {isTyping && (
           <div className="flex justify-start">
-            <div className="rounded-2xl rounded-bl-md bg-white dark:bg-abyss-900 px-4 py-3 shadow-sm ring-1 ring-abyss-900/10 dark:ring-frost-50/10">
+            <div className="rounded-2xl rounded-bl-md bg-night-700 px-4 py-3">
               <div className="flex gap-1">
-                <span className="h-2 w-2 animate-bounce rounded-full bg-frost-400" />
-                <span className="h-2 w-2 animate-bounce rounded-full bg-frost-400" style={{ animationDelay: "0.12s" }} />
-                <span className="h-2 w-2 animate-bounce rounded-full bg-frost-400" style={{ animationDelay: "0.24s" }} />
+                <span className="h-2 w-2 animate-bounce rounded-full bg-white/40" />
+                <span className="h-2 w-2 animate-bounce rounded-full bg-white/40" style={{ animationDelay: "0.12s" }} />
+                <span className="h-2 w-2 animate-bounce rounded-full bg-white/40" style={{ animationDelay: "0.24s" }} />
               </div>
             </div>
           </div>
@@ -198,7 +199,7 @@ const ChatBox = () => {
       </div>
 
       {/* Input */}
-      <div className="border-t border-abyss-900/10 dark:border-frost-50/12 bg-white dark:bg-abyss-900 p-3">
+      <div className="border-t border-white/[0.06] bg-night-900 p-3">
         <form onSubmit={handleSendMessage} className="flex items-end gap-2">
           <textarea
             ref={inputRef}
@@ -208,13 +209,13 @@ const ChatBox = () => {
             rows="1"
             placeholder="Type a message…"
             disabled={!socketConnected}
-            className="flex-1 resize-none rounded-2xl border border-abyss-900/12 bg-frost-100 px-4 py-3 text-sm text-abyss-900 placeholder-frost-400 focus:border-glacier-400 focus:outline-none focus:ring-2 focus:ring-glacier-400/20 dark:border-frost-50/15 dark:bg-abyss-800 dark:text-frost-50"
+            className={`${inputCls} flex-1 resize-none`}
             style={{ minHeight: "46px", maxHeight: "120px" }}
           />
           <button
             type="submit"
             disabled={!socketConnected || !newMessage.trim()}
-            className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-glacier-400 text-abyss-950 transition-colors hover:bg-glacier-300 disabled:opacity-40"
+            className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-lime-400 text-night-950 transition-colors hover:bg-lime-300 disabled:opacity-40"
           >
             <Send className="h-4 w-4" />
           </button>

@@ -1,12 +1,15 @@
 import React from 'react';
+import { Tile, Eyebrow } from '../bento/tiles';
 
 const AboutSection = ({ description }) => {
   return (
-    <section>
-      <p className="eyebrow">Overview</p>
-      <h2 className="mt-2 font-display text-2xl font-semibold text-abyss-900 dark:text-frost-50">About this place</h2>
-      <p className="mt-4 text-lg leading-relaxed text-frost-600 dark:text-frost-300 text-balance">{description}</p>
-    </section>
+    <Tile pad="p-6 sm:p-8" glow="green">
+      <Eyebrow>Overview</Eyebrow>
+      <h2 className="mt-2 text-2xl font-extrabold tracking-tight text-white sm:text-3xl">
+        About this <span className="text-lime-400">place</span>
+      </h2>
+      <p className="mt-4 text-lg leading-relaxed text-white/70">{description}</p>
+    </Tile>
   );
 };
 

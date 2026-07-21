@@ -1,23 +1,42 @@
 import React, { useState } from 'react';
+import { motion } from 'framer-motion';
 import { Eye, EyeOff, Mail, Lock, ArrowRight, AlertCircle } from 'lucide-react';
 import { FcGoogle } from 'react-icons/fc';
 import { FaApple } from 'react-icons/fa';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../../context/AuthContext';
+import { Btn } from '../bento/tiles';
+import { required, email as emailRule, validate, hasErrors } from '../../../utils/validation';
+
+const EASE = [0.16, 1, 0.3, 1];
 
 const Login = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
+  const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
   const { login } = useAuth();
 
+  const clear = (key) => errors[key] && setErrors((x) => ({ ...x, [key]: undefined }));
+
   const handleLogin = async (e) => {
     e.preventDefault();
     setError('');
+    const found = validate(
+      { email, password },
+      {
+        email: [required('Email is required'), emailRule()],
+        password: [required('Password is required')],
+      }
+    );
+    if (hasErrors(found)) {
+      setErrors(found);
+      return;
+    }
     setLoading(true);
     try {
       const result = await login(email, password);
@@ -35,41 +54,51 @@ const Login = () => {
   };
 
   return (
-    <div className="animate-fade-in">
+    <motion.div
+      initial={{ opacity: 0, scale: 0.98 }}
+      animate={{ opacity: 1, scale: 1 }}
+      transition={{ duration: 0.4, ease: EASE }}
+    >
       {error && (
-        <div className="mb-5 flex items-center gap-2.5 rounded-xl border border-clay-500/25 bg-clay-500/5 px-4 py-3 text-sm text-clay-600">
+        <div className="mb-5 flex items-center gap-2.5 rounded-2xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-200">
           <AlertCircle className="h-4 w-4 shrink-0" />
           <span>{error}</span>
         </div>
       )}
 
-      <form onSubmit={handleLogin} className="space-y-5">
-        <Field label="Email address">
-          <Mail className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-frost-500 dark:text-frost-400" />
+      <form onSubmit={handleLogin} noValidate className="space-y-5">
+        <Field label="Email address" error={errors.email}>
+          <Mail className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-white/40" />
           <input
             type="email"
             value={email}
-            onChange={(e) => setEmail(e.target.value)}
+            onChange={(e) => {
+              setEmail(e.target.value);
+              clear('email');
+            }}
             placeholder="you@example.com"
-            required
-            className={inputClass}
+            aria-invalid={!!errors.email}
+            className={`${inputClass} ${errors.email ? inputErrClass : ''}`}
           />
         </Field>
 
-        <Field label="Password">
-          <Lock className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-frost-500 dark:text-frost-400" />
+        <Field label="Password" error={errors.password}>
+          <Lock className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-white/40" />
           <input
             type={showPassword ? 'text' : 'password'}
             value={password}
-            onChange={(e) => setPassword(e.target.value)}
+            onChange={(e) => {
+              setPassword(e.target.value);
+              clear('password');
+            }}
             placeholder="Enter your password"
-            required
-            className={`${inputClass} pr-12`}
+            aria-invalid={!!errors.password}
+            className={`${inputClass} pr-12 ${errors.password ? inputErrClass : ''}`}
           />
           <button
             type="button"
             onClick={() => setShowPassword((s) => !s)}
-            className="absolute right-3 top-1/2 -translate-y-1/2 rounded-lg p-1.5 text-frost-500 dark:text-frost-400 transition-colors hover:text-glacier-700 dark:hover:text-glacier-300"
+            className="absolute right-3 top-1/2 -translate-y-1/2 rounded-lg p-1.5 text-white/40 transition-colors hover:text-lime-400"
             aria-label={showPassword ? 'Hide password' : 'Show password'}
           >
             {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
@@ -77,22 +106,22 @@ const Login = () => {
         </Field>
 
         <div className="flex items-center justify-between text-sm">
-          <label className="flex items-center gap-2 text-frost-600 dark:text-frost-300">
+          <label className="flex items-center gap-2 text-white/70">
             <input
               type="checkbox"
-              className="h-4 w-4 rounded border-abyss-900/20 text-glacier-600 focus:ring-glacier-400 dark:border-frost-50/20"
+              className="h-4 w-4 rounded border-white/20 bg-night-900 accent-lime-400 focus:ring-2 focus:ring-lime-400/30"
             />
             Remember me
           </label>
-          <button type="button" className="font-medium text-glacier-700 hover:text-glacier-600 dark:text-glacier-300">
+          <button type="button" className="font-semibold text-lime-400 transition-colors hover:text-lime-300">
             Forgot password?
           </button>
         </div>
 
-        <button type="submit" disabled={loading} className="btn-primary w-full disabled:opacity-60">
+        <Btn type="submit" disabled={loading} className="w-full">
           {loading ? (
             <>
-              <span className="h-4 w-4 animate-spin rounded-full border-2 border-abyss-950/30 border-t-abyss-950" />
+              <span className="h-4 w-4 animate-spin rounded-full border-2 border-night-950/30 border-t-night-950" />
               Signing in…
             </>
           ) : (
@@ -101,7 +130,7 @@ const Login = () => {
               <ArrowRight className="h-4 w-4" />
             </>
           )}
-        </button>
+        </Btn>
       </form>
 
       <Divider />
@@ -110,28 +139,36 @@ const Login = () => {
         <SocialButton icon={<FcGoogle className="h-4 w-4" />} label="Google" />
         <SocialButton icon={<FaApple className="h-4 w-4" />} label="Apple" />
       </div>
-    </div>
+    </motion.div>
   );
 };
 
-// ── Small shared building blocks (also used by Signup) ─────────────────────────
+// ── Small shared building blocks (also used by Signup) — night + lime ──────────
 export const inputClass =
-  'block w-full rounded-xl border border-abyss-900/12 bg-white py-3.5 pl-11 pr-4 text-sm text-abyss-900 placeholder-frost-400 transition-all duration-200 focus:border-glacier-400 focus:outline-none focus:ring-2 focus:ring-glacier-400/20 dark:border-frost-50/15 dark:bg-abyss-800 dark:text-frost-50';
+  'block w-full rounded-2xl border border-white/10 bg-night-900 py-3.5 pl-11 pr-4 text-sm text-white placeholder-white/40 outline-none transition-colors focus:border-lime-400/60 focus:ring-2 focus:ring-lime-400/15';
 
-export const Field = ({ label, children }) => (
+// Error-state overrides for inputClass / inputCls (rose border + ring).
+export const inputErrClass = '!border-rose-400/60 focus:!border-rose-400/60 focus:!ring-rose-400/15';
+
+export const Field = ({ label, error, children }) => (
   <div className="space-y-1.5">
-    <label className="block text-sm font-medium text-abyss-800 dark:text-frost-100">{label}</label>
+    <label className="block text-sm font-semibold text-white/70">{label}</label>
     <div className="relative">{children}</div>
+    {error && (
+      <p className="flex items-center gap-1 text-xs font-medium text-rose-400">
+        <AlertCircle className="h-3.5 w-3.5 shrink-0" /> {error}
+      </p>
+    )}
   </div>
 );
 
 export const Divider = () => (
   <div className="relative my-6">
     <div className="absolute inset-0 flex items-center">
-      <div className="w-full border-t border-abyss-900/10 dark:border-frost-50/12" />
+      <div className="w-full border-t border-white/10" />
     </div>
     <div className="relative flex justify-center">
-      <span className="bg-frost-50 px-4 text-xs uppercase tracking-widest text-frost-500 dark:bg-abyss-950 dark:text-frost-400">
+      <span className="bg-night-800 px-4 text-xs uppercase tracking-widest text-white/40">
         or continue with
       </span>
     </div>
@@ -141,7 +178,7 @@ export const Divider = () => (
 export const SocialButton = ({ icon, label }) => (
   <button
     type="button"
-    className="flex items-center justify-center gap-2 rounded-xl border border-abyss-900/10 bg-white py-3 text-sm font-medium text-abyss-800 transition-all duration-200 hover:border-glacier-400 hover:bg-glacier-50 dark:border-frost-50/12 dark:bg-abyss-900 dark:text-frost-100 dark:hover:bg-abyss-800"
+    className="flex items-center justify-center gap-2 rounded-2xl border border-white/12 bg-night-900 py-3 text-sm font-semibold text-white transition-colors hover:border-lime-400/50"
   >
     {icon}
     {label}

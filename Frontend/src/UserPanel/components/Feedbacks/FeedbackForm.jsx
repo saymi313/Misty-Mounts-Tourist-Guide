@@ -1,6 +1,11 @@
 import React, { useState } from 'react';
 import { submitFeedback } from '../../../data/mockApi';
-import { Star, Send, MapPin, CheckCircle2, AlertCircle } from 'lucide-react';
+import { Star, Send, MapPin, CheckCircle2, AlertCircle, PenLine } from 'lucide-react';
+import { Tile, Eyebrow, Btn, inputCls } from '../bento/tiles';
+import { required, min, minLen, validate, hasErrors } from '../../../utils/validation';
+
+const inputErr = '!border-rose-400/60 focus:!border-rose-400/60 focus:!ring-rose-400/15';
+const errNote = 'mt-1.5 flex items-center gap-1 text-xs font-medium text-rose-400';
 
 const FeedbackForm = () => {
   const [rating, setRating] = useState(0);
@@ -8,16 +13,27 @@ const FeedbackForm = () => {
   const [spotName, setSpotName] = useState('');
   const [feedback, setFeedback] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [errors, setErrors] = useState({});
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+
+  const clear = (key) => errors[key] && setErrors((x) => ({ ...x, [key]: undefined }));
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
     setSuccess('');
 
-    if (!spotName.trim() || !rating || !feedback.trim()) {
-      setError('Please fill out all fields and pick a rating.');
+    const found = validate(
+      { spotName, rating, feedback },
+      {
+        spotName: [required('Please enter the spot or stay name')],
+        rating: [min(1, 'Please pick a rating')],
+        feedback: [required('Please write your review'), minLen(10, 'Review must be at least 10 characters')],
+      }
+    );
+    if (hasErrors(found)) {
+      setErrors(found);
       return;
     }
 
@@ -38,41 +54,45 @@ const FeedbackForm = () => {
   };
 
   return (
-    <div className="card-surface p-6 sm:p-8">
-      <p className="eyebrow">Share your trip</p>
-      <h2 className="mt-2 font-display text-2xl font-semibold text-abyss-900 dark:text-frost-50">Write a review</h2>
+    <Tile glow="lime" pad="p-6 sm:p-8" className="h-full">
+      <Eyebrow><PenLine className="h-3.5 w-3.5" /> Share your trip</Eyebrow>
+      <h2 className="mt-2 text-2xl font-extrabold tracking-tight text-white">
+        Write a <span className="text-lime-400">review</span>
+      </h2>
 
       {error && (
-        <div className="mt-5 flex items-center gap-2.5 rounded-xl border border-clay-500/25 bg-clay-500/5 px-4 py-3 text-sm text-clay-600">
+        <div className="mt-5 flex items-center gap-2.5 rounded-2xl border border-rose-400/25 bg-rose-400/10 px-4 py-3 text-sm text-rose-300">
           <AlertCircle className="h-4 w-4 shrink-0" /> {error}
         </div>
       )}
       {success && (
-        <div className="mt-5 flex items-center gap-2.5 rounded-xl border border-glacier-500/25 bg-glacier-500/5 px-4 py-3 text-sm text-glacier-700 dark:text-glacier-300">
+        <div className="mt-5 flex items-center gap-2.5 rounded-2xl border border-lime-400/25 bg-lime-400/10 px-4 py-3 text-sm text-lime-300">
           <CheckCircle2 className="h-4 w-4 shrink-0" /> {success}
         </div>
       )}
 
       <form onSubmit={handleSubmit} className="mt-6 space-y-5">
         <div>
-          <label htmlFor="spotName" className="block text-sm font-medium text-abyss-900 dark:text-frost-50">
+          <label htmlFor="spotName" className="block text-sm font-semibold text-white/70">
             Which spot or stay?
           </label>
-          <div className="relative mt-1">
-            <MapPin className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-frost-400" />
+          <div className="relative mt-1.5">
+            <MapPin className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-white/40" />
             <input
               id="spotName"
               type="text"
               value={spotName}
-              onChange={(e) => setSpotName(e.target.value)}
+              onChange={(e) => { setSpotName(e.target.value); clear('spotName'); }}
               placeholder="e.g. Attabad Lake, Hunza"
-              className="block w-full rounded-xl border border-abyss-900/12 bg-white py-3 pl-11 pr-4 text-sm text-abyss-900 placeholder-frost-400 focus:border-glacier-400 focus:outline-none focus:ring-2 focus:ring-glacier-400/20 dark:border-frost-50/15 dark:bg-abyss-800 dark:text-frost-50"
+              aria-invalid={!!errors.spotName}
+              className={`${inputCls} !pl-11 ${errors.spotName ? inputErr : ''}`}
             />
           </div>
+          {errors.spotName && <p className={errNote}><AlertCircle className="h-3.5 w-3.5 shrink-0" /> {errors.spotName}</p>}
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-abyss-900 dark:text-frost-50">Your rating</label>
+          <label className="block text-sm font-semibold text-white/70">Your rating</label>
           <div className="mt-2 flex items-center gap-1">
             {[1, 2, 3, 4, 5].map((star) => (
               <button
@@ -80,41 +100,44 @@ const FeedbackForm = () => {
                 key={star}
                 onMouseEnter={() => setHoveredRating(star)}
                 onMouseLeave={() => setHoveredRating(0)}
-                onClick={() => setRating(star)}
+                onClick={() => { setRating(star); clear('rating'); }}
                 className="rounded p-0.5"
                 aria-label={`${star} star${star > 1 ? 's' : ''}`}
               >
                 <Star
                   className={`h-8 w-8 transition-colors duration-150 ${
                     star <= (hoveredRating || rating)
-                      ? 'fill-glacier-400 text-glacier-400'
-                      : 'fill-abyss-900/10 text-abyss-900/20 dark:fill-frost-50/15 dark:text-frost-50/15'
+                      ? 'fill-lime-400 text-lime-400'
+                      : 'fill-white/10 text-white/15'
                   }`}
                 />
               </button>
             ))}
           </div>
+          {errors.rating && <p className={errNote}><AlertCircle className="h-3.5 w-3.5 shrink-0" /> {errors.rating}</p>}
         </div>
 
         <div>
-          <label htmlFor="feedback" className="block text-sm font-medium text-abyss-900 dark:text-frost-50">
+          <label htmlFor="feedback" className="block text-sm font-semibold text-white/70">
             Your review
           </label>
           <textarea
             id="feedback"
             rows="4"
             value={feedback}
-            onChange={(e) => setFeedback(e.target.value)}
+            onChange={(e) => { setFeedback(e.target.value); clear('feedback'); }}
             placeholder="Describe the sights, the atmosphere, tips for other travellers…"
-            className="mt-1 block w-full rounded-xl border border-abyss-900/12 bg-white px-4 py-3 text-sm text-abyss-900 placeholder-frost-400 focus:border-glacier-400 focus:outline-none focus:ring-2 focus:ring-glacier-400/20 dark:border-frost-50/15 dark:bg-abyss-800 dark:text-frost-50"
+            aria-invalid={!!errors.feedback}
+            className={`${inputCls} mt-1.5 resize-none ${errors.feedback ? inputErr : ''}`}
           />
+          {errors.feedback && <p className={errNote}><AlertCircle className="h-3.5 w-3.5 shrink-0" /> {errors.feedback}</p>}
         </div>
 
-        <button type="submit" disabled={isSubmitting} className="btn-primary w-full disabled:opacity-60">
+        <Btn type="submit" disabled={isSubmitting} className="w-full">
           {isSubmitting ? 'Submitting…' : (<>Submit review <Send className="h-4 w-4" /></>)}
-        </button>
+        </Btn>
       </form>
-    </div>
+    </Tile>
   );
 };
 
