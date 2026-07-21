@@ -1,84 +1,79 @@
-import React, { useState, useEffect } from 'react';
-import ReactPaginate from 'react-paginate';
-import { getFeedback } from '../api/feedbackApi';
+import React from "react";
+import { Star, MessageSquare, TrendingUp, Award } from "lucide-react";
+import GuideLayout from "../GuideLayout";
+import { Card, SectionHead, StatCard } from "../../components/dashboard/ui";
+import { feedbacks } from "../../data/mockData";
+
+/** Five-star row, filled up to `rating`. */
+const Stars = ({ rating }) => (
+  <span className="inline-flex items-center gap-0.5">
+    {[1, 2, 3, 4, 5].map((n) => (
+      <Star
+        key={n}
+        className={`h-4 w-4 ${
+          n <= rating ? "fill-amber-400 text-amber-400" : "fill-slate-100 text-slate-200"
+        }`}
+      />
+    ))}
+  </span>
+);
+
+/** "2026-06-14" → "14 Jun 2026". */
+const fmtDate = (iso) => {
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return iso;
+  return d.toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" });
+};
 
 const Feedback = () => {
-  const [reviews, setReviews] = useState([]);
-  const [currentPage, setCurrentPage] = useState(0);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    fetchReviews();
-  }, []);
-
-  const fetchReviews = async () => {
-    try {
-      const response = await getFeedback();
-      console.log('Feedback response:', response);
-      // The API returns { message, feedbacks: [] }
-      setReviews(response.feedbacks || []);
-      setLoading(false);
-    } catch (error) {
-      console.error('Error fetching reviews:', error);
-      setReviews([]); // Set empty array on error
-      setLoading(false);
-    }
-  };
-
-  const handlePageChange = (selectedPage) => {
-    setCurrentPage(selectedPage.selected);
-  };
-
-  const itemsPerPage = 5;
-  const paginatedData = reviews.slice(
-    currentPage * itemsPerPage,
-    (currentPage + 1) * itemsPerPage
-  );
-
-  if (loading) {
-    return <div>Loading...</div>;
-  }
+  const total = feedbacks.length;
+  const avg = total ? (feedbacks.reduce((s, r) => s + r.rating, 0) / total).toFixed(1) : "0.0";
+  const fiveStar = feedbacks.filter((r) => r.rating === 5).length;
 
   return (
-    <div className="bg-white rounded-md shadow-md pt-5 pb-2 flex flex-col gap-5">
-      <h1 className="ml-4 text-2xl font-bold">Feedback</h1>
-      <div className="overflow-x-auto flex flex-col min-h-[300px]">
-        <div className="w-full overflow-x-scroll md:overflow-auto max-w-xl xs:max-w-xl sm:max-w-xl md:max-w-7xl 2xl:max-w-none mt-1">
-          <div className="overflow-scroll md:overflow-auto w-full text-left">
-            {paginatedData.map((data, index) => (
-              <div
-                key={index}
-                className="cursor-pointer border-gray-100 hover:bg-[#D8FFFF] transition-colors duration-300 flex items-center w-full h-[80px] justify-between text-[#637381] font-semibold text-sm border-t border-b px-5"
-              >
-                <div className="flex gap-5 min-w-[200px]">
-                  <h1 className="text-black font-normal">{data.locationName}</h1>
-                </div>
-                <div className="px-4">{data.rating}</div>
-                <div className="flex gap-1 px-4 w-[20vw]">
-                  <h3>{data.message}</h3>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-        <div className="flex justify-between px-5 items-end text-[#637381] mt-3 text-sm">
-          <ReactPaginate
-            className="flex gap-3 items-center"
-            previousLabel={<img src="/left.png" alt="previous" className="w-5 h-5" />}
-            nextLabel={<img src="/next.png" alt="next" className="w-5 h-5" />}
-            breakLabel={"..."}
-            pageCount={Math.ceil(reviews.length / itemsPerPage)}
-            marginPagesDisplayed={1}
-            pageRangeDisplayed={3}
-            onPageChange={handlePageChange}
-            containerClassName={"pagination"}
-            activeClassName={"bg-[#D8FFFF] rounded-[2px] w-5 h-5 flex justify-center items-center border-[#12ECA1] border"}
-          />
-        </div>
+    <GuideLayout greeting="Traveller reviews" subtitle="What visitors are saying about your valley">
+      {/* Stats */}
+      <div className="grid gap-4 sm:grid-cols-3">
+        <StatCard icon={MessageSquare} tone="sky" label="Total reviews" value={total} />
+        <StatCard icon={TrendingUp} tone="emerald" label="Average rating" value={avg} />
+        <StatCard icon={Award} tone="amber" label="5-star reviews" value={fiveStar} />
       </div>
-    </div>
+
+      {/* Review list */}
+      <Card className="mt-6">
+        <SectionHead title="All reviews" sub={`${total} traveller ${total === 1 ? "review" : "reviews"}`} />
+        <div className="divide-y divide-slate-100">
+          {feedbacks.map((f) => (
+            <article key={f._id} className="flex gap-4 py-5 first:pt-0 last:pb-0">
+              <img
+                src={f.avatar}
+                alt={f.name}
+                className="h-12 w-12 shrink-0 rounded-2xl object-cover"
+              />
+              <div className="min-w-0 flex-1">
+                <div className="flex flex-wrap items-start justify-between gap-x-4 gap-y-1">
+                  <div className="min-w-0">
+                    <p className="truncate text-sm font-bold text-slate-900">{f.name}</p>
+                    <p className="truncate text-xs text-slate-400">{f.locationName}</p>
+                  </div>
+                  <div className="flex shrink-0 flex-col items-end gap-1">
+                    <Stars rating={f.rating} />
+                    <span className="text-xs text-slate-400">{fmtDate(f.date)}</span>
+                  </div>
+                </div>
+                <p className="mt-2 text-sm leading-relaxed text-slate-600">{f.message}</p>
+                {f.trip && (
+                  <span className="mt-3 inline-flex rounded-full bg-slate-50 px-3 py-1 text-xs font-semibold text-slate-500">
+                    {f.trip}
+                  </span>
+                )}
+              </div>
+            </article>
+          ))}
+        </div>
+      </Card>
+    </GuideLayout>
   );
 };
 
 export default Feedback;
-

@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
-import { Send, MessageSquare, User, Bell, Check, CheckCheck } from "lucide-react";
+import { Send, MessageSquare, Mountain, Bell, Check, CheckCheck } from "lucide-react";
 import { useAuth } from "../../../context/AuthContext";
 
 const ChatBox = () => {
@@ -8,119 +8,53 @@ const ChatBox = () => {
   const [newMessage, setNewMessage] = useState("");
   const [isTyping, setIsTyping] = useState(false);
   const [hasUnreadMessages, setHasUnreadMessages] = useState(false);
-  const [lastSeen, setLastSeen] = useState(null);
   const messagesEndRef = useRef(null);
   const inputRef = useRef(null);
 
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  };
+  const scrollToBottom = () => messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  useEffect(() => { scrollToBottom(); }, [messages]);
 
   useEffect(() => {
-    scrollToBottom();
-  }, [messages]);
-
-  useEffect(() => {
-    // Join chat when component mounts and user is authenticated and socket is connected
     if (user && socketConnected) {
-      console.log('ChatBox: Joining chat with user:', user);
-      socket.emit("join-chat", {
-        userId: user.email, // Use email as userId
-        username: user.name,
-        userType: user.type
-      });
+      socket.emit("join-chat", { userId: user.email, username: user.name, userType: user.type });
     }
 
-    // Listen for system messages
     socket.on("system-message", (message) => {
-      console.log('ChatBox: Received system message:', message);
-      setMessages((prev) => [
-        ...prev,
-        { 
-          id: Date.now(), 
-          text: message.message, 
-          sender: "system",
-          username: "System",
-          timestamp: new Date(),
-          type: message.type
-        },
-      ]);
+      setMessages((prev) => [...prev, {
+        id: Date.now(), text: message.message, sender: "system",
+        username: "System", timestamp: new Date(), type: message.type,
+      }]);
     });
 
-    // Listen for agent messages from the server
     socket.on("agent-message", (message) => {
-      console.log("ChatBox: Received agent message:", message);
-      setMessages((prev) => [
-        ...prev,
-        { 
-          id: message.id, 
-          text: message.text, 
-          sender: "guide",
-          username: message.guideUsername || "Local Guide",
-          timestamp: new Date(message.timestamp),
-          isRead: false,
-          isBroadcast: message.broadcastToAll || false
-        },
-      ]);
+      setMessages((prev) => [...prev, {
+        id: message.id, text: message.text, sender: "guide",
+        username: message.guideUsername || "Local Guide", timestamp: new Date(message.timestamp),
+        isRead: false, isBroadcast: message.broadcastToAll || false,
+      }]);
       setHasUnreadMessages(true);
     });
 
-    // Listen for message confirmation
-    socket.on("message-sent", (message) => {
-      console.log("ChatBox: Message sent successfully:", message);
-    });
+    socket.on("message-sent", () => {});
 
-    // Listen for typing indicators
     socket.on("user-typing", (data) => {
-      if (data.userId !== user?.email) {
-        setIsTyping(data.isTyping);
-      }
+      if (data.userId !== user?.email) setIsTyping(data.isTyping);
     });
 
-    // Listen for new message notifications
     socket.on("new-message-notification", (notification) => {
-      if (notification.isFromGuide) {
-        setHasUnreadMessages(true);
-        // Show browser notification if permission granted
-        if (Notification.permission === "granted") {
-          new Notification("New Message from Guide", {
-            body: notification.message,
-            icon: "/Logo.png"
-          });
-        }
-      }
+      if (notification.isFromGuide) setHasUnreadMessages(true);
     });
 
-    // Listen for message read status
-    socket.on("message-read", (data) => {
-      setMessages((prev) =>
-        prev.map((msg) =>
-          msg.sender === "user" ? { ...msg, isRead: true } : msg
-        )
-      );
+    socket.on("message-read", () => {
+      setMessages((prev) => prev.map((msg) => (msg.sender === "user" ? { ...msg, isRead: true } : msg)));
     });
 
-    // Listen for errors
-    socket.on("error", (error) => {
-      console.error("ChatBox: Socket error:", error);
-      setMessages((prev) => [
-        ...prev,
-        { 
-          id: Date.now(), 
-          text: `Error: ${error}`, 
-          sender: "system",
-          username: "System",
-          timestamp: new Date()
-        },
-      ]);
+    socket.on("error", (err) => {
+      setMessages((prev) => [...prev, {
+        id: Date.now(), text: `Error: ${err}`, sender: "system", username: "System", timestamp: new Date(),
+      }]);
     });
 
-    // Request notification permission
-    if (Notification.permission === "default") {
-      Notification.requestPermission();
-    }
-
-    // Cleanup the socket listeners when the component unmounts
     return () => {
       socket.off("agent-message");
       socket.off("system-message");
@@ -135,217 +69,154 @@ const ChatBox = () => {
   const handleSendMessage = (e) => {
     e.preventDefault();
     if (newMessage.trim() && user && socketConnected) {
-      console.log("ChatBox: Sending message:", newMessage);
-      
-      // Send user message to the server with user information
-      socket.emit("user-message", {
-        message: newMessage,
-        userId: user.email,
-        username: user.name
-      });
-
-      // Add message to local state
-      setMessages((prev) => [
-        ...prev,
-        { 
-          id: Date.now(), 
-          text: newMessage, 
-          sender: "user",
-          username: user.name,
-          timestamp: new Date(),
-          isRead: false
-        },
-      ]);
+      socket.emit("user-message", { message: newMessage, userId: user.email, username: user.name });
+      setMessages((prev) => [...prev, {
+        id: Date.now(), text: newMessage, sender: "user", username: user.name,
+        timestamp: new Date(), isRead: false,
+      }]);
       setNewMessage("");
       inputRef.current?.focus();
     }
   };
 
-  const handleTyping = (e) => {
-    setNewMessage(e.target.value);
-    if (user && socketConnected) {
-      socket.emit("typing", {
-        isTyping: e.target.value.length > 0,
-        userId: user.email,
-        username: user.name
-      });
-    }
-  };
-
   const handleKeyPress = (e) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
-      e.preventDefault();
-      handleSendMessage(e);
-    }
+    if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); handleSendMessage(e); }
   };
 
-  const formatTime = (timestamp) => {
-    return new Date(timestamp).toLocaleTimeString([], { 
-      hour: '2-digit', 
-      minute: '2-digit' 
-    });
-  };
-
-  const formatDate = (timestamp) => {
-    const date = new Date(timestamp);
+  const formatTime = (t) => new Date(t).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+  const formatDate = (t) => {
+    const date = new Date(t);
     const today = new Date();
-    const yesterday = new Date(today);
-    yesterday.setDate(yesterday.getDate() - 1);
-
-    if (date.toDateString() === today.toDateString()) {
-      return 'Today';
-    } else if (date.toDateString() === yesterday.toDateString()) {
-      return 'Yesterday';
-    } else {
-      return date.toLocaleDateString();
-    }
+    const yest = new Date(today);
+    yest.setDate(yest.getDate() - 1);
+    if (date.toDateString() === today.toDateString()) return "Today";
+    if (date.toDateString() === yest.toDateString()) return "Yesterday";
+    return date.toLocaleDateString();
   };
 
   if (!user) {
     return (
-      <div className="h-full flex flex-col items-center justify-center bg-gray-50">
-        <MessageSquare className="h-16 w-16 text-gray-400 mb-4" />
-        <p className="text-gray-500 text-lg">Please log in to start chatting</p>
+      <div className="flex h-full flex-col items-center justify-center rounded-3xl bg-frost-100 dark:bg-abyss-800 p-10 text-center">
+        <MessageSquare className="mb-4 h-14 w-14 text-frost-500 dark:text-frost-400" />
+        <p className="text-frost-500 dark:text-frost-400">Please sign in to chat with a local guide.</p>
       </div>
     );
   }
 
   return (
-    <div className="h-full flex flex-col bg-white rounded-lg shadow-lg overflow-hidden">
+    <div className="flex h-full min-h-[520px] flex-col overflow-hidden rounded-3xl bg-white dark:bg-abyss-900 shadow-card ring-1 ring-abyss-900/10 dark:ring-frost-50/10">
       {/* Header */}
-      <div className="bg-gradient-to-r from-blue-600 to-blue-700 px-6 py-4 flex items-center justify-between">
-        <div className="flex items-center space-x-3">
-          <div className="w-10 h-10 bg-white rounded-full flex items-center justify-center">
-            <User className="h-6 w-6 text-blue-600" />
-          </div>
+      <div className="flex items-center justify-between bg-abyss-800 px-5 py-4">
+        <div className="flex items-center gap-3">
+          <span className="flex h-10 w-10 items-center justify-center rounded-full bg-abyss-700 text-glacier-300">
+            <Mountain className="h-5 w-5" />
+          </span>
           <div>
-            <h2 className="text-white font-semibold text-lg">Travel Guide Chat</h2>
-            <div className="flex items-center space-x-2">
-              <div className={`w-2 h-2 rounded-full ${socketConnected ? 'bg-green-400' : 'bg-red-400'}`}></div>
-              <span className="text-blue-100 text-sm">
-                {socketConnected ? 'Online' : 'Offline'}
-              </span>
+            <h2 className="font-display text-base font-semibold text-frost-50">Guide chat · Karim</h2>
+            <div className="flex items-center gap-1.5">
+              <span className={`h-2 w-2 rounded-full ${socketConnected ? "bg-glacier-400" : "bg-clay-400"}`} />
+              <span className="text-xs text-frost-300">{socketConnected ? "Online" : "Connecting…"}</span>
             </div>
           </div>
         </div>
         {hasUnreadMessages && (
-          <div className="relative">
-            <Bell className="h-6 w-6 text-white animate-pulse" />
-            <div className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full"></div>
-          </div>
+          <span className="relative">
+            <Bell className="h-5 w-5 text-frost-100" />
+            <span className="absolute -right-0.5 -top-0.5 h-2.5 w-2.5 rounded-full bg-glacier-400" />
+          </span>
         )}
       </div>
 
-      {/* Messages Container */}
-      <div className="flex-1 overflow-y-auto bg-gray-50 p-4 space-y-4">
+      {/* Messages */}
+      <div className="flex-1 space-y-4 overflow-y-auto bg-frost-100 dark:bg-abyss-800 p-4">
+        {messages.length === 0 && (
+          <p className="mt-8 text-center text-sm text-frost-500 dark:text-frost-400">
+            Say hello — your guide is ready to help plan the trip.
+          </p>
+        )}
         {messages.map((message, index) => {
-          const showDate = index === 0 || 
-            formatDate(message.timestamp) !== formatDate(messages[index - 1]?.timestamp);
-          
+          const showDate = index === 0 || formatDate(message.timestamp) !== formatDate(messages[index - 1]?.timestamp);
           return (
             <div key={message.id}>
               {showDate && (
-                <div className="flex justify-center mb-4">
-                  <span className="bg-gray-200 text-gray-600 text-xs px-3 py-1 rounded-full">
+                <div className="mb-4 flex justify-center">
+                  <span className="rounded-full bg-frost-100 dark:bg-abyss-800 px-3 py-1 text-xs text-frost-600 dark:text-frost-300">
                     {formatDate(message.timestamp)}
                   </span>
                 </div>
               )}
-              
               <div className={`flex ${message.sender === "user" ? "justify-end" : "justify-start"}`}>
-                {message.sender !== "user" && (
-                  <div className="flex-shrink-0 mr-3">
-                    <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
-                      <User className="h-4 w-4 text-blue-600" />
-                    </div>
-                  </div>
+                {message.sender !== "user" && message.sender !== "system" && (
+                  <span className="mr-2 flex h-8 w-8 shrink-0 items-center justify-center self-end rounded-full bg-glacier-500/15 text-glacier-700 dark:bg-glacier-400/15 dark:text-glacier-300">
+                    <Mountain className="h-4 w-4" />
+                  </span>
                 )}
-                
-                <div className="flex flex-col">
+                <div className="flex max-w-[78%] flex-col">
                   <div
-                    className={`max-w-xs lg:max-w-md px-4 py-2 rounded-2xl ${
+                    className={`px-4 py-2.5 text-sm ${
                       message.sender === "user"
-                        ? "bg-blue-800 text-white rounded-br-md"
+                        ? "rounded-2xl rounded-br-md bg-glacier-500 text-abyss-950"
                         : message.sender === "system"
-                        ? "bg-yellow-100 text-yellow-800 rounded-lg"
+                        ? "rounded-xl bg-sand-100 text-sand-600 ring-1 ring-sand-300/50 dark:bg-abyss-800 dark:text-sand-300"
                         : message.isBroadcast
-                        ? "bg-purple-100 text-purple-800 border-l-4 border-purple-500 rounded-lg"
-                        : "bg-gray-200 text-gray-800 rounded-bl-md shadow-sm"
+                        ? "rounded-2xl rounded-bl-md border-l-4 border-clay-400 bg-clay-50 text-clay-700 dark:bg-abyss-800 dark:text-clay-300"
+                        : "rounded-2xl rounded-bl-md bg-white text-abyss-900 shadow-sm ring-1 ring-abyss-900/10 dark:bg-abyss-900 dark:text-frost-50 dark:ring-frost-50/10"
                     }`}
                   >
-                    <p className="text-sm">{message.text}</p>
+                    {message.text}
                   </div>
-                  
-                  {message.username && message.sender !== "user" && (
-                    <div className="flex items-center space-x-2 mt-1">
-                      <span className="text-xs text-gray-500">{message.username}</span>
-                      {message.isBroadcast && (
-                        <span className="text-xs bg-purple-200 text-purple-700 px-2 py-1 rounded-full">
-                          Broadcast
-                        </span>
-                      )}
-                    </div>
-                  )}
-                  
-                  <div className={`flex items-center space-x-1 mt-1 ${
-                    message.sender === "user" ? "justify-end" : "justify-start"
-                  }`}>
-                    <span className="text-xs text-gray-500">
-                      {formatTime(message.timestamp)}
-                    </span>
-                    {message.sender === "user" && (
-                      <div className="flex items-center">
-                        {message.isRead ? (
-                          <CheckCheck className="h-3 w-3 text-blue-500" />
-                        ) : (
-                          <Check className="h-3 w-3 text-gray-400" />
-                        )}
-                      </div>
+                  <div className={`mt-1 flex items-center gap-1 ${message.sender === "user" ? "justify-end" : "justify-start"}`}>
+                    {message.username && message.sender === "guide" && (
+                      <span className="text-xs text-frost-500 dark:text-frost-400">{message.username}</span>
                     )}
+                    <span className="text-xs text-frost-500 dark:text-frost-400">{formatTime(message.timestamp)}</span>
+                    {message.sender === "user" &&
+                      (message.isRead ? (
+                        <CheckCheck className="h-3 w-3 text-glacier-500" />
+                      ) : (
+                        <Check className="h-3 w-3 text-frost-500 dark:text-frost-400" />
+                      ))}
                   </div>
                 </div>
               </div>
             </div>
           );
         })}
-        
+
         {isTyping && (
           <div className="flex justify-start">
-            <div className="bg-white text-gray-800 px-4 py-2 rounded-2xl rounded-bl-md shadow-sm">
-              <div className="flex space-x-1">
-                <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></div>
-                <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
-                <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
+            <div className="rounded-2xl rounded-bl-md bg-white dark:bg-abyss-900 px-4 py-3 shadow-sm ring-1 ring-abyss-900/10 dark:ring-frost-50/10">
+              <div className="flex gap-1">
+                <span className="h-2 w-2 animate-bounce rounded-full bg-frost-400" />
+                <span className="h-2 w-2 animate-bounce rounded-full bg-frost-400" style={{ animationDelay: "0.12s" }} />
+                <span className="h-2 w-2 animate-bounce rounded-full bg-frost-400" style={{ animationDelay: "0.24s" }} />
               </div>
             </div>
           </div>
         )}
-        
         <div ref={messagesEndRef} />
       </div>
 
-      {/* Input Area */}
-      <div className="bg-white border-t border-gray-200 p-4">
-        <form onSubmit={handleSendMessage} className="flex items-end space-x-3">
-          <div className="flex-1">
-            <textarea
-              ref={inputRef}
-              value={newMessage}
-              onChange={handleTyping}
-              onKeyPress={handleKeyPress}
-              className="w-full px-4 py-3 border border-gray-300 rounded-2xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
-              placeholder="Type a message..."
-              rows="1"
-              disabled={!socketConnected}
-              style={{ minHeight: '44px', maxHeight: '120px' }}
-            />
-          </div>
+      {/* Input */}
+      <div className="border-t border-abyss-900/10 dark:border-frost-50/12 bg-white dark:bg-abyss-900 p-3">
+        <form onSubmit={handleSendMessage} className="flex items-end gap-2">
+          <textarea
+            ref={inputRef}
+            value={newMessage}
+            onChange={(e) => setNewMessage(e.target.value)}
+            onKeyPress={handleKeyPress}
+            rows="1"
+            placeholder="Type a message…"
+            disabled={!socketConnected}
+            className="flex-1 resize-none rounded-2xl border border-abyss-900/12 bg-frost-100 px-4 py-3 text-sm text-abyss-900 placeholder-frost-400 focus:border-glacier-400 focus:outline-none focus:ring-2 focus:ring-glacier-400/20 dark:border-frost-50/15 dark:bg-abyss-800 dark:text-frost-50"
+            style={{ minHeight: "46px", maxHeight: "120px" }}
+          />
           <button
             type="submit"
             disabled={!socketConnected || !newMessage.trim()}
-            className="bg-blue-600 text-white p-3 rounded-full hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200"
+            className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-glacier-400 text-abyss-950 transition-colors hover:bg-glacier-300 disabled:opacity-40"
           >
-            <Send className="h-5 w-5" />
+            <Send className="h-4 w-4" />
           </button>
         </form>
       </div>

@@ -1,183 +1,146 @@
-import React, { useState, useEffect } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
-import { createNaturalDisaster, getNaturalDisasterById, updateNaturalDisaster } from '../api/naturalDisasterApi';
+import React, { useState } from "react";
+import { useNavigate, useParams } from "react-router-dom";
+import { ArrowLeft, Save } from "lucide-react";
+import GuideLayout from "../GuideLayout";
+import { Card, SectionHead, Btn, BtnGhost } from "../../components/dashboard/ui";
+import { disasters } from "../../data/mockData";
 
-const NaturalDisasterForm = () => {
+const inputCls =
+  "w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-800 outline-none focus:border-emerald-400";
+const labelCls = "text-sm font-medium text-slate-700";
+
+/** Local Guide — post or edit a safety alert (local only, no backend). */
+export default function NaturalDisasterForm() {
   const navigate = useNavigate();
   const { id } = useParams();
-  const [formData, setFormData] = useState({
-    name: '',
-    location: '',
-    description: '',
-    date: '',
-    severity: 'Low',
-    affectedAreas: [],
-    isResolved: false
+  const existing = id ? disasters.find((d) => d._id === id) : null;
+
+  const [form, setForm] = useState({
+    name: existing?.name || "",
+    location: existing?.location || "",
+    description: existing?.description || "",
+    severity: existing?.severity || "Low",
+    date: existing?.date || "",
+    isResolved: existing?.isResolved || false,
   });
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
-
-  useEffect(() => {
-    if (id) {
-      fetchDisaster();
-    }
-  }, [id]);
-
-  const fetchDisaster = async () => {
-    try {
-      setLoading(true);
-      const response = await getNaturalDisasterById(id);
-      setFormData({
-        ...response.data,
-        date: new Date(response.data.date).toISOString().split('T')[0]
-      });
-      setLoading(false);
-    } catch (error) {
-      setError('Error fetching natural disaster. Please try again.');
-      setLoading(false);
-    }
-  };
 
   const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData({ ...formData, [name]: value });
+    const { name, value, type, checked } = e.target;
+    setForm((f) => ({ ...f, [name]: type === "checkbox" ? checked : value }));
   };
 
-  const handleAffectedAreasChange = (e) => {
-    const areas = e.target.value.split(',').map(area => area.trim());
-    setFormData({ ...formData, affectedAreas: areas });
-  };
-
-  const handleSubmit = async (e) => {
+  const handleSubmit = (e) => {
     e.preventDefault();
-    try {
-      setLoading(true);
-      if (id) {
-        await updateNaturalDisaster(id, formData);
-      } else {
-        await createNaturalDisaster(formData);
-      }
-      setLoading(false);
-      navigate('/local-guide/natural-disasters');
-    } catch (error) {
-      setError('Error saving natural disaster. Please try again.');
-      setLoading(false);
-    }
+    // Local only — the backend is disconnected. Navigate back to the list.
+    navigate("/local-guide/natural-disasters");
   };
-
-  if (loading) return <div className="text-center">Loading...</div>;
-  if (error) return <div className="text-center text-red-500">{error}</div>;
 
   return (
-    <div className="bg-white shadow-md rounded-lg p-6">
-      <h2 className="text-2xl font-bold mb-6">{id ? 'Edit' : 'Report'} Natural Disaster</h2>
-      <form onSubmit={handleSubmit} className="space-y-4">
-        <div>
-          <label htmlFor="name" className="block text-sm font-medium text-gray-700">Name</label>
-          <input
-            type="text"
-            id="name"
-            name="name"
-            value={formData.name}
-            onChange={handleChange}
-            required
-            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
+    <GuideLayout
+      greeting={id ? "Edit alert" : "Post an alert"}
+      subtitle="Share real-time safety information with travellers."
+    >
+      <form onSubmit={handleSubmit}>
+        <Card className="mx-auto max-w-3xl">
+          <SectionHead
+            title="Alert details"
+            sub="Be specific about the location and conditions."
           />
-        </div>
-        <div>
-          <label htmlFor="location" className="block text-sm font-medium text-gray-700">Location</label>
-          <input
-            type="text"
-            id="location"
-            name="location"
-            value={formData.location}
-            onChange={handleChange}
-            required
-            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
-          />
-        </div>
-        <div>
-          <label htmlFor="description" className="block text-sm font-medium text-gray-700">Description</label>
-          <textarea
-            id="description"
-            name="description"
-            value={formData.description}
-            onChange={handleChange}
-            required
-            rows="3"
-            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
-          ></textarea>
-        </div>
-        <div>
-          <label htmlFor="date" className="block text-sm font-medium text-gray-700">Date</label>
-          <input
-            type="date"
-            id="date"
-            name="date"
-            value={formData.date}
-            onChange={handleChange}
-            required
-            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
-          />
-        </div>
-        <div>
-          <label htmlFor="severity" className="block text-sm font-medium text-gray-700">Severity</label>
-          <select
-            id="severity"
-            name="severity"
-            value={formData.severity}
-            onChange={handleChange}
-            required
-            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
+
+          <div className="space-y-1.5">
+            <label htmlFor="name" className={labelCls}>Name</label>
+            <input
+              id="name"
+              name="name"
+              value={form.name}
+              onChange={handleChange}
+              required
+              placeholder="e.g. Flash-flood Advisory — Hunza River"
+              className={inputCls}
+            />
+          </div>
+
+          <div className="mt-5 space-y-1.5">
+            <label htmlFor="location" className={labelCls}>Location</label>
+            <input
+              id="location"
+              name="location"
+              value={form.location}
+              onChange={handleChange}
+              required
+              placeholder="e.g. Lower Hunza & Nagar"
+              className={inputCls}
+            />
+          </div>
+
+          <div className="mt-5 space-y-1.5">
+            <label htmlFor="description" className={labelCls}>Description</label>
+            <textarea
+              id="description"
+              name="description"
+              value={form.description}
+              onChange={handleChange}
+              required
+              rows={4}
+              placeholder="Describe the situation and any advice for travellers."
+              className={`${inputCls} resize-none`}
+            />
+          </div>
+
+          <div className="mt-5 grid grid-cols-1 gap-5 sm:grid-cols-2">
+            <div className="space-y-1.5">
+              <label htmlFor="severity" className={labelCls}>Severity</label>
+              <select
+                id="severity"
+                name="severity"
+                value={form.severity}
+                onChange={handleChange}
+                className={inputCls}
+              >
+                <option value="High">High</option>
+                <option value="Medium">Medium</option>
+                <option value="Low">Low</option>
+              </select>
+            </div>
+            <div className="space-y-1.5">
+              <label htmlFor="date" className={labelCls}>Date</label>
+              <input
+                id="date"
+                name="date"
+                type="date"
+                value={form.date}
+                onChange={handleChange}
+                required
+                className={inputCls}
+              />
+            </div>
+          </div>
+
+          <label
+            htmlFor="isResolved"
+            className="mt-5 flex cursor-pointer items-center gap-3 rounded-2xl border border-slate-200 px-4 py-3"
           >
-            <option value="Low">Low</option>
-            <option value="Medium">Medium</option>
-            <option value="High">High</option>
-          </select>
-        </div>
-        <div>
-          <label htmlFor="affectedAreas" className="block text-sm font-medium text-gray-700">Affected Areas (comma-separated)</label>
-          <input
-            type="text"
-            id="affectedAreas"
-            name="affectedAreas"
-            value={formData.affectedAreas.join(', ')}
-            onChange={handleAffectedAreasChange}
-            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
-          />
-        </div>
-        <div className="flex items-center">
-          <input
-            type="checkbox"
-            id="isResolved"
-            name="isResolved"
-            checked={formData.isResolved}
-            onChange={(e) => setFormData({ ...formData, isResolved: e.target.checked })}
-            className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
-          />
-          <label htmlFor="isResolved" className="ml-2 block text-sm text-gray-900">
-            Is Resolved
+            <input
+              id="isResolved"
+              name="isResolved"
+              type="checkbox"
+              checked={form.isResolved}
+              onChange={handleChange}
+              className="h-4 w-4 rounded border-slate-300 text-emerald-500 accent-emerald-500 focus:ring-emerald-400"
+            />
+            <span className="text-sm font-medium text-slate-700">Mark this alert as resolved</span>
           </label>
-        </div>
-        <div className="flex justify-end space-x-4">
-          <button
-            type="button"
-            onClick={() => navigate('/local-guide/natural-disasters')}
-            className="px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-          >
-            Cancel
-          </button>
-          <button
-            type="submit"
-            className="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-          >
-            {id ? 'Update' : 'Report'} Natural Disaster
-          </button>
-        </div>
+
+          <div className="mt-7 flex items-center justify-end gap-3">
+            <BtnGhost type="button" onClick={() => navigate(-1)}>
+              <ArrowLeft className="h-4 w-4" /> Cancel
+            </BtnGhost>
+            <Btn type="submit">
+              <Save className="h-4 w-4" /> {id ? "Save changes" : "Post alert"}
+            </Btn>
+          </div>
+        </Card>
       </form>
-    </div>
+    </GuideLayout>
   );
-};
-
-export default NaturalDisasterForm;
-
+}

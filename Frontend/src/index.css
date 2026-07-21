@@ -1,3 +1,240 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+@layer base {
+  :root {
+    color-scheme: light;
+
+    /* ── Design tokens (skill: primitive → semantic → component) ──────────
+       Primitives live in tailwind.config (pine/mist/sun/clay). The semantic
+       aliases below give purpose-based names so the whole page reads as one
+       system. Space-separated RGB channels allow Tailwind-style /opacity. */
+
+    /* Primitive channels */
+    --pine-950: 15 30 26;
+    --pine-900: 29 51 45;
+    --pine-800: 34 62 53;
+    --pine-700: 40 77 65;
+    --pine-500: 62 120 99;
+    --mist-50: 247 248 248;
+    --mist-100: 238 240 240;
+    --mist-500: 120 135 135;
+    --sun-300: 233 182 95;
+    --sun-400: 227 161 60;
+    --clay-500: 189 97 56;
+
+    /* Semantic aliases */
+    --surface: var(--mist-50);
+    --surface-raised: 255 255 255;
+    --ink: var(--pine-950);
+    --ink-muted: var(--mist-500);
+    --brand: var(--pine-800);
+    --brand-strong: var(--pine-900);
+    --brand-fg: var(--mist-50);
+    --accent: var(--sun-400);
+    --accent-strong: var(--sun-300);
+    --accent-fg: var(--pine-950);
+    --hairline: var(--mist-100);
+
+    /* Component + motion tokens */
+    --radius-pill: 9999px;
+    --dur-fast: 200ms;
+    --dur: 320ms;
+    --dur-slow: 700ms;
+    --ease-editorial: cubic-bezier(0.16, 1, 0.3, 1);
+
+    /* Fluid section rhythm */
+    --space-section: clamp(4rem, 9vw, 9rem);
+  }
+
+  html {
+    scroll-behavior: smooth;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+
+  body {
+    @apply bg-frost-50 text-abyss-900 font-sans antialiased dark:bg-abyss-950 dark:text-frost-100;
+    letter-spacing: -0.01em;
+  }
+
+  html.dark { color-scheme: dark; }
+
+  h1, h2, h3, h4 {
+    @apply font-display;
+    letter-spacing: -0.02em;
+    line-height: 1.05;
+  }
+
+  /* Emphasis accent — highlighted words in headlines carry the accent colour
+     at a lighter weight than the semibold heading, for a clean tonal contrast. */
+  .font-accent {
+    letter-spacing: -0.01em;
+  }
+
+  ::selection {
+    background-color: theme("colors.glacier.300");
+    color: theme("colors.abyss.950");
+  }
+}
+
+@layer components {
+  /* Editorial section eyebrow label (glacial, theme-aware) */
+  .eyebrow {
+    @apply inline-flex items-center gap-2 text-[0.7rem] font-semibold uppercase tracking-[0.2em] text-glacier-700 dark:text-glacier-400;
+  }
+
+  /* Primary CTA — glacier turquoise, works on light + dark */
+  .btn-primary {
+    @apply inline-flex items-center justify-center gap-2 rounded-full bg-glacier-400 px-6 py-3
+           text-sm font-semibold text-abyss-950 transition-all duration-300 ease-editorial
+           hover:bg-glacier-300 hover:-translate-y-0.5 focus:outline-none
+           focus-visible:ring-2 focus-visible:ring-glacier-300 focus-visible:ring-offset-2;
+  }
+
+  /* Secondary CTA — warm sand accent */
+  .btn-sun {
+    @apply inline-flex items-center justify-center gap-2 rounded-full bg-sand-300 px-6 py-3
+           text-sm font-semibold text-abyss-950 transition-all duration-300 ease-editorial
+           hover:bg-sand-200 hover:-translate-y-0.5 focus:outline-none
+           focus-visible:ring-2 focus-visible:ring-sand-200 focus-visible:ring-offset-2;
+  }
+
+  .btn-ghost {
+    @apply inline-flex items-center justify-center gap-2 rounded-full border border-abyss-900/15 px-6 py-3
+           text-sm font-semibold text-abyss-800 transition-all duration-300 ease-editorial
+           hover:border-glacier-500 hover:bg-glacier-50
+           dark:border-frost-50/20 dark:text-frost-100 dark:hover:border-glacier-400 dark:hover:bg-white/5;
+  }
+
+  /* Cards: one soft shadow, theme-aware surface */
+  .card-surface {
+    @apply rounded-3xl bg-white shadow-card ring-1 ring-abyss-900/10 dark:bg-abyss-900 dark:ring-frost-50/10;
+  }
+
+  /* Section shell: consistent editorial gutters + rhythm */
+  .section-x {
+    @apply mx-auto w-full max-w-[88rem] px-5 sm:px-8 lg:px-12;
+  }
+
+  /* Nav link — states: default / hover / active / focus (spec pattern) */
+  .nav-link {
+    @apply relative text-sm font-medium transition-colors duration-200 outline-none
+           focus-visible:ring-2 focus-visible:ring-offset-2 rounded-full;
+  }
+  .nav-link::after {
+    content: "";
+    @apply absolute -bottom-1.5 left-0 h-px w-0 bg-current transition-[width] duration-300 ease-editorial;
+  }
+  .nav-link:hover::after { @apply w-full; }
+  .nav-link[data-active="true"]::after { @apply w-full; }
+
+  /* Large editorial pill CTA with a sun sheen on hover */
+  .btn-hero {
+    @apply relative inline-flex items-center justify-center gap-2 overflow-hidden rounded-full
+           bg-sun-400 px-7 py-3.5 text-sm font-semibold text-pine-950 shadow-lift
+           transition-all duration-300 ease-editorial
+           hover:bg-sun-300 hover:-translate-y-0.5
+           active:translate-y-0 focus:outline-none focus-visible:ring-2 focus-visible:ring-sun-200 focus-visible:ring-offset-2;
+  }
+  .btn-hero-ghost {
+    @apply inline-flex items-center justify-center gap-2 rounded-full border border-white/40
+           px-7 py-3.5 text-sm font-semibold text-white backdrop-blur-sm
+           transition-all duration-300 ease-editorial
+           hover:border-white/80 hover:bg-white/10 focus:outline-none;
+  }
+
+  /* ── Glacial landing (Glacial Turquoise system) ──────────────────────── */
+  .btn-glacier {
+    @apply relative inline-flex items-center justify-center gap-2 rounded-full
+           bg-glacier-400 px-7 py-3.5 text-sm font-semibold text-abyss-950
+           transition-all duration-300 ease-editorial
+           hover:bg-glacier-300 hover:-translate-y-0.5
+           focus:outline-none focus-visible:ring-2 focus-visible:ring-glacier-300 focus-visible:ring-offset-2;
+  }
+  .btn-sand {
+    @apply inline-flex items-center justify-center gap-2 rounded-full
+           bg-sand-300 px-7 py-3.5 text-sm font-semibold text-abyss-950
+           transition-all duration-300 ease-editorial
+           hover:bg-sand-200 hover:-translate-y-0.5 focus:outline-none;
+  }
+  .btn-outline-frost {
+    @apply inline-flex items-center justify-center gap-2 rounded-full border border-frost-50/35
+           px-7 py-3.5 text-sm font-semibold text-frost-50
+           transition-all duration-300 ease-editorial
+           hover:border-glacier-300 hover:text-glacier-300 focus:outline-none;
+  }
+  /* Glacial eyebrow — small, tracked, turquoise */
+  .eyebrow-glacier {
+    @apply inline-flex items-center gap-2 text-[0.7rem] font-semibold uppercase tracking-[0.22em] text-glacier-400;
+  }
+  /* Section-edge fade for marquees */
+  .marquee-mask {
+    -webkit-mask-image: linear-gradient(to right, transparent, black 8%, black 92%, transparent);
+    mask-image: linear-gradient(to right, transparent, black 8%, black 92%, transparent);
+  }
+}
+
+@layer utilities {
+  /* Scroll-reveal: elements start hidden, .is-visible reveals them */
+  .reveal {
+    opacity: 0;
+    transform: translateY(28px);
+    transition: opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1),
+      transform 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+    will-change: opacity, transform;
+  }
+  .reveal.is-visible {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  .text-balance {
+    text-wrap: balance;
+  }
+
+  /* Subtle grain/paper texture hook for hero overlays */
+  .bg-noise {
+    background-image: radial-gradient(rgba(15, 30, 26, 0.04) 1px, transparent 1px);
+    background-size: 4px 4px;
+  }
+}
+
+/* Palette-driven scrollbar */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+::-webkit-scrollbar-track {
+  background: theme("colors.frost.100");
+}
+::-webkit-scrollbar-thumb {
+  background: theme("colors.glacier.500");
+  border-radius: 999px;
+  border: 2px solid theme("colors.frost.100");
+}
+::-webkit-scrollbar-thumb:hover {
+  background: theme("colors.glacier.600");
+}
+html.dark ::-webkit-scrollbar-track {
+  background: theme("colors.abyss.900");
+}
+html.dark ::-webkit-scrollbar-thumb {
+  background: theme("colors.abyss.600");
+  border-color: theme("colors.abyss.900");
+}
+html.dark ::-webkit-scrollbar-thumb:hover {
+  background: theme("colors.glacier.700");
+}
+
+/* Custom cursor — hide the native cursor only while the landing mounts it,
+   and only on precise (mouse) pointers. Touch devices keep normal behaviour. */
+@media (pointer: fine) {
+  html.has-custom-cursor,
+  html.has-custom-cursor a,
+  html.has-custom-cursor button,
+  html.has-custom-cursor [data-cursor] {
+    cursor: none;
+  }
+}

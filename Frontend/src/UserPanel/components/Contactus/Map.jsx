@@ -1,18 +1,37 @@
-import React from 'react';
+import React, { useEffect, useRef } from 'react';
+import L from 'leaflet';
 
+// Mini Leaflet map for the contact page, centred on Gilgit-Baltistan.
 const Map = () => {
-  return (
-    <div className="h-64 bg-gray-300 flex items-center justify-center relative overflow-hidden">
-      <div 
-        className="absolute inset-0 bg-cover bg-center"
-        style={{backgroundImage: "url('/placeholder.svg?height=256&width=768')"}}
-      ></div>
-      <div className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center">
-        <p className="text-white text-lg font-semibold">Interactive Map Coming Soon</p>
-      </div>
-    </div>
-  );
+  const containerRef = useRef(null);
+  const mapRef = useRef(null);
+
+  useEffect(() => {
+    if (!containerRef.current || mapRef.current) return;
+    const map = L.map(containerRef.current, {
+      center: [35.8, 74.4],
+      zoom: 7,
+      scrollWheelZoom: false,
+      zoomControl: false,
+    });
+    mapRef.current = map;
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      maxZoom: 18,
+      attribution: '© OpenStreetMap contributors',
+    }).addTo(map);
+
+    const pin = L.divIcon({
+      className: 'mm-pin',
+      html: `<span style="display:flex;align-items:center;justify-content:center;width:30px;height:30px;border-radius:50% 50% 50% 0;background:#0e3a44;transform:rotate(-45deg);box-shadow:0 6px 14px rgba(15,30,26,.4);border:2px solid #38cbd6;"><span style="width:9px;height:9px;border-radius:50%;background:#38cbd6;transform:rotate(45deg);"></span></span>`,
+      iconSize: [30, 30],
+      iconAnchor: [15, 30],
+    });
+    L.marker([35.9208, 74.3083], { icon: pin }).addTo(map).bindPopup('<strong>Misty Mounts · Gilgit</strong>');
+
+    return () => { map.remove(); mapRef.current = null; };
+  }, []);
+
+  return <div ref={containerRef} className="h-64 w-full" />;
 };
 
 export default Map;
-

@@ -1,5 +1,6 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider } from './context/AuthContext';
+import { ThemeProvider } from './context/ThemeContext';
 import Authentication from './UserPanel/pages/Authentication';
 import LandingPage from './UserPanel/pages/LandingPage';
 import AdminRoutes from './AdminFrontend/routes/adminRoutes';
@@ -11,6 +12,7 @@ import './App.css';
 
 function App() {
   return (
+    <ThemeProvider>
     <AuthProvider>
       <Router>
         <Routes>
@@ -27,9 +29,9 @@ function App() {
             </ProtectedRoute>
           } />
           
-          {/* Local Guide Panel */}
+          {/* Local Guide Panel (preview: allow the mock user to view it) */}
           <Route path="/local-guide/*" element={
-            <ProtectedRoute allowedUserTypes={['local guide']}>
+            <ProtectedRoute allowedUserTypes={['user', 'local guide']}>
               <LocalGuidePanel />
             </ProtectedRoute>
           } />
@@ -45,6 +47,7 @@ function App() {
         </Routes>
       </Router>
     </AuthProvider>
+    </ThemeProvider>
   );
 }
 

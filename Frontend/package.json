@@ -16,6 +16,7 @@
     "@mui/material": "^6.1.10",
     "axios": "^1.7.9",
     "font-awesome": "^4.7.0",
+    "framer-motion": "^12.38.0",
     "highcharts": "^12.3.0",
     "highcharts-react-official": "^3.2.2",
     "leaflet": "^1.7.1",

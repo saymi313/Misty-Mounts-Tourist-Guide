@@ -1,279 +1,182 @@
-import { useNavigate } from "react-router-dom"; // Import useNavigate from react-router-dom
-import axios from "axios";
-import React, { useState, useEffect } from "react";
-import SideMenu from "../components/SideMenu";
-import TopBar from "../components/TopBar";
+import React, { useState } from "react";
+import { Bus, Route, Users, Plus, Pencil, Trash2, ArrowRight } from "lucide-react";
+import AdminLayout from "../AdminLayout";
+import { Card, SectionHead, StatCard, Btn, BtnGhost } from "../../components/dashboard/ui";
+import Modal from "../../components/dashboard/Modal";
+import { transportationBySpot } from "../../data/mockData";
+
+const seed = transportationBySpot.default;
+
+const emptyForm = { type: "", from: "", to: "", provider: "", duration: "", price: "", seats: "", schedule: "" };
+
 const TransportManagement = () => {
-  const [NavOpen, IsNavOpen] = useState(false);
-  const [spots, setSpots] = useState([]);
-  const [selectedSpot, setSelectedSpot] = useState(null);
-  const [transportations, setTransportations] = useState([]);
-  const [selectedNearbyPlace, setSelectedNearbyPlace] = useState(null); // Set to initial value if needed
+  const [routes, setRoutes] = useState(seed);
+  const [modalOpen, setModalOpen] = useState(false);
+  const [editing, setEditing] = useState(null);
+  const [form, setForm] = useState(emptyForm);
 
-  // Example function to set the selected nearby place
-  const handleSelectNearbyPlace = (place) => {
-    setSelectedNearbyPlace(place);
-  };
-  const [formData, setFormData] = useState({
-    transportType: "",
-    Number: "",
-    availability: true,
-    city: "", // Add city to form data
-  });
-  const [editingTransport, setEditingTransport] = useState(null); // State for tracking edit mode
-
-  useEffect(() => {
-    fetchSpots();
-  }, []);
-
-  const fetchSpots = async () => {
-    try {
-      const response = await axios.get("http://localhost:5000/api/admin/spots");
-      setSpots(response.data);
-    } catch (error) {
-      console.error("Error fetching spots:", error);
-    }
+  const openAdd = () => {
+    setEditing(null);
+    setForm(emptyForm);
+    setModalOpen(true);
   };
 
-  const fetchTransportations = async (spotId) => {
-    try {
-      const response = await axios.get(
-        `http://localhost:5000/api/admin/transportation/${spotId}`
-      );
-      setTransportations(response.data);
-    } catch (error) {
-      console.error("Error fetching transportation:", error);
-    }
-  };
-  const handleSelectSpot = (spot, nearbyPlace) => {
-    setSelectedSpot(spot); // Set the selected spot
-    setSelectedNearbyPlace(nearbyPlace); // Set the selected nearby place
-  };
-
-  const handleInputChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
-  };
-
-  const handleAddTransportation = async () => {
-    try {
-      if (editingTransport) {
-        await axios.put(
-          `http://localhost:5000/api/admin/transportation/${editingTransport._id}`,
-          formData
-        );
-        setEditingTransport(null); // Reset edit mode
-      } else {
-        await axios.post("http://localhost:5000/api/admin/transportation", {
-          ...formData,
-          spotId: selectedSpot._id,
-        });
-      }
-      fetchTransportations(selectedSpot._id);
-      setFormData({ transportType: "", Number: "", availability: true });
-    } catch (error) {
-      console.error("Error adding/updating transportation:", error);
-    }
-  };
-
-  const handleEditTransportation = (transport) => {
-    setEditingTransport(transport);
-    setFormData({
-      transportType: transport.transportType,
-      Number: transport.Number,
-      availability: transport.availability,
+  const openEdit = (route) => {
+    setEditing(route);
+    setForm({
+      type: route.type,
+      from: route.from,
+      to: route.to,
+      provider: route.provider,
+      duration: route.duration,
+      price: route.price,
+      seats: route.seats,
+      schedule: route.schedule,
     });
+    setModalOpen(true);
   };
 
-  const handleDeleteTransportation = async (transportId) => {
-    try {
-      await axios.delete(
-        `http://localhost:5000/api/admin/transportation/${transportId}`
-      );
-      fetchTransportations(selectedSpot._id);
-    } catch (error) {
-      console.error("Error deleting transportation:", error);
+  const handleDelete = (id) => setRoutes((prev) => prev.filter((r) => r._id !== id));
+
+  const handleSave = (e) => {
+    e.preventDefault();
+    const parsed = { ...form, price: Number(form.price) || 0, seats: Number(form.seats) || 0 };
+    if (editing) {
+      setRoutes((prev) => prev.map((r) => (r._id === editing._id ? { ...r, ...parsed } : r)));
+    } else {
+      setRoutes((prev) => [{ _id: `tr-${Date.now()}`, ...parsed }, ...prev]);
     }
-  };
-  const navigate = useNavigate(); // Initialize navigate
-
-  const goToTouristSpotManagement = () => {
-    navigate("/admin/tourist-spots"); // Navigating to the tourist spots management page
+    setModalOpen(false);
   };
 
-  const goToAccommodationManagement = () => {
-    navigate("/admin/accommodation"); // Navigating to the tourist spots management page
-  };
-
-  const goToAdminDashboard = () => {
-    navigate("/admin/dashboard"); // Navigating to the tourist spots management page
-  };
-
-  const goToTransportManagement = () => {
-    navigate("/admin/transportation"); // Navigating to the tourist spots management page
-  };
-  const goToPaymentManagement = () => {
-    navigate("/admin/payments"); // Navigating to the tourist spots management page
-  };
+  const total = routes.length;
+  const totalSeats = routes.reduce((s, r) => s + (Number(r.seats) || 0), 0);
+  const avgPrice = total ? Math.round(routes.reduce((s, r) => s + (Number(r.price) || 0), 0) / total) : 0;
 
   return (
-    <div className="flex">
-       <SideMenu
-        NavOpen={NavOpen}
-        IsNavOpen={IsNavOpen}
-        goToAdminDashboard={goToAdminDashboard}
-        goToAccommodationManagement={goToAccommodationManagement}
-        goToTouristSpotManagement={goToTouristSpotManagement}
-        goToTransportManagement={goToTransportManagement}
-        goToPaymentManagement={goToPaymentManagement}
-      />
-      <div className="w-full flex flex-col md:ml-20">
-        <TopBar NavOpen={NavOpen} IsNavOpen={IsNavOpen} />
-        <div className="transition-all duration-1000 ease-in-out">
-        <div
-            className={`flex flex-col w-full justify-between gap-5 p-5 mt-20 ${
-              NavOpen
-                ? "md:max-w-[calc(100vw_-_100px)] sm:max-w-[calc(100vw_-_160px)] md:pl-36 transition-all duration-500"
-                : "md:max-w-[calc(100vw_-_100px)] transition-all duration-500"
-            }`}
-          >
-            <div className="p-6">
-              <h1 className="text-2xl font-bold mb-4">Transport Management</h1>
-
-              {/* Spot Selection */}
-              <div className="mb-6">
-                <h2 className="text-xl font-semibold mb-4 text-gray-800">
-                  Select Tourist Spot
-                </h2>
-                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-10">
-                  {spots.map((spot) => (
-                    <div key={spot._id}>
-                      {/* Displaying city name */}
-                      <h3 className="text-lg font-bold text-gray-800 mb-2">
-                        {spot.city}
-                      </h3>
-
-                      {/* Iterate through all nearby places of the current spot */}
-                      {spot.nearbyPlaces.map((nearbyPlace) => (
-                        <div
-                          key={nearbyPlace._id}
-                          className="bg-white rounded-lg shadow-lg overflow-hidden cursor-pointer hover:scale-105 transition-transform duration-300 mb-10"
-                          onClick={() => handleSelectSpot(spot, nearbyPlace)} // Pass both spot and nearbyPlace
-                        >
-                          <img
-                            src={
-                              nearbyPlace.picture ||
-                              "https://via.placeholder.com/150"
-                            }
-                            alt={nearbyPlace.name}
-                            className="h-40 w-full object-cover"
-                          />
-                          <div className="p-4">
-                            <h3 className="text-lg font-bold text-gray-700">
-                              {nearbyPlace.name}
-                            </h3>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              {/* Transportation Details */}
-              {selectedNearbyPlace && (
-                <div>
-                  <h2 className="text-xl font-semibold mb-4">
-                    Transport for {selectedNearbyPlace.name}{" "}
-                    {/* Display the selected nearby place name */}
-                  </h2>
-                  <ul>
-                    {transportations.map((transport) => (
-                      <li key={transport._id} className="flex justify-between">
-                        <span>
-                         <p>Type : {transport.transportType}</p>
-                         <p>Phone Number:+92{transport.Number}</p>
-                         <p> {transport.availability
-                            ? "Available"
-                            : "Not Available"}</p>
-                        </span>
-                        <div>
-                          <button
-                            className="px-4 py-2 bg-blue-500 text-white rounded mr-2"
-                            onClick={() => handleEditTransportation(transport)}
-                          >
-                            Edit
-                          </button>
-                          <button
-                            className="px-4 py-2 bg-red-500 text-white rounded"
-                            onClick={() =>
-                              handleDeleteTransportation(transport._id)
-                            }
-                          >
-                            Delete
-                          </button>
-                        </div>
-                      </li>
-                    ))}
-                  </ul>
-
-                  {/* Add/Edit Transportation Form */}
-                  <div className="mt-6">
-                    <h3 className="text-lg font-semibold mb-2">
-                      {editingTransport
-                        ? "Edit Transportation"
-                        : "Add Transportation"}
-                    </h3>
-                    {/* Form to Add/Edit Transportation */}
-                    <input
-                      type="text"
-                      name="transportType"
-                      value={formData.transportType}
-                      placeholder="Type (e.g., Bus, Taxi)"
-                      onChange={handleInputChange}
-                      className="w-full p-2 border border-gray-300 rounded mb-2"
-                    />
-                    <input
-                      type="number"
-                      name="Number"
-                      value={formData.Number}
-                      placeholder="Phone Number"
-                      onChange={handleInputChange}
-                      className="w-full p-2 border border-gray-300 rounded mb-2"
-                    />
-                    <div className="mb-2">
-                      <label className="mr-4">Availability:</label>
-                      <select
-                        name="availability"
-                        value={formData.availability}
-                        onChange={(e) =>
-                          setFormData({
-                            ...formData,
-                            availability: e.target.value === "true",
-                          })
-                        }
-                        className="p-2 border border-gray-300 rounded"
-                      >
-                        <option value="true">Available</option>
-                        <option value="false">Not Available</option>
-                      </select>
-                    </div>
-                    <button
-                      onClick={handleAddTransportation}
-                      className="px-4 py-2 bg-green-500 text-white rounded"
-                    >
-                      {editingTransport
-                        ? "Update Transportation"
-                        : "Add Transportation"}
-                    </button>
-                  </div>
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
+    <AdminLayout greeting="Transport" subtitle="Manage routes, providers and schedules">
+      {/* Stats */}
+      <div className="grid gap-4 sm:grid-cols-3">
+        <StatCard icon={Route} tone="emerald" label="Total routes" value={total} />
+        <StatCard icon={Users} tone="sky" label="Total seats" value={totalSeats} />
+        <StatCard icon={Bus} tone="amber" label="Average fare" value={`$${avgPrice}`} />
       </div>
-    </div>
+
+      {/* Table */}
+      <Card className="mt-6">
+        <SectionHead
+          title="All routes"
+          sub={`${total} routes available`}
+          action={
+            <Btn onClick={openAdd}>
+              <Plus className="h-4 w-4" /> Add route
+            </Btn>
+          }
+        />
+        <div className="overflow-x-auto">
+          <table className="w-full min-w-[760px] border-collapse">
+            <thead>
+              <tr className="text-left text-xs font-semibold uppercase tracking-wide text-slate-400">
+                <th className="px-3 py-3">Type</th>
+                <th className="px-3 py-3">Route</th>
+                <th className="px-3 py-3">Provider</th>
+                <th className="px-3 py-3">Duration</th>
+                <th className="px-3 py-3">Price</th>
+                <th className="px-3 py-3">Seats</th>
+                <th className="px-3 py-3 text-right">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {routes.map((route) => (
+                <tr key={route._id} className="border-t border-slate-100 transition-colors hover:bg-slate-50">
+                  <td className="px-3 py-3">
+                    <div className="flex items-center gap-3">
+                      <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-emerald-50 text-emerald-600">
+                        <Bus className="h-5 w-5" />
+                      </span>
+                      <span className="text-sm font-semibold text-slate-900">{route.type}</span>
+                    </div>
+                  </td>
+                  <td className="px-3 py-3">
+                    <span className="flex items-center gap-1.5 text-sm text-slate-600">
+                      {route.from} <ArrowRight className="h-3.5 w-3.5 text-slate-400" /> {route.to}
+                    </span>
+                  </td>
+                  <td className="px-3 py-3 text-sm text-slate-500">{route.provider}</td>
+                  <td className="px-3 py-3 text-sm text-slate-500">{route.duration}</td>
+                  <td className="px-3 py-3 text-sm font-semibold text-slate-900">${route.price}</td>
+                  <td className="px-3 py-3 text-sm text-slate-500">{route.seats}</td>
+                  <td className="px-3 py-3">
+                    <div className="flex items-center justify-end gap-2">
+                      <button
+                        onClick={() => openEdit(route)}
+                        title="Edit route"
+                        className="flex h-8 w-8 items-center justify-center rounded-lg text-emerald-600 transition-colors hover:bg-emerald-50"
+                      >
+                        <Pencil className="h-4 w-4" />
+                      </button>
+                      <button
+                        onClick={() => handleDelete(route._id)}
+                        title="Delete route"
+                        className="flex h-8 w-8 items-center justify-center rounded-lg text-rose-500 transition-colors hover:bg-rose-50"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+              {routes.length === 0 && (
+                <tr>
+                  <td colSpan={7} className="px-3 py-10 text-center text-sm text-slate-400">
+                    No routes yet. Add your first route.
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
+      </Card>
+
+      {/* Add / Edit modal */}
+      <Modal
+        open={modalOpen}
+        onClose={() => setModalOpen(false)}
+        title={editing ? "Edit route" : "Add route"}
+        onSubmit={handleSave}
+        size="lg"
+        footer={
+          <>
+            <BtnGhost type="button" onClick={() => setModalOpen(false)}>Cancel</BtnGhost>
+            <Btn type="submit">{editing ? "Save changes" : "Add route"}</Btn>
+          </>
+        }
+      >
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+          <Field label="Type" value={form.type} onChange={(v) => setForm({ ...form, type: v })} />
+          <Field label="Provider" value={form.provider} onChange={(v) => setForm({ ...form, provider: v })} />
+          <Field label="From" value={form.from} onChange={(v) => setForm({ ...form, from: v })} />
+          <Field label="To" value={form.to} onChange={(v) => setForm({ ...form, to: v })} />
+          <Field label="Duration" value={form.duration} onChange={(v) => setForm({ ...form, duration: v })} />
+          <Field label="Schedule" value={form.schedule} onChange={(v) => setForm({ ...form, schedule: v })} />
+          <Field label="Price ($)" type="number" value={form.price} onChange={(v) => setForm({ ...form, price: v })} />
+          <Field label="Seats" type="number" value={form.seats} onChange={(v) => setForm({ ...form, seats: v })} />
+        </div>
+      </Modal>
+    </AdminLayout>
   );
 };
+
+const Field = ({ label, value, onChange, type = "text" }) => (
+  <div>
+    <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-slate-400">{label}</label>
+    <input
+      type={type}
+      value={value}
+      onChange={(e) => onChange(e.target.value)}
+      className="w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm text-slate-700 outline-none focus:border-emerald-400"
+    />
+  </div>
+);
 
 export default TransportManagement;

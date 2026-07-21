@@ -1,150 +1,116 @@
-import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
-import { getAllNaturalDisasters, deleteNaturalDisaster } from '../api/naturalDisasterApi';
-import { FaEdit, FaTrash, FaExclamationTriangle } from 'react-icons/fa';
+import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { MapPin, Calendar, Plus, Pencil, Trash2, AlertTriangle, ShieldCheck } from "lucide-react";
+import GuideLayout from "../GuideLayout";
+import { Card, SectionHead, StatCard, StatusPill, Btn } from "../../components/dashboard/ui";
+import { disasters as seedDisasters } from "../../data/mockData";
 
-const NaturalDisasterList = () => {
-  const [disasters, setDisasters] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-
-  useEffect(() => {
-    fetchDisasters();
-  }, []);
-
-  const fetchDisasters = async () => {
-    try {
-      setLoading(true);
-      setError(null);
-      const response = await getAllNaturalDisasters();
-      setDisasters(response.data);
-    } catch (error) {
-      console.error('Error fetching natural disasters:', error);
-      setError('Error fetching natural disasters. Please try again later.');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleDelete = async (id) => {
-    if (window.confirm('Are you sure you want to delete this natural disaster report?')) {
-      try {
-        await deleteNaturalDisaster(id);
-        fetchDisasters();
-      } catch (error) {
-        console.error('Error deleting natural disaster:', error);
-        setError('Error deleting natural disaster. Please try again.');
-      }
-    }
-  };
-
-  if (loading) {
-    return (
-      <div className="flex justify-center items-center h-64">
-        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-gray-900"></div>
-      </div>
-    );
-  }
-
-  return (
-    <div>
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-3xl font-bold text-gray-800">Natural Disasters</h1>
-        <Link to="/local-guide/add-natural-disaster" className="bg-red-600 text-white px-4 py-2 rounded-md hover:bg-red-700 transition duration-300">
-          Report New Disaster
-        </Link>
-      </div>
-
-      {error && (
-        <div className="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 mb-4" role="alert">
-          <p className="font-bold">Error</p>
-          <p>{error}</p>
-        </div>
-      )}
-
-      {disasters.length === 0 ? (
-        <div className="text-center py-4">
-          <FaExclamationTriangle className="mx-auto text-yellow-500 text-5xl mb-4" />
-          <p className="text-xl text-gray-600">No natural disasters reported yet.</p>
-        </div>
-      ) : (
-        <div className="bg-white shadow-md rounded-lg overflow-hidden">
-          <table className="min-w-full leading-normal">
-            <thead>
-              <tr>
-                <th className="px-5 py-3 border-b-2 border-gray-200 bg-gray-100 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                  Name
-                </th>
-                <th className="px-5 py-3 border-b-2 border-gray-200 bg-gray-100 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                  Location
-                </th>
-                <th className="px-5 py-3 border-b-2 border-gray-200 bg-gray-100 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                  Date
-                </th>
-                <th className="px-5 py-3 border-b-2 border-gray-200 bg-gray-100 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                  Severity
-                </th>
-                <th className="px-5 py-3 border-b-2 border-gray-200 bg-gray-100 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                  Status
-                </th>
-                <th className="px-5 py-3 border-b-2 border-gray-200 bg-gray-100 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                  Actions
-                </th>
-              </tr>
-            </thead>
-            <tbody>
-              {disasters.map((disaster) => (
-                <tr key={disaster._id}>
-                  <td className="px-5 py-5 border-b border-gray-200 bg-white text-sm">
-                    <p className="text-gray-900 whitespace-no-wrap">{disaster.name}</p>
-                  </td>
-                  <td className="px-5 py-5 border-b border-gray-200 bg-white text-sm">
-                    <p className="text-gray-900 whitespace-no-wrap">{disaster.location}</p>
-                  </td>
-                  <td className="px-5 py-5 border-b border-gray-200 bg-white text-sm">
-                    <p className="text-gray-900 whitespace-no-wrap">{new Date(disaster.date).toLocaleDateString()}</p>
-                  </td>
-                  <td className="px-5 py-5 border-b border-gray-200 bg-white text-sm">
-                    <span className={`relative inline-block px-3 py-1 font-semibold leading-tight ${
-                      disaster.severity === 'High' ? 'text-red-900' :
-                      disaster.severity === 'Medium' ? 'text-yellow-900' : 'text-green-900'
-                    }`}>
-                      <span aria-hidden className={`absolute inset-0 opacity-50 rounded-full ${
-                        disaster.severity === 'High' ? 'bg-red-200' :
-                        disaster.severity === 'Medium' ? 'bg-yellow-200' : 'bg-green-200'
-                      }`}></span>
-                      <span className="relative">{disaster.severity}</span>
-                    </span>
-                  </td>
-                  <td className="px-5 py-5 border-b border-gray-200 bg-white text-sm">
-                    <span className={`relative inline-block px-3 py-1 font-semibold leading-tight ${
-                      disaster.isResolved ? 'text-green-900' : 'text-red-900'
-                    }`}>
-                      <span aria-hidden className={`absolute inset-0 opacity-50 rounded-full ${
-                        disaster.isResolved ? 'bg-green-200' : 'bg-red-200'
-                      }`}></span>
-                      <span className="relative">{disaster.isResolved ? 'Resolved' : 'Ongoing'}</span>
-                    </span>
-                  </td>
-                  <td className="px-5 py-5 border-b border-gray-200 bg-white text-sm">
-                    <div className="flex items-center space-x-4">
-                      <Link to={`/local-guide/edit-natural-disaster/${disaster._id}`} className="text-indigo-600 hover:text-indigo-900">
-                        <FaEdit />
-                      </Link>
-                      <button onClick={() => handleDelete(disaster._id)} className="text-red-600 hover:text-red-900">
-                        <FaTrash />
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      )}
-    </div>
-  );
+const severityCls = {
+  High: "bg-rose-50 text-rose-600",
+  Medium: "bg-amber-50 text-amber-600",
+  Low: "bg-emerald-50 text-emerald-600",
 };
 
-export default NaturalDisasterList;
+const fmtDate = (d) =>
+  new Date(d).toLocaleDateString(undefined, { year: "numeric", month: "short", day: "numeric" });
 
+/** Local Guide — safety alerts / natural-disaster reports. */
+export default function NaturalDisasterList() {
+  const navigate = useNavigate();
+  const [alerts, setAlerts] = useState(seedDisasters);
+
+  const handleDelete = (id) => setAlerts((prev) => prev.filter((a) => a._id !== id));
+
+  const active = alerts.filter((a) => !a.isResolved).length;
+  const highSeverity = alerts.filter((a) => a.severity === "High").length;
+
+  return (
+    <GuideLayout
+      greeting="Safety alerts"
+      subtitle="Keep travellers informed about conditions on the ground."
+    >
+      <div className="space-y-6">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+          <StatCard icon={AlertTriangle} label="Active alerts" value={active} tone="rose" />
+          <StatCard icon={ShieldCheck} label="Total reports" value={alerts.length} tone="emerald" />
+          <StatCard icon={AlertTriangle} label="High severity" value={highSeverity} tone="amber" />
+        </div>
+
+        <Card>
+          <SectionHead
+            title="Posted alerts"
+            sub={`${alerts.length} reports in your area`}
+            action={
+              <Btn onClick={() => navigate("/local-guide/add-natural-disaster")}>
+                <Plus className="h-4 w-4" /> New alert
+              </Btn>
+            }
+          />
+
+          {alerts.length === 0 ? (
+            <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-slate-200 py-16 text-center">
+              <span className="flex h-14 w-14 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-600">
+                <ShieldCheck className="h-6 w-6" />
+              </span>
+              <p className="mt-4 text-sm font-semibold text-slate-900">All clear</p>
+              <p className="mt-1 text-sm text-slate-400">No active alerts right now.</p>
+              <Btn className="mt-5" onClick={() => navigate("/local-guide/add-natural-disaster")}>
+                <Plus className="h-4 w-4" /> New alert
+              </Btn>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              {alerts.map((alert) => (
+                <div
+                  key={alert._id}
+                  className="rounded-3xl border border-slate-100 p-5 transition-shadow hover:shadow-md"
+                >
+                  <div className="flex items-start justify-between gap-4">
+                    <div className="min-w-0">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <span
+                          className={`inline-flex rounded-full px-3 py-1 text-xs font-semibold ${
+                            severityCls[alert.severity] || "bg-slate-100 text-slate-500"
+                          }`}
+                        >
+                          {alert.severity}
+                        </span>
+                        <StatusPill status={alert.isResolved ? "Resolved" : "Active"} />
+                      </div>
+                      <h3 className="mt-3 text-sm font-bold text-slate-900">{alert.name}</h3>
+                      <div className="mt-1 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-slate-400">
+                        <span className="flex items-center gap-1">
+                          <MapPin className="h-3 w-3" /> {alert.location}
+                        </span>
+                        <span className="flex items-center gap-1">
+                          <Calendar className="h-3 w-3" /> {fmtDate(alert.date)}
+                        </span>
+                      </div>
+                    </div>
+                    <div className="flex shrink-0 items-center gap-1.5">
+                      <button
+                        onClick={() => navigate(`/local-guide/edit-natural-disaster/${alert._id}`)}
+                        className="flex h-8 w-8 items-center justify-center rounded-xl text-emerald-600 transition-colors hover:bg-emerald-50"
+                        aria-label={`Edit ${alert.name}`}
+                      >
+                        <Pencil className="h-4 w-4" />
+                      </button>
+                      <button
+                        onClick={() => handleDelete(alert._id)}
+                        className="flex h-8 w-8 items-center justify-center rounded-xl text-rose-500 transition-colors hover:bg-rose-50"
+                        aria-label={`Delete ${alert.name}`}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </button>
+                    </div>
+                  </div>
+                  <p className="mt-3 text-sm text-slate-500">{alert.description}</p>
+                </div>
+              ))}
+            </div>
+          )}
+        </Card>
+      </div>
+    </GuideLayout>
+  );
+}

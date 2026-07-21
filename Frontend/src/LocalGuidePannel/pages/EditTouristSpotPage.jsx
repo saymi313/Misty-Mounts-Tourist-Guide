@@ -1,188 +1,163 @@
-import React, { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
-import { getTouristSpotById, updateTouristSpot, addNearbyPlace, updateNearbyPlace, deleteNearbyPlace } from '../api/touristSpotApi.jsx';
-import NearbyPlaceForm from '../components/NearbyPlaceForm';
+import React, { useState } from "react";
+import { useNavigate, useParams } from "react-router-dom";
+import { ArrowLeft, Save, ImageIcon } from "lucide-react";
+import GuideLayout from "../GuideLayout";
+import { Card, SectionHead, Btn, BtnGhost } from "../../components/dashboard/ui";
+import { allPlaces } from "../../data/mockData";
 
-const EditTouristSpotPage = () => {
-  const { id } = useParams();
+const inputCls =
+  "w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-800 outline-none focus:border-emerald-400";
+const labelCls = "text-sm font-medium text-slate-700";
+
+/** Local Guide — edit an existing tourist spot (local only, no backend). */
+export default function EditTouristSpotPage() {
   const navigate = useNavigate();
-  const [spot, setSpot] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const [showNearbyPlaceForm, setShowNearbyPlaceForm] = useState(false);
-  const [editingNearbyPlace, setEditingNearbyPlace] = useState(null);
+  const { id } = useParams();
+  const existing = allPlaces.find((p) => p._id === id);
 
-  useEffect(() => {
-    fetchSpot();
-  }, [id]);
-
-  const fetchSpot = async () => {
-    try {
-      setLoading(true);
-      const response = await getTouristSpotById(id);
-      setSpot(response.data);
-      setLoading(false);
-    } catch (err) {
-      setError('Error fetching tourist spot. Please try again.');
-      setLoading(false);
-    }
-  };
+  const [form, setForm] = useState({
+    name: existing?.name || "",
+    city: existing?.city || "",
+    location: existing?.location || "",
+    description: existing?.description || "",
+    picture: existing?.picture || "",
+    activities: existing?.activities?.join(", ") || "",
+  });
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setSpot(prevSpot => ({ ...prevSpot, [name]: value }));
+    setForm((f) => ({ ...f, [name]: value }));
   };
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = (e) => {
     e.preventDefault();
-    try {
-      await updateTouristSpot(id, spot);
-      navigate('/local-guide');
-    } catch (err) {
-      setError('Error updating tourist spot. Please try again.');
-    }
+    // Local only — the backend is disconnected. Navigate back to the list.
+    navigate("/local-guide/spots");
   };
 
-  const handleAddNearbyPlace = async (newPlace) => {
-    try {
-      const response = await addNearbyPlace(id, newPlace);
-      setSpot(response.data);
-      setShowNearbyPlaceForm(false);
-    } catch (error) {
-      setError('Error adding nearby place. Please try again.');
-    }
-  };
-
-  const handleUpdateNearbyPlace = async (updatedPlace) => {
-    try {
-      const response = await updateNearbyPlace(id, editingNearbyPlace._id, updatedPlace);
-      setSpot(response.data);
-      setEditingNearbyPlace(null);
-    } catch (error) {
-      setError('Error updating nearby place. Please try again.');
-    }
-  };
-
-  const handleDeleteNearbyPlace = async (placeId) => {
-    if (window.confirm('Are you sure you want to delete this nearby place?')) {
-      try {
-        const response = await deleteNearbyPlace(id, placeId);
-        setSpot(response.data);
-      } catch (error) {
-        setError('Error deleting nearby place. Please try again.');
-      }
-    }
-  };
-
-  if (loading) return <div className="text-center">Loading...</div>;
-  if (error) return <div className="text-center text-red-500">{error}</div>;
+  if (!existing) {
+    return (
+      <GuideLayout greeting="Edit tourist spot" subtitle="Update the details of your spot.">
+        <Card className="mx-auto max-w-3xl text-center">
+          <p className="text-sm font-semibold text-slate-900">Spot not found</p>
+          <p className="mt-1 text-sm text-slate-400">This spot may have been removed.</p>
+          <BtnGhost className="mt-5" onClick={() => navigate("/local-guide/spots")}>
+            <ArrowLeft className="h-4 w-4" /> Back to spots
+          </BtnGhost>
+        </Card>
+      </GuideLayout>
+    );
+  }
 
   return (
-    <div className="bg-white shadow-md rounded-lg p-6">
-      <h2 className="text-2xl font-bold mb-6">Edit Tourist Spot</h2>
-      <form onSubmit={handleSubmit} className="space-y-4">
-        <div>
-          <label htmlFor="name" className="block text-sm font-medium text-gray-700">Name</label>
-          <input
-            type="text"
-            id="name"
-            name="name"
-            value={spot.name}
-            onChange={handleChange}
-            required
-            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
+    <GuideLayout greeting="Edit tourist spot" subtitle="Update the details of your spot.">
+      <form onSubmit={handleSubmit}>
+        <Card className="mx-auto max-w-3xl">
+          <SectionHead
+            title="Spot details"
+            sub="Refine what travellers see about this place."
           />
-        </div>
-        <div>
-          <label htmlFor="city" className="block text-sm font-medium text-gray-700">City</label>
-          <input
-            type="text"
-            id="city"
-            name="city"
-            value={spot.city}
-            onChange={handleChange}
-            required
-            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
-          />
-        </div>
-        <div>
-          <label htmlFor="description" className="block text-sm font-medium text-gray-700">Description</label>
-          <textarea
-            id="description"
-            name="description"
-            value={spot.description}
-            onChange={handleChange}
-            required
-            rows="3"
-            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
-          ></textarea>
-        </div>
-        
-        <div>
-          <h3 className="text-lg font-semibold mb-2">Nearby Places</h3>
-          {spot.nearbyPlaces.map((place) => (
-            <div key={place._id} className="mb-2 p-2 bg-gray-100 rounded flex justify-between items-center">
-              <div>
-                <p><strong>Name:</strong> {place.name}</p>
-                <p><strong>Location:</strong> {place.location}</p>
-              </div>
-              <div>
-                <button
-                  type="button"
-                  onClick={() => setEditingNearbyPlace(place)}
-                  className="text-blue-600 hover:text-blue-800 mr-2"
-                >
-                  Edit
-                </button>
-                <button
-                  type="button"
-                  onClick={() => handleDeleteNearbyPlace(place._id)}
-                  className="text-red-600 hover:text-red-800"
-                >
-                  Delete
-                </button>
-              </div>
+
+          <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
+            <div className="space-y-1.5">
+              <label htmlFor="name" className={labelCls}>Name</label>
+              <input
+                id="name"
+                name="name"
+                value={form.name}
+                onChange={handleChange}
+                required
+                placeholder="e.g. Attabad Lake"
+                className={inputCls}
+              />
             </div>
-          ))}
-          <button
-            type="button"
-            onClick={() => setShowNearbyPlaceForm(true)}
-            className="mt-2 bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
-          >
-            Add Nearby Place
-          </button>
-        </div>
+            <div className="space-y-1.5">
+              <label htmlFor="city" className={labelCls}>City</label>
+              <input
+                id="city"
+                name="city"
+                value={form.city}
+                onChange={handleChange}
+                required
+                placeholder="e.g. Hunza"
+                className={inputCls}
+              />
+            </div>
+          </div>
 
-        {(showNearbyPlaceForm || editingNearbyPlace) && (
-          <NearbyPlaceForm
-            onSubmit={editingNearbyPlace ? handleUpdateNearbyPlace : handleAddNearbyPlace}
-            onCancel={() => {
-              setShowNearbyPlaceForm(false);
-              setEditingNearbyPlace(null);
-            }}
-            initialData={editingNearbyPlace}
-          />
-        )}
+          <div className="mt-5 space-y-1.5">
+            <label htmlFor="location" className={labelCls}>Location</label>
+            <input
+              id="location"
+              name="location"
+              value={form.location}
+              onChange={handleChange}
+              required
+              placeholder="e.g. Gojal, Upper Hunza"
+              className={inputCls}
+            />
+          </div>
 
-        <div className="flex justify-end space-x-4">
-          <button
-            type="button"
-            onClick={() => navigate('/local-guide')}
-            className="px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-          >
-            Cancel
-          </button>
-          <button
-            type="submit"
-            className="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-          >
-            Update Tourist Spot
-          </button>
-        </div>
+          <div className="mt-5 space-y-1.5">
+            <label htmlFor="description" className={labelCls}>Description</label>
+            <textarea
+              id="description"
+              name="description"
+              value={form.description}
+              onChange={handleChange}
+              required
+              rows={4}
+              placeholder="What should travellers know about this place?"
+              className={`${inputCls} resize-none`}
+            />
+          </div>
+
+          <div className="mt-5 space-y-1.5">
+            <label htmlFor="picture" className={labelCls}>Image URL</label>
+            <input
+              id="picture"
+              name="picture"
+              value={form.picture}
+              onChange={handleChange}
+              placeholder="https://..."
+              className={inputCls}
+            />
+          </div>
+
+          {form.picture ? (
+            <div className="mt-4 overflow-hidden rounded-2xl border border-slate-100">
+              <img src={form.picture} alt="Preview" className="h-44 w-full object-cover" />
+            </div>
+          ) : (
+            <div className="mt-4 flex h-44 w-full flex-col items-center justify-center gap-2 rounded-2xl border border-dashed border-slate-200 text-slate-300">
+              <ImageIcon className="h-7 w-7" />
+              <span className="text-xs">Image preview</span>
+            </div>
+          )}
+
+          <div className="mt-5 space-y-1.5">
+            <label htmlFor="activities" className={labelCls}>Activities</label>
+            <input
+              id="activities"
+              name="activities"
+              value={form.activities}
+              onChange={handleChange}
+              placeholder="Comma separated — e.g. Boating, Photography, Hiking"
+              className={inputCls}
+            />
+            <p className="text-xs text-slate-400">Separate each activity with a comma.</p>
+          </div>
+
+          <div className="mt-7 flex items-center justify-end gap-3">
+            <BtnGhost type="button" onClick={() => navigate(-1)}>
+              <ArrowLeft className="h-4 w-4" /> Cancel
+            </BtnGhost>
+            <Btn type="submit">
+              <Save className="h-4 w-4" /> Save changes
+            </Btn>
+          </div>
+        </Card>
       </form>
-    </div>
+    </GuideLayout>
   );
-};
-
-export default EditTouristSpotPage;
-
+}

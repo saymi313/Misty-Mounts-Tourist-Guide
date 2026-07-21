@@ -1,87 +1,81 @@
 import React, { useState } from "react";
-import axios from "axios";
 import { useNavigate } from "react-router-dom";
+import { Mountain, Mail, Lock, ArrowRight } from "lucide-react";
+import { img } from "../../data/mockData";
 
 const Login = () => {
-    const [username, setUsername] = useState("");
-    const [password, setPassword] = useState("");
-    const [errorMessage, setErrorMessage] = useState("");
-    const navigate = useNavigate(); // Use for navigation
+  const navigate = useNavigate();
+  const [loading, setLoading] = useState(false);
 
-    const handleSubmit = async (event) => {
-        event.preventDefault();
-        try {
-            const response = await axios.post(
-                "http://localhost:5000/api/admin/auth/login",
-                { username, password }
-            );
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    setLoading(true);
+    // Backend disconnected (dummy-data phase): any credentials sign in.
+    setTimeout(() => {
+      localStorage.setItem("adminToken", "mock-admin-token");
+      navigate("/admin/dashboard");
+    }, 500);
+  };
 
-            console.log("Login success:", response.data);
-
-            // Save token (e.g., in localStorage)
-            localStorage.setItem("adminToken", response.data.token); // Save token
-
-            // Navigate to the admin dashboard
-            navigate("/admin/dashboard");
-        } catch (error) {
-            setErrorMessage(error.response?.data?.error || error.message);
-        }
-    };
-
-    return (
-        <div className="min-h-screen flex items-center justify-center bg-gray-100">
-            <div className="bg-white shadow-md rounded-lg p-8 w-full max-w-md">
-                <h2 className="text-2xl font-bold text-center text-gray-800 mb-6">Admin Login</h2>
-
-                {errorMessage && (
-                    <p className="mb-4 text-sm text-red-600 text-center">{errorMessage}</p>
-                )}
-
-                <form onSubmit={handleSubmit} className="space-y-4">
-                    <div>
-                        <label
-                            htmlFor="username"
-                            className="block text-sm font-medium text-gray-700"
-                        >
-                            Username
-                        </label>
-                        <input
-                            id="username"
-                            type="text"
-                            placeholder="Enter your username"
-                            value={username}
-                            onChange={(e) => setUsername(e.target.value)}
-                            className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-                        />
-                    </div>
-
-                    <div>
-                        <label
-                            htmlFor="password"
-                            className="block text-sm font-medium text-gray-700"
-                        >
-                            Password
-                        </label>
-                        <input
-                            id="password"
-                            type="password"
-                            placeholder="Enter your password"
-                            value={password}
-                            onChange={(e) => setPassword(e.target.value)}
-                            className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-                        />
-                    </div>
-
-                    <button
-                        type="submit"
-                        className="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
-                    >
-                        Login
-                    </button>
-                </form>
-            </div>
+  return (
+    <div className="min-h-screen bg-[#f3f6f4] lg:grid lg:grid-cols-2">
+      {/* Left: brand photo panel */}
+      <div className="relative hidden overflow-hidden lg:block">
+        <img src={img("admin-hero", 1200, 1600)} alt="" className="absolute inset-0 h-full w-full object-cover" />
+        <div className="absolute inset-0 bg-gradient-to-t from-slate-900 via-slate-900/40 to-transparent" />
+        <div className="relative flex h-full flex-col justify-between p-12 text-white">
+          <div className="flex items-center gap-2.5">
+            <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-emerald-500">
+              <Mountain className="h-5 w-5" strokeWidth={2.25} />
+            </span>
+            <span className="text-lg font-bold">Misty Mounts</span>
+          </div>
+          <div>
+            <p className="text-sm font-semibold uppercase tracking-widest text-emerald-300">Admin console</p>
+            <h1 className="mt-3 max-w-md text-4xl font-bold leading-tight">
+              Manage the north, all in one place.
+            </h1>
+            <p className="mt-3 max-w-sm text-white/70">
+              Spots, stays, transport, payments and guides — the whole platform at a glance.
+            </p>
+          </div>
         </div>
-    );
+      </div>
+
+      {/* Right: form */}
+      <div className="flex min-h-screen items-center justify-center px-6 py-12">
+        <div className="w-full max-w-sm">
+          <div className="mb-8 flex items-center gap-2.5 lg:hidden">
+            <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-emerald-500 text-white">
+              <Mountain className="h-5 w-5" strokeWidth={2.25} />
+            </span>
+            <span className="text-lg font-bold text-slate-900">Misty Mounts</span>
+          </div>
+
+          <p className="text-sm font-semibold uppercase tracking-widest text-emerald-600">Welcome back</p>
+          <h2 className="mt-2 text-3xl font-bold text-slate-900">Sign in to admin</h2>
+          <p className="mt-2 text-sm text-slate-400">Demo mode — any email &amp; password works.</p>
+
+          <form onSubmit={handleSubmit} className="mt-8 space-y-4">
+            <div className="relative">
+              <Mail className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+              <input type="email" defaultValue="admin@mistymounts.pk" required
+                className="w-full rounded-2xl border border-slate-200 bg-white py-3.5 pl-11 pr-4 text-sm text-slate-800 outline-none focus:border-emerald-400" />
+            </div>
+            <div className="relative">
+              <Lock className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+              <input type="password" defaultValue="admin123" required
+                className="w-full rounded-2xl border border-slate-200 bg-white py-3.5 pl-11 pr-4 text-sm text-slate-800 outline-none focus:border-emerald-400" />
+            </div>
+            <button type="submit" disabled={loading}
+              className="flex w-full items-center justify-center gap-2 rounded-2xl bg-emerald-500 py-3.5 text-sm font-semibold text-white transition-colors hover:bg-emerald-600 disabled:opacity-60">
+              {loading ? "Signing in…" : (<>Sign in <ArrowRight className="h-4 w-4" /></>)}
+            </button>
+          </form>
+        </div>
+      </div>
+    </div>
+  );
 };
 
 export default Login;
