@@ -12,6 +12,14 @@ dist
 dist-ssr
 *.local
 
+# Environment & secrets (keep .env.example, ignore the real .env) + runtime uploads
+.env
+.env.local
+.env.*.local
+.env.*
+!.env.example
+uploads/
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
@@ -22,3 +30,7 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Project markdown — keep only the README
+*.md
+!README.md

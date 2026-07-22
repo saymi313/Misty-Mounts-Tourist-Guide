@@ -1,0 +1,48 @@
+# ──────────────────────────────────────────────────────────────
+# Misty Mounts — root ignore rules (apply across Frontend & Backend)
+# ──────────────────────────────────────────────────────────────
+
+# Dependencies
+node_modules/
+.pnp
+.pnp.js
+
+# Environment & secrets — NEVER commit real .env files
+.env
+.env.local
+.env.*.local
+.env.*
+!.env.example
+
+# Build output
+dist/
+dist-ssr/
+build/
+
+# Runtime uploads (local avatar/image cache before Cloudinary, etc.)
+uploads/
+
+# Logs & debug
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# OS & editor cruft
+.DS_Store
+Thumbs.db
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+.idea/
+.vscode/*
+!.vscode/extensions.json
+*.local
+
+# Project markdown — keep only the README, ignore all other .md docs
+*.md
+!README.md
