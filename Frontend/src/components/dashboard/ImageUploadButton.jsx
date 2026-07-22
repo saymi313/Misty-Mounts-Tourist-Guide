@@ -36,7 +36,7 @@ export default function ImageUploadButton({ onUploaded, folder = "uploads", labe
         type="button"
         onClick={() => ref.current?.click()}
         disabled={busy}
-        className="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-slate-600 transition-colors hover:border-emerald-300 hover:text-emerald-700 disabled:opacity-60"
+        className="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-slate-600 transition-colors hover:border-lime-300 hover:text-lime-700 disabled:opacity-60"
       >
         {busy ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Upload className="h-3.5 w-3.5" />}
         {busy ? "Uploading…" : label}

@@ -16,7 +16,7 @@ const FinalCTA = () => {
         <motion.img
           style={{ y, scale: 1.12 }}
           src={img("final-cta", 2000, 1300)}
-          alt="Glacial valley at first light in Northern Pakistan"
+          alt="Glacial valley at first light in Hazara"
           className="absolute inset-0 h-full w-full object-cover will-change-transform"
         />
         <div className="absolute inset-0 bg-gradient-to-t from-abyss-950 via-abyss-950/45 to-transparent" />

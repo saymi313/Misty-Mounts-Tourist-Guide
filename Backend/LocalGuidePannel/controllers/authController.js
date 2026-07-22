@@ -16,13 +16,13 @@ const publicAuthUser = (u) => ({
 });
 
 // Generate, store (hashed) and email a fresh OTP. Email failure is logged, not fatal.
-const setAndSendOtp = async (user) => {
+const setAndSendOtp = async (user, purpose = "verify") => {
   const otp = genOtp();
   user.otp = await bcrypt.hash(otp, 10);
   user.otpExpires = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
   await user.save();
   try {
-    await sendOtpEmail(user.email, user.name || user.username, otp);
+    await sendOtpEmail(user.email, user.name || user.username, otp, purpose);
   } catch (e) {
     console.error(`OTP email to ${user.email} failed: ${e.message} — dev OTP: ${otp}`);
   }
@@ -128,4 +128,51 @@ const login = async (req, res) => {
   }
 };
 
-module.exports = { signup, login, verifyOtp, resendOtp };
+// POST /api/user/auth/forgot-password
+const forgotPassword = async (req, res) => {
+  const { email } = req.body;
+  try {
+    if (!email) return res.status(400).json({ message: "email is required" });
+    const user = await User.findOne({ email });
+    // Send a reset code only if the account exists, but respond the same either
+    // way so we don't leak which emails are registered.
+    if (user) await setAndSendOtp(user, "reset");
+    res.status(200).json({ message: "If an account exists, a reset code has been sent.", email });
+  } catch (error) {
+    console.error("forgotPassword error:", error.message);
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
+// POST /api/user/auth/reset-password
+const resetPassword = async (req, res) => {
+  const { email, otp, password } = req.body;
+  try {
+    if (!email || !otp || !password) {
+      return res.status(400).json({ message: "email, otp and password are required" });
+    }
+    if (String(password).length < 8) {
+      return res.status(400).json({ message: "Password must be at least 8 characters" });
+    }
+    const user = await User.findOne({ email }).select("+otp +otpExpires");
+    if (!user) return res.status(404).json({ message: "User not found" });
+    if (!user.otp || !user.otpExpires || user.otpExpires < new Date()) {
+      return res.status(400).json({ message: "Your code has expired. Please request a new one." });
+    }
+    const ok = await bcrypt.compare(String(otp), user.otp);
+    if (!ok) return res.status(400).json({ message: "Invalid code. Please try again." });
+
+    user.password = password; // hashed by the pre-save hook
+    user.otp = undefined;
+    user.otpExpires = undefined;
+    user.isVerified = true; // a successful reset also confirms the email
+    await user.save();
+
+    res.status(200).json({ message: "Password reset", token: signToken(user), ...publicAuthUser(user) });
+  } catch (error) {
+    console.error("resetPassword error:", error.message);
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
+module.exports = { signup, login, verifyOtp, resendOtp, forgotPassword, resetPassword };

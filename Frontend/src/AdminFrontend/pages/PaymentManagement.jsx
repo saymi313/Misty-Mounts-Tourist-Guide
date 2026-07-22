@@ -3,14 +3,15 @@ import { Wallet, Receipt, Clock, Pencil, Trash2 } from "lucide-react";
 import AdminLayout from "../AdminLayout";
 import { Card, SectionHead, StatCard, StatusPill, Btn, BtnGhost, adminInputCls, Field } from "../../components/dashboard/ui";
 import Modal from "../../components/dashboard/Modal";
-import { bookings as seed } from "../../data/mockData";
 import { formatPKR } from "../../utils/currency";
 import { LIVE, listPayments, updatePaymentStatus } from "../../data/adminApi";
+import { toast } from "../../utils/toast";
+import { confirmDialog } from "../../utils/confirm";
 
 const money = formatPKR;
 
 const PaymentManagement = () => {
-  const [payments, setPayments] = useState(seed);
+  const [payments, setPayments] = useState([]);
   const [modalOpen, setModalOpen] = useState(false);
   const [editing, setEditing] = useState(null);
   const [status, setStatus] = useState("Upcoming");
@@ -25,15 +26,26 @@ const PaymentManagement = () => {
     setModalOpen(true);
   };
 
-  const handleDelete = (id) => setPayments((prev) => prev.filter((p) => p._id !== id));
+  const handleDelete = async (payment) => {
+    const ok = await confirmDialog({
+      title: "Delete payment record?",
+      body: `The booking record for ${payment.guest} will be removed from this list.`,
+      confirmLabel: "Delete",
+    });
+    if (!ok) return;
+    setPayments((prev) => prev.filter((p) => p._id !== payment._id));
+    toast.success("Payment record removed.");
+  };
 
   const handleSave = async (e) => {
     e.preventDefault();
     if (LIVE) {
-      try { await updatePaymentStatus(editing._id, status); } catch { return; }
+      try { await updatePaymentStatus(editing._id, status); }
+      catch { toast.error("Couldn't update the payment status. Please try again."); return; }
     }
     setPayments((prev) => prev.map((p) => (p._id === editing._id ? { ...p, status } : p)));
     setModalOpen(false);
+    toast.success(`Payment marked ${status.toLowerCase()}.`);
   };
 
   const revenue = payments.reduce((s, p) => s + p.amount, 0);
@@ -89,12 +101,12 @@ const PaymentManagement = () => {
                       <button
                         onClick={() => openEdit(p)}
                         title="Edit status"
-                        className="flex h-8 w-8 items-center justify-center rounded-lg text-emerald-600 transition-colors hover:bg-emerald-50"
+                        className="flex h-8 w-8 items-center justify-center rounded-lg text-lime-600 transition-colors hover:bg-lime-50"
                       >
                         <Pencil className="h-4 w-4" />
                       </button>
                       <button
-                        onClick={() => handleDelete(p._id)}
+                        onClick={() => handleDelete(p)}
                         title="Delete record"
                         className="flex h-8 w-8 items-center justify-center rounded-lg text-rose-500 transition-colors hover:bg-rose-50"
                       >

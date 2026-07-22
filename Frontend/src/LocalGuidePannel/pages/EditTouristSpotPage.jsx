@@ -1,15 +1,15 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { ArrowLeft, Save, ImageIcon, AlertCircle } from "lucide-react";
 import GuideLayout from "../GuideLayout";
 import { Card, SectionHead, Btn, BtnGhost } from "../../components/dashboard/ui";
-import { allPlaces } from "../../data/mockData";
 import { required, url, minLen, validate, hasErrors } from "../../utils/validation";
-import { LIVE, updatePlace } from "../../data/adminApi";
+import { LIVE, listPlaces, updatePlace } from "../../data/adminApi";
 import ImageUploadButton from "../../components/dashboard/ImageUploadButton";
+import { toast } from "../../utils/toast";
 
 const inputCls =
-  "w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-800 outline-none [color-scheme:light] focus:border-emerald-400";
+  "w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-800 outline-none [color-scheme:light] focus:border-lime-400";
 const labelCls = "text-sm font-medium text-slate-700";
 const errNote = "mt-1.5 flex items-center gap-1 text-xs font-medium text-rose-500";
 
@@ -17,18 +17,38 @@ const errNote = "mt-1.5 flex items-center gap-1 text-xs font-medium text-rose-50
 export default function EditTouristSpotPage() {
   const navigate = useNavigate();
   const { id } = useParams();
-  const existing = allPlaces.find((p) => p._id === id);
 
+  const [existing, setExisting] = useState(null);
+  const [loading, setLoading] = useState(true);
   const [form, setForm] = useState({
-    name: existing?.name || "",
-    city: existing?.city || "",
-    location: existing?.location || "",
-    description: existing?.description || "",
-    picture: existing?.picture || "",
-    activities: existing?.activities?.join(", ") || "",
+    name: "", city: "", location: "", description: "", picture: "", activities: "",
   });
-
   const [errors, setErrors] = useState({});
+
+  // Load the live record to prefill the form.
+  useEffect(() => {
+    let alive = true;
+    (async () => {
+      try {
+        const places = LIVE ? await listPlaces() : [];
+        const found = places.find((p) => String(p._id) === String(id)) || null;
+        if (!alive) return;
+        if (found) {
+          setExisting(found);
+          setForm({
+            name: found.name || "",
+            city: found.city || "",
+            location: found.location || "",
+            description: found.description || "",
+            picture: found.picture || "",
+            activities: found.activities?.join(", ") || "",
+          });
+        }
+      } catch { /* ignore */ }
+      finally { if (alive) setLoading(false); }
+    })();
+    return () => { alive = false; };
+  }, [id]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -51,6 +71,7 @@ export default function EditTouristSpotPage() {
       setErrors(found);
       return;
     }
+    let ok = true;
     if (LIVE) {
       try {
         await updatePlace(id, {
@@ -61,10 +82,20 @@ export default function EditTouristSpotPage() {
           picture: form.picture,
           activities: form.activities ? form.activities.split(",").map((s) => s.trim()).filter(Boolean) : [],
         });
-      } catch { /* fall through and navigate back */ }
+      } catch { ok = false; toast.error("Couldn't save changes to the server. Please try again."); }
     }
+    if (!ok) return;
+    toast.success(`"${form.name}" updated.`);
     navigate("/local-guide/spots");
   };
+
+  if (loading) {
+    return (
+      <GuideLayout greeting="Edit tourist spot" subtitle="Update the details of your spot.">
+        <Card className="mx-auto max-w-3xl text-center text-sm text-slate-400">Loading spot…</Card>
+      </GuideLayout>
+    );
+  }
 
   if (!existing) {
     return (

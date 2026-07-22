@@ -3,23 +3,32 @@ import { useNavigate } from "react-router-dom";
 import { MapPin, Plus, Pencil, Trash2, Map as MapIcon, Gem, Building2 } from "lucide-react";
 import GuideLayout from "../GuideLayout";
 import { Card, SectionHead, StatCard, Btn } from "../../components/dashboard/ui";
-import { allPlaces } from "../../data/mockData";
 import { LIVE, listPlaces, deletePlace } from "../../data/adminApi";
+import { toast } from "../../utils/toast";
+import { confirmDialog } from "../../utils/confirm";
 
 /** Local Guide — list of tourist spots the guide has curated. */
 export default function TouristSpotListPage() {
   const navigate = useNavigate();
-  const [spots, setSpots] = useState(() => allPlaces.filter((p) => p.curatedBy));
+  const [spots, setSpots] = useState([]);
 
   useEffect(() => {
     if (LIVE) listPlaces().then((places) => setSpots(places.filter((p) => p.curatedBy))).catch(() => {});
   }, []);
 
-  const handleDelete = async (id) => {
+  const handleDelete = async (spot) => {
+    const ok = await confirmDialog({
+      title: "Delete this spot?",
+      body: `"${spot.name}" will be removed from your curated places.`,
+      confirmLabel: "Delete",
+    });
+    if (!ok) return;
     if (LIVE) {
-      try { await deletePlace(id); } catch { return; }
+      try { await deletePlace(spot._id); }
+      catch { toast.error("Couldn't delete this spot. Please try again."); return; }
     }
-    setSpots((prev) => prev.filter((s) => s._id !== id));
+    setSpots((prev) => prev.filter((s) => s._id !== spot._id));
+    toast.success(`"${spot.name}" deleted.`);
   };
 
   const citiesCovered = new Set(spots.map((s) => s.city)).size;
@@ -50,7 +59,7 @@ export default function TouristSpotListPage() {
 
           {spots.length === 0 ? (
             <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-slate-200 py-16 text-center">
-              <span className="flex h-14 w-14 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-600">
+              <span className="flex h-14 w-14 items-center justify-center rounded-2xl bg-lime-50 text-lime-600">
                 <MapIcon className="h-6 w-6" />
               </span>
               <p className="mt-4 text-sm font-semibold text-slate-900">No spots yet</p>
@@ -73,7 +82,7 @@ export default function TouristSpotListPage() {
                       className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-105"
                     />
                     {spot.hiddenGem && (
-                      <span className="absolute left-3 top-3 inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2.5 py-1 text-xs font-semibold text-emerald-600">
+                      <span className="absolute left-3 top-3 inline-flex items-center gap-1 rounded-full bg-lime-50 px-2.5 py-1 text-xs font-semibold text-lime-600">
                         Hidden gem
                       </span>
                     )}
@@ -89,13 +98,13 @@ export default function TouristSpotListPage() {
                       <div className="flex shrink-0 items-center gap-1.5">
                         <button
                           onClick={() => navigate(`/local-guide/edit-spot/${spot._id}`)}
-                          className="flex h-8 w-8 items-center justify-center rounded-xl text-emerald-600 transition-colors hover:bg-emerald-50"
+                          className="flex h-8 w-8 items-center justify-center rounded-xl text-lime-600 transition-colors hover:bg-lime-50"
                           aria-label={`Edit ${spot.name}`}
                         >
                           <Pencil className="h-4 w-4" />
                         </button>
                         <button
-                          onClick={() => handleDelete(spot._id)}
+                          onClick={() => handleDelete(spot)}
                           className="flex h-8 w-8 items-center justify-center rounded-xl text-rose-500 transition-colors hover:bg-rose-50"
                           aria-label={`Delete ${spot.name}`}
                         >

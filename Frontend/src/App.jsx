@@ -8,6 +8,8 @@ import PanelSelector from './PanelSelector';
 import ProtectedRoute from './components/ProtectedRoute';
 import ProtectedRoutesWrapper from './components/ProtectedRoutesWrapper';
 import LocalGuidePanel from './LocalGuidePannel/LocalGuidePanel';
+import Toaster from './components/Toaster';
+import ConfirmDialog from './components/ConfirmDialog';
 import './App.css';
 
 function App() {
@@ -46,6 +48,8 @@ function App() {
           <Route path="/*" element={<ProtectedRoutesWrapper />} />
         </Routes>
       </Router>
+      <Toaster />
+      <ConfirmDialog />
     </AuthProvider>
     </ThemeProvider>
   );

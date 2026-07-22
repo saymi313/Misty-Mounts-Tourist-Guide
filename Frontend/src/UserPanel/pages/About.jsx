@@ -68,7 +68,7 @@ const About = () => {
             <PhotoTile
               image={img('about-mission', 900, 900)}
               title="From Hunza to the Deosai plains"
-              meta="Gilgit-Baltistan"
+              meta="Hazara"
               to="/destinations"
               className="min-h-[280px] md:col-span-2 md:min-h-[360px]"
             />

@@ -185,11 +185,11 @@ const Messages = () => {
                 <button
                   key={c.id}
                   onClick={() => openChat(c.id)}
-                  className={`flex w-full items-center gap-3 rounded-2xl px-3 py-3 text-left transition-colors ${isActive ? "bg-emerald-50" : "hover:bg-slate-50"}`}
+                  className={`flex w-full items-center gap-3 rounded-2xl px-3 py-3 text-left transition-colors ${isActive ? "bg-lime-50" : "hover:bg-slate-50"}`}
                 >
                   <div className="relative shrink-0">
                     <img src={c.avatar} alt={c.name} className="h-11 w-11 rounded-2xl object-cover" />
-                    {c.online && <span className="absolute -bottom-0.5 -right-0.5 h-3 w-3 rounded-full border-2 border-white bg-emerald-500" />}
+                    {c.online && <span className="absolute -bottom-0.5 -right-0.5 h-3 w-3 rounded-full border-2 border-white bg-lime-500" />}
                   </div>
                   <div className="min-w-0 flex-1">
                     <div className="flex items-center justify-between gap-2">
@@ -199,7 +199,7 @@ const Messages = () => {
                     <div className="mt-0.5 flex items-center justify-between gap-2">
                       <p className={`truncate text-xs ${c.unread ? "font-semibold text-slate-700" : "text-slate-400"}`}>{c.snippet}</p>
                       {c.unread > 0 && (
-                        <span className="flex h-5 min-w-5 shrink-0 items-center justify-center rounded-full bg-emerald-500 px-1.5 text-xs font-semibold text-white">{c.unread}</span>
+                        <span className="flex h-5 min-w-5 shrink-0 items-center justify-center rounded-full bg-lime-400 px-1.5 text-xs font-semibold text-night-950">{c.unread}</span>
                       )}
                     </div>
                   </div>
@@ -225,7 +225,7 @@ const Messages = () => {
                 <div className="flex items-center gap-3">
                   <div className="relative">
                     <img src={active.avatar} alt={active.name} className="h-11 w-11 rounded-2xl object-cover" />
-                    {active.online && <span className="absolute -bottom-0.5 -right-0.5 h-3 w-3 rounded-full border-2 border-white bg-emerald-500" />}
+                    {active.online && <span className="absolute -bottom-0.5 -right-0.5 h-3 w-3 rounded-full border-2 border-white bg-lime-500" />}
                   </div>
                   <div>
                     <p className="text-sm font-bold text-slate-900">{active.name}</p>
@@ -233,9 +233,9 @@ const Messages = () => {
                   </div>
                 </div>
                 <div className="flex items-center gap-1 text-slate-400">
-                  <button className="rounded-full p-2 transition-colors hover:bg-slate-50 hover:text-emerald-600"><Phone className="h-4 w-4" /></button>
-                  <button className="rounded-full p-2 transition-colors hover:bg-slate-50 hover:text-emerald-600"><Video className="h-4 w-4" /></button>
-                  <button className="rounded-full p-2 transition-colors hover:bg-slate-50 hover:text-emerald-600"><MoreVertical className="h-4 w-4" /></button>
+                  <button className="rounded-full p-2 transition-colors hover:bg-slate-50 hover:text-lime-600"><Phone className="h-4 w-4" /></button>
+                  <button className="rounded-full p-2 transition-colors hover:bg-slate-50 hover:text-lime-600"><Video className="h-4 w-4" /></button>
+                  <button className="rounded-full p-2 transition-colors hover:bg-slate-50 hover:text-lime-600"><MoreVertical className="h-4 w-4" /></button>
                 </div>
               </div>
 
@@ -247,9 +247,9 @@ const Messages = () => {
                   const mine = m.from === "me";
                   return (
                     <div key={m.id} className={`flex ${mine ? "justify-end" : "justify-start"}`}>
-                      <div className={`max-w-[75%] rounded-2xl px-4 py-2.5 text-sm leading-relaxed ${mine ? "rounded-br-md bg-emerald-500 text-white" : "rounded-bl-md bg-slate-100 text-slate-800"}`}>
+                      <div className={`max-w-[75%] rounded-2xl px-4 py-2.5 text-sm leading-relaxed ${mine ? "rounded-br-md bg-lime-400 text-night-950" : "rounded-bl-md bg-slate-100 text-slate-800"}`}>
                         <p>{m.text}</p>
-                        <p className={`mt-1 text-[10px] ${mine ? "text-emerald-50/80" : "text-slate-400"}`}>{m.time}</p>
+                        <p className={`mt-1 text-[10px] ${mine ? "text-lime-50/80" : "text-slate-400"}`}>{m.time}</p>
                       </div>
                     </div>
                   );
@@ -261,9 +261,9 @@ const Messages = () => {
                   value={draft}
                   onChange={(e) => setDraft(e.target.value)}
                   placeholder="Write a message…"
-                  className="flex-1 rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm outline-none focus:border-emerald-400"
+                  className="flex-1 rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm outline-none focus:border-lime-400"
                 />
-                <button type="submit" className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-emerald-500 text-white transition-all hover:-translate-y-0.5 hover:bg-emerald-600">
+                <button type="submit" className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-lime-400 text-night-950 transition-all hover:-translate-y-0.5 hover:bg-lime-300">
                   <Send className="h-4 w-4" />
                 </button>
               </form>

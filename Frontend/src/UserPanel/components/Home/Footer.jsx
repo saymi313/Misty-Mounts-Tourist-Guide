@@ -1,6 +1,6 @@
 import React from "react";
 import { Link } from "react-router-dom";
-import { Mountain, Instagram, Twitter, Facebook, MapPin } from "lucide-react";
+import { Instagram, Twitter, Facebook, MapPin } from "lucide-react";
 
 const columns = [
   {
@@ -15,9 +15,9 @@ const columns = [
   {
     title: "Regions",
     links: [
-      ["Hunza Valley", "/destinations"],
-      ["Skardu & Baltistan", "/destinations"],
       ["Kaghan & Naran", "/destinations"],
+      ["Abbottabad", "/destinations"],
+      ["Mansehra", "/destinations"],
       ["Swat Valley", "/destinations"],
     ],
   },
@@ -38,20 +38,19 @@ const Footer = () => {
       <div className="mx-auto max-w-7xl px-5 py-16 sm:px-8">
         <div className="grid gap-12 lg:grid-cols-[1.3fr_2fr]">
           <div>
-            <Link to="/user" className="flex items-center gap-2.5">
-              <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-lime-400 text-night-950">
-                <Mountain className="h-5 w-5" strokeWidth={2.4} />
-              </span>
-              <span className="text-xl font-extrabold tracking-tight text-white">
-                Misty<span className="text-lime-400">Mounts</span>
-              </span>
+            <Link to="/user" className="inline-block">
+              <img
+                src="/main logo.png"
+                alt="Misty Mounts — explore more, discover hidden"
+                className="h-16 w-auto object-contain"
+              />
             </Link>
             <p className="mt-4 max-w-xs text-sm leading-relaxed text-white/50">
-              A local's guide to Northern Pakistan — curated spots, honest stays, and the
+              A local's guide to Hazara — curated spots, honest stays, and the
               people who know these mountains best.
             </p>
             <div className="mt-5 flex items-center gap-2 text-sm text-white/50">
-              <MapPin className="h-4 w-4 text-lime-400" /> Gilgit-Baltistan, Pakistan
+              <MapPin className="h-4 w-4 text-lime-400" /> Hazara, Pakistan
             </div>
             <div className="mt-6 flex gap-3">
               {[Instagram, Twitter, Facebook].map((Icon, i) => (
@@ -89,7 +88,7 @@ const Footer = () => {
 
         <div className="mt-14 flex flex-col items-center justify-between gap-4 border-t border-white/5 pt-6 text-sm text-white/40 sm:flex-row">
           <p>&copy; {new Date().getFullYear()} Misty Mounts. Crafted for the mountains.</p>
-          <p>Prototype · dummy data · frontend preview</p>
+          <p>Explore more · Discover hidden</p>
         </div>
       </div>
     </footer>

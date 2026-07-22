@@ -3,8 +3,8 @@ import { MapPin, Phone, Mail, Clock } from 'lucide-react';
 import { Tile, Eyebrow } from '../bento/tiles';
 
 const items = [
-  { icon: MapPin, title: 'Address', lines: ['Airport Road, Jutial', 'Gilgit, Gilgit-Baltistan'] },
-  { icon: Phone, title: 'Phone', lines: ['+92 5811 123456'] },
+  { icon: MapPin, title: 'Address', lines: ['The Mall Road', 'Abbottabad, Hazara'] },
+  { icon: Phone, title: 'Phone', lines: ['+92 992 123456'] },
   { icon: Mail, title: 'Email', lines: ['hello@mistymounts.pk'] },
   { icon: Clock, title: 'Office hours', lines: ['Mon–Fri: 9AM–6PM', 'Sat: 10AM–4PM'] },
 ];

@@ -56,7 +56,7 @@ export default function Modal({ open, onClose, title, subtitle, icon: Icon, onSu
             <div className="flex shrink-0 items-start justify-between gap-4 border-b border-slate-100 px-7 py-5">
               <div className="flex items-start gap-3.5">
                 {Icon && (
-                  <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-600">
+                  <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-lime-50 text-lime-600">
                     <Icon className="h-5 w-5" />
                   </span>
                 )}

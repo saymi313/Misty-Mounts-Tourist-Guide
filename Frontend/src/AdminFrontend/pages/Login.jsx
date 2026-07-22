@@ -1,12 +1,12 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Mountain, Mail, Lock, ArrowRight, AlertCircle } from "lucide-react";
+import { Mail, Lock, ArrowRight, AlertCircle } from "lucide-react";
 import { img } from "../../data/mockData";
 import { required, validate, hasErrors } from "../../utils/validation";
 import api, { LIVE } from "../../data/api";
 
 const inputBase =
-  "w-full rounded-2xl border border-slate-200 bg-white py-3.5 pl-11 pr-4 text-sm text-slate-800 outline-none [color-scheme:light] focus:border-emerald-400";
+  "w-full rounded-2xl border border-slate-200 bg-white py-3.5 pl-11 pr-4 text-sm text-slate-800 outline-none [color-scheme:light] focus:border-lime-400";
 
 const Login = () => {
   const navigate = useNavigate();
@@ -61,13 +61,11 @@ const Login = () => {
         <div className="absolute inset-0 bg-gradient-to-t from-slate-900 via-slate-900/40 to-transparent" />
         <div className="relative flex h-full flex-col justify-between p-12 text-white">
           <div className="flex items-center gap-2.5">
-            <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-emerald-500">
-              <Mountain className="h-5 w-5" strokeWidth={2.25} />
-            </span>
+            <img src="/Logo.png" alt="Misty Mounts" className="h-9 w-9 rounded-xl object-cover" />
             <span className="text-lg font-bold">Misty Mounts</span>
           </div>
           <div>
-            <p className="text-sm font-semibold uppercase tracking-widest text-emerald-300">Admin console</p>
+            <p className="text-sm font-semibold uppercase tracking-widest text-lime-300">Admin console</p>
             <h1 className="mt-3 max-w-md text-4xl font-bold leading-tight">
               Manage the north, all in one place.
             </h1>
@@ -82,13 +80,11 @@ const Login = () => {
       <div className="flex min-h-screen items-center justify-center px-6 py-12">
         <div className="w-full max-w-sm">
           <div className="mb-8 flex items-center gap-2.5 lg:hidden">
-            <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-emerald-500 text-white">
-              <Mountain className="h-5 w-5" strokeWidth={2.25} />
-            </span>
+            <img src="/Logo.png" alt="Misty Mounts" className="h-9 w-9 rounded-xl object-cover" />
             <span className="text-lg font-bold text-slate-900">Misty Mounts</span>
           </div>
 
-          <p className="text-sm font-semibold uppercase tracking-widest text-emerald-600">Welcome back</p>
+          <p className="text-sm font-semibold uppercase tracking-widest text-lime-600">Welcome back</p>
           <h2 className="mt-2 text-3xl font-bold text-slate-900">Sign in to admin</h2>
           <p className="mt-2 text-sm text-slate-400">Sign in with your admin username and password.</p>
 
@@ -141,7 +137,7 @@ const Login = () => {
               )}
             </div>
             <button type="submit" disabled={loading}
-              className="flex w-full items-center justify-center gap-2 rounded-2xl bg-emerald-500 py-3.5 text-sm font-semibold text-white transition-colors hover:bg-emerald-600 disabled:opacity-60">
+              className="flex w-full items-center justify-center gap-2 rounded-2xl bg-lime-400 py-3.5 text-sm font-semibold text-night-950 transition-colors hover:bg-lime-300 disabled:opacity-60">
               {loading ? "Signing in…" : (<>Sign in <ArrowRight className="h-4 w-4" /></>)}
             </button>
           </form>

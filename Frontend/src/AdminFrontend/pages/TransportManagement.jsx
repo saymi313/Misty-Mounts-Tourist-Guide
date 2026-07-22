@@ -3,17 +3,16 @@ import { Bus, Route, Users, Plus, Pencil, Trash2, ArrowRight } from "lucide-reac
 import AdminLayout from "../AdminLayout";
 import { Card, SectionHead, StatCard, Btn, BtnGhost, Field } from "../../components/dashboard/ui";
 import Modal from "../../components/dashboard/Modal";
-import { transportationBySpot } from "../../data/mockData";
 import { required, number, integer, min, validate, hasErrors } from "../../utils/validation";
 import { formatPKR } from "../../utils/currency";
 import { LIVE, listTransportation, createTransportation, updateTransportation, deleteTransportation } from "../../data/adminApi";
-
-const seed = transportationBySpot.default;
+import { toast } from "../../utils/toast";
+import { confirmDialog } from "../../utils/confirm";
 
 const emptyForm = { type: "", from: "", to: "", provider: "", duration: "", price: "", seats: "", schedule: "" };
 
 const TransportManagement = () => {
-  const [routes, setRoutes] = useState(seed);
+  const [routes, setRoutes] = useState([]);
   const [modalOpen, setModalOpen] = useState(false);
   const [editing, setEditing] = useState(null);
   const [form, setForm] = useState(emptyForm);
@@ -51,11 +50,19 @@ const TransportManagement = () => {
     setModalOpen(true);
   };
 
-  const handleDelete = async (id) => {
+  const handleDelete = async (route) => {
+    const ok = await confirmDialog({
+      title: "Delete route?",
+      body: `The ${route.from} → ${route.to} route will be removed permanently.`,
+      confirmLabel: "Delete",
+    });
+    if (!ok) return;
     if (LIVE) {
-      try { await deleteTransportation(id); } catch { return; }
+      try { await deleteTransportation(route._id); }
+      catch { toast.error("Couldn't delete this route. Please try again."); return; }
     }
-    setRoutes((prev) => prev.filter((r) => r._id !== id));
+    setRoutes((prev) => prev.filter((r) => r._id !== route._id));
+    toast.success("Route deleted.");
   };
 
   const handleSave = async (e) => {
@@ -81,13 +88,17 @@ const TransportManagement = () => {
           const created = await createTransportation(parsed);
           setRoutes((prev) => [created || { _id: `tr-${Date.now()}`, ...parsed }, ...prev]);
         }
-      } catch { return; }
+      } catch {
+        toast.error(editing ? "Couldn't save changes. Please try again." : "Couldn't add this route. Please try again.");
+        return;
+      }
     } else if (editing) {
       setRoutes((prev) => prev.map((r) => (r._id === editing._id ? { ...r, ...parsed } : r)));
     } else {
       setRoutes((prev) => [{ _id: `tr-${Date.now()}`, ...parsed }, ...prev]);
     }
     setModalOpen(false);
+    toast.success(editing ? "Route updated." : `${parsed.from} → ${parsed.to} route added.`);
   };
 
   const total = routes.length;
@@ -132,7 +143,7 @@ const TransportManagement = () => {
                 <tr key={route._id} className="border-t border-slate-100 transition-colors hover:bg-slate-50">
                   <td className="px-3 py-3">
                     <div className="flex items-center gap-3">
-                      <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-emerald-50 text-emerald-600">
+                      <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-lime-50 text-lime-600">
                         <Bus className="h-5 w-5" />
                       </span>
                       <span className="text-sm font-semibold text-slate-900">{route.type}</span>
@@ -152,12 +163,12 @@ const TransportManagement = () => {
                       <button
                         onClick={() => openEdit(route)}
                         title="Edit route"
-                        className="flex h-8 w-8 items-center justify-center rounded-lg text-emerald-600 transition-colors hover:bg-emerald-50"
+                        className="flex h-8 w-8 items-center justify-center rounded-lg text-lime-600 transition-colors hover:bg-lime-50"
                       >
                         <Pencil className="h-4 w-4" />
                       </button>
                       <button
-                        onClick={() => handleDelete(route._id)}
+                        onClick={() => handleDelete(route)}
                         title="Delete route"
                         className="flex h-8 w-8 items-center justify-center rounded-lg text-rose-500 transition-colors hover:bg-rose-50"
                       >
@@ -221,7 +232,7 @@ const TransportManagement = () => {
             required
             value={form.from}
             onChange={(v) => update("from", v)}
-            placeholder="e.g. Gilgit"
+            placeholder="e.g. Abbottabad"
             hint="Departure city or point."
             error={errors.from}
           />

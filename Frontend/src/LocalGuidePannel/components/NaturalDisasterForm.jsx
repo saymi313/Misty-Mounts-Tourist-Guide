@@ -1,14 +1,14 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { ArrowLeft, Save, AlertCircle } from "lucide-react";
 import GuideLayout from "../GuideLayout";
 import { Card, SectionHead, Btn, BtnGhost } from "../../components/dashboard/ui";
-import { disasters } from "../../data/mockData";
 import { required, minLen, validate, hasErrors } from "../../utils/validation";
-import { LIVE, createDisaster, updateDisaster } from "../../data/adminApi";
+import { LIVE, listDisasters, createDisaster, updateDisaster } from "../../data/adminApi";
+import { toast } from "../../utils/toast";
 
 const inputCls =
-  "w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-800 outline-none [color-scheme:light] focus:border-emerald-400";
+  "w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-800 outline-none [color-scheme:light] focus:border-lime-400";
 const labelCls = "text-sm font-medium text-slate-700";
 const errNote = "mt-1.5 flex items-center gap-1 text-xs font-medium text-rose-500";
 
@@ -16,18 +16,33 @@ const errNote = "mt-1.5 flex items-center gap-1 text-xs font-medium text-rose-50
 export default function NaturalDisasterForm() {
   const navigate = useNavigate();
   const { id } = useParams();
-  const existing = id ? disasters.find((d) => d._id === id) : null;
-
   const [form, setForm] = useState({
-    name: existing?.name || "",
-    location: existing?.location || "",
-    description: existing?.description || "",
-    severity: existing?.severity || "Low",
-    date: existing?.date || "",
-    isResolved: existing?.isResolved || false,
+    name: "", location: "", description: "", severity: "Low", date: "", isResolved: false,
   });
-
   const [errors, setErrors] = useState({});
+
+  // When editing, load the live alert to prefill the form.
+  useEffect(() => {
+    if (!id) return;
+    let alive = true;
+    (async () => {
+      try {
+        const list = LIVE ? await listDisasters() : [];
+        const found = list.find((d) => String(d._id) === String(id));
+        if (alive && found) {
+          setForm({
+            name: found.name || "",
+            location: found.location || "",
+            description: found.description || "",
+            severity: found.severity || "Low",
+            date: found.date ? String(found.date).slice(0, 10) : "",
+            isResolved: !!found.isResolved,
+          });
+        }
+      } catch { /* ignore */ }
+    })();
+    return () => { alive = false; };
+  }, [id]);
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -49,12 +64,15 @@ export default function NaturalDisasterForm() {
       setErrors(found);
       return;
     }
+    let ok = true;
     if (LIVE) {
       try {
         if (id) await updateDisaster(id, form);
         else await createDisaster(form);
-      } catch { /* fall through and navigate back */ }
+      } catch { ok = false; toast.error("Couldn't save this alert to the server. Please try again."); }
     }
+    if (!ok) return;
+    toast.success(id ? "Safety alert updated." : "Safety alert posted.");
     navigate("/local-guide/natural-disasters");
   };
 
@@ -153,7 +171,7 @@ export default function NaturalDisasterForm() {
               type="checkbox"
               checked={form.isResolved}
               onChange={handleChange}
-              className="h-4 w-4 rounded border-slate-300 text-emerald-500 accent-emerald-500 focus:ring-emerald-400"
+              className="h-4 w-4 rounded border-slate-300 text-lime-500 accent-lime-500 focus:ring-lime-400"
             />
             <span className="text-sm font-medium text-slate-700">Mark this alert as resolved</span>
           </label>

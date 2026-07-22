@@ -3,13 +3,14 @@ import { useNavigate } from "react-router-dom";
 import { MapPin, Calendar, Plus, Pencil, Trash2, AlertTriangle, ShieldCheck } from "lucide-react";
 import GuideLayout from "../GuideLayout";
 import { Card, SectionHead, StatCard, StatusPill, Btn } from "../../components/dashboard/ui";
-import { disasters as seedDisasters } from "../../data/mockData";
 import { LIVE, listDisasters, deleteDisaster } from "../../data/adminApi";
+import { toast } from "../../utils/toast";
+import { confirmDialog } from "../../utils/confirm";
 
 const severityCls = {
   High: "bg-rose-50 text-rose-600",
   Medium: "bg-amber-50 text-amber-600",
-  Low: "bg-emerald-50 text-emerald-600",
+  Low: "bg-lime-50 text-lime-600",
 };
 
 const fmtDate = (d) =>
@@ -18,17 +19,25 @@ const fmtDate = (d) =>
 /** Local Guide — safety alerts / natural-disaster reports. */
 export default function NaturalDisasterList() {
   const navigate = useNavigate();
-  const [alerts, setAlerts] = useState(seedDisasters);
+  const [alerts, setAlerts] = useState([]);
 
   useEffect(() => {
     if (LIVE) listDisasters().then(setAlerts).catch(() => {});
   }, []);
 
-  const handleDelete = async (id) => {
+  const handleDelete = async (alert) => {
+    const ok = await confirmDialog({
+      title: "Delete safety alert?",
+      body: `"${alert.name}" will be removed and travellers will no longer see it.`,
+      confirmLabel: "Delete",
+    });
+    if (!ok) return;
     if (LIVE) {
-      try { await deleteDisaster(id); } catch { return; }
+      try { await deleteDisaster(alert._id); }
+      catch { toast.error("Couldn't delete this alert. Please try again."); return; }
     }
-    setAlerts((prev) => prev.filter((a) => a._id !== id));
+    setAlerts((prev) => prev.filter((a) => a._id !== alert._id));
+    toast.success("Safety alert deleted.");
   };
 
   const active = alerts.filter((a) => !a.isResolved).length;
@@ -59,7 +68,7 @@ export default function NaturalDisasterList() {
 
           {alerts.length === 0 ? (
             <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-slate-200 py-16 text-center">
-              <span className="flex h-14 w-14 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-600">
+              <span className="flex h-14 w-14 items-center justify-center rounded-2xl bg-lime-50 text-lime-600">
                 <ShieldCheck className="h-6 w-6" />
               </span>
               <p className="mt-4 text-sm font-semibold text-slate-900">All clear</p>
@@ -100,13 +109,13 @@ export default function NaturalDisasterList() {
                     <div className="flex shrink-0 items-center gap-1.5">
                       <button
                         onClick={() => navigate(`/local-guide/edit-natural-disaster/${alert._id}`)}
-                        className="flex h-8 w-8 items-center justify-center rounded-xl text-emerald-600 transition-colors hover:bg-emerald-50"
+                        className="flex h-8 w-8 items-center justify-center rounded-xl text-lime-600 transition-colors hover:bg-lime-50"
                         aria-label={`Edit ${alert.name}`}
                       >
                         <Pencil className="h-4 w-4" />
                       </button>
                       <button
-                        onClick={() => handleDelete(alert._id)}
+                        onClick={() => handleDelete(alert)}
                         className="flex h-8 w-8 items-center justify-center rounded-xl text-rose-500 transition-colors hover:bg-rose-50"
                         aria-label={`Delete ${alert.name}`}
                       >

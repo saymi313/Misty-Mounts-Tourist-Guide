@@ -4,10 +4,21 @@ const adminController = require('../controllers/adminController');
 const accommodationController = require('../controllers/accommodationController');
 const transportationController = require('../controllers/TransportationController');
 const placesController = require('../controllers/placesController');
+const usersController = require('../controllers/usersController');
+const settingsController = require('../controllers/settingsController');
 const { authenticate, requireAdmin, requireRole } = require('../../middleware/auth');
 
 const adminOnly = [authenticate, requireAdmin];
 const staffOnly = [authenticate, requireRole('admin', 'local guide')];
+
+// ── Platform settings (admin only) ────────────────────────────────────────────
+router.get('/settings', adminOnly, settingsController.getSettings);
+router.patch('/settings', adminOnly, settingsController.updateSettings);
+
+// ── Users & guides management (admin only) ────────────────────────────────────
+router.get('/users', adminOnly, usersController.listUsers);
+router.get('/users/:id', adminOnly, usersController.getUser);
+router.delete('/users/:id', adminOnly, usersController.deleteUser);
 
 // ── Accommodations (reads public, writes admin-only) ──────────────────────────
 router.get('/accommodations', accommodationController.getAllAccommodations);
@@ -30,6 +41,7 @@ router.patch('/spots/:id/approve', adminOnly, adminController.approveOrRejectSpo
 router.get('/places', placesController.getAllPlaces);
 router.post('/places', staffOnly, placesController.createPlace);
 router.put('/places/:id', staffOnly, placesController.updatePlace);
+router.patch('/places/:id/approve', adminOnly, placesController.approvePlace);
 router.delete('/places/:id', staffOnly, placesController.deletePlace);
 
 // ── Transportation ────────────────────────────────────────────────────────────

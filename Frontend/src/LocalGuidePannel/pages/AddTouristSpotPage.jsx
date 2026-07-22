@@ -6,9 +6,10 @@ import { Card, SectionHead, Btn, BtnGhost } from "../../components/dashboard/ui"
 import { required, url, minLen, validate, hasErrors } from "../../utils/validation";
 import { LIVE, createPlace } from "../../data/adminApi";
 import ImageUploadButton from "../../components/dashboard/ImageUploadButton";
+import { toast } from "../../utils/toast";
 
 const inputCls =
-  "w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-800 outline-none [color-scheme:light] focus:border-emerald-400";
+  "w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-800 outline-none [color-scheme:light] focus:border-lime-400";
 const labelCls = "text-sm font-medium text-slate-700";
 const errNote = "mt-1.5 flex items-center gap-1 text-xs font-medium text-rose-500";
 
@@ -46,6 +47,7 @@ export default function AddTouristSpotPage() {
       setErrors(found);
       return;
     }
+    let ok = true;
     if (LIVE) {
       try {
         await createPlace({
@@ -57,8 +59,10 @@ export default function AddTouristSpotPage() {
           activities: form.activities ? form.activities.split(",").map((s) => s.trim()).filter(Boolean) : [],
           curatedBy: "Local guide",
         });
-      } catch { /* fall through and navigate back */ }
+      } catch { ok = false; toast.error("Couldn't save this spot to the server. Please try again."); }
     }
+    if (!ok) return;
+    toast.success(`"${form.name}" submitted for review.`);
     navigate("/local-guide/spots");
   };
 

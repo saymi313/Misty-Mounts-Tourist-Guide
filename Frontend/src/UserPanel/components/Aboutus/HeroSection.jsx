@@ -15,7 +15,7 @@ const HeroSection = () => {
         animate={{ scale: 1, opacity: 1 }}
         transition={{ duration: 1.3, ease: EASE }}
         src={img('about-hero', 1600, 900)}
-        alt="Northern Pakistan"
+        alt="Hazara"
         className="absolute inset-0 h-full w-full object-cover"
       />
       {/* Night overlay so white text stays legible */}

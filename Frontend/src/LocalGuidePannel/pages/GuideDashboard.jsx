@@ -5,23 +5,22 @@ import GuideLayout from "../GuideLayout";
 import { useAuth } from "../../context/AuthContext";
 import { Card, SectionHead, StatCard, DestinationCard, ListRow, StatusPill, Btn, BtnGhost } from "../../components/dashboard/ui";
 import { Stagger, Reveal } from "../../components/dashboard/motion";
-import { allPlaces as seedPlaces, disasters as seedDisasters, feedbacks as seedFeedbacks } from "../../data/mockData";
 import { LIVE, listPlaces, listDisasters } from "../../data/adminApi";
 import { getFeedbacks } from "../../data/mockApi";
 
 const GuideDashboard = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
-  const first = (user?.name || "Karim").split(" ")[0];
-  const [places, setPlaces] = useState(seedPlaces);
-  const [disasters, setDisasters] = useState(seedDisasters);
-  const [feedbacks, setFeedbacks] = useState(seedFeedbacks);
+  const first = (user?.name || "Guide").split(" ")[0];
+  const [places, setPlaces] = useState([]);
+  const [disasters, setDisasters] = useState([]);
+  const [feedbacks, setFeedbacks] = useState([]);
 
   useEffect(() => {
     if (!LIVE) return;
-    listPlaces().then((p) => setPlaces(p.length ? p : seedPlaces)).catch(() => {});
+    listPlaces().then(setPlaces).catch(() => {});
     listDisasters().then((d) => setDisasters(d || [])).catch(() => {});
-    getFeedbacks().then((r) => setFeedbacks(r.feedbacks?.length ? r.feedbacks : seedFeedbacks)).catch(() => {});
+    getFeedbacks().then((r) => setFeedbacks(r.feedbacks || [])).catch(() => {});
   }, []);
 
   const mySpots = places.filter((p) => p.curatedBy);
@@ -39,7 +38,7 @@ const GuideDashboard = () => {
             <div className="grid gap-4 sm:grid-cols-3 lg:col-span-2">
               <StatCard icon={MapIcon} tone="apricot" label="My tourist spots" count={mySpots.length} />
               <StatCard icon={AlertTriangle} tone="rose" label="Active alerts" count={activeAlerts.length} />
-              <StatCard icon={MessageSquare} tone="violet" label="New messages" count={3} delta="+2" />
+              <StatCard icon={MessageSquare} tone="violet" label="New messages" count={0} />
             </div>
           </div>
         </Reveal>

@@ -238,3 +238,59 @@ html.dark ::-webkit-scrollbar-thumb:hover {
     cursor: none;
   }
 }
+
+/* ───────────────────────────────────────────────────────────────────────────
+   Admin / Local-Guide panel NIGHT MODE.
+   The dashboards are authored in light Tailwind utilities; toggling `.mm-night`
+   on the panel shell remaps the core surfaces, text, hairlines and tint-chips to
+   the night + lime palette — no need to touch every element. The `.mm-night X`
+   descendant selectors out-specify the raw utilities, so they win without
+   !important. Scoped to the panel shell, so the user panel is never affected.
+   Portaled modals opt out on purpose (they stay light sheets over the panel).
+   ─────────────────────────────────────────────────────────────────────────── */
+.mm-night { color-scheme: dark; }
+
+/* Surfaces */
+.mm-night .bg-white { background-color: #111813; }
+.mm-night .bg-slate-50,
+.mm-night .bg-slate-50\/60 { background-color: #0f1712; }
+.mm-night .bg-slate-100 { background-color: #1c2a22; }
+.mm-night .bg-slate-200 { background-color: #26362c; }
+
+/* Text */
+.mm-night .text-slate-900 { color: #eef2f0; }
+.mm-night .text-slate-800 { color: #dbe3de; }
+.mm-night .text-slate-700 { color: #c4cec8; }
+.mm-night .text-slate-600 { color: #9aa6a0; }
+.mm-night .text-slate-500 { color: #8b988f; }
+.mm-night .text-slate-400 { color: #6a756d; }
+.mm-night .text-slate-300 { color: #55605a; }
+
+/* Hairlines */
+.mm-night .border-slate-100 { border-color: rgba(255, 255, 255, 0.07); }
+.mm-night .border-slate-200 { border-color: rgba(255, 255, 255, 0.10); }
+
+/* Hovers */
+.mm-night .hover\:bg-slate-50:hover { background-color: #16211a; }
+.mm-night .hover\:bg-slate-100:hover { background-color: #1c2a22; }
+.mm-night .hover\:bg-lime-50:hover { background-color: rgba(163, 230, 53, 0.10); }
+.mm-night .hover\:bg-rose-50:hover { background-color: rgba(244, 63, 94, 0.12); }
+
+/* Tint chips — keep the hue, darken the fill, brighten the ink */
+.mm-night .bg-lime-50 { background-color: rgba(163, 230, 53, 0.12); }
+.mm-night .text-lime-600,
+.mm-night .text-lime-700 { color: #bef264; }
+.mm-night .bg-sky-50 { background-color: rgba(56, 189, 248, 0.13); }
+.mm-night .text-sky-600 { color: #7dd3fc; }
+.mm-night .bg-violet-50 { background-color: rgba(139, 92, 246, 0.15); }
+.mm-night .text-violet-600 { color: #c4b5fd; }
+.mm-night .bg-rose-50 { background-color: rgba(244, 63, 94, 0.13); }
+.mm-night .text-rose-600,
+.mm-night .text-rose-500 { color: #fda4af; }
+.mm-night .bg-amber-50 { background-color: rgba(245, 158, 11, 0.14); }
+.mm-night .text-amber-600 { color: #fcd34d; }
+.mm-night .bg-apricot-50 { background-color: rgba(229, 152, 63, 0.15); }
+.mm-night .text-apricot-600 { color: #eab063; }
+
+/* Inputs keep a legible placeholder */
+.mm-night .placeholder-slate-400::placeholder { color: #6a756d; }

@@ -36,7 +36,7 @@ export const Contour = ({ className = "", stroke = "currentColor", opacity = 0.5
 );
 
 const TONES = {
-  emerald: { chip: "bg-emerald-50 text-emerald-600", spark: "#10b981", sparkFill: "rgba(16,185,129,0.14)" },
+  emerald: { chip: "bg-lime-50 text-lime-600", spark: "#10b981", sparkFill: "rgba(16,185,129,0.14)" },
   apricot: { chip: "bg-apricot-50 text-apricot-600", spark: "#e5983f", sparkFill: "rgba(229,152,63,0.16)" },
   sky: { chip: "bg-sky-50 text-sky-600", spark: "#0ea5e9", sparkFill: "rgba(14,165,233,0.14)" },
   violet: { chip: "bg-violet-50 text-violet-600", spark: "#8b5cf6", sparkFill: "rgba(139,92,246,0.14)" },
@@ -70,12 +70,12 @@ export const StatCard = ({
 
   if (featured) {
     return (
-      <div className="relative overflow-hidden rounded-[1.75rem] bg-gradient-to-br from-emerald-500 to-emerald-700 p-6 text-white shadow-[0_20px_40px_-20px_rgba(6,95,70,0.6)]">
-        <Contour className="pointer-events-none absolute -right-6 -top-6 h-40 w-40 text-white" opacity={0.18} />
+      <div className="relative overflow-hidden rounded-[1.75rem] bg-gradient-to-br from-night-800 to-night-950 p-6 text-white shadow-[0_20px_40px_-20px_rgba(6,30,15,0.6)]">
+        <Contour className="pointer-events-none absolute -right-6 -top-6 h-40 w-40 text-lime-400" opacity={0.14} />
         <div className="relative flex items-start justify-between">
           <div>
-            <div className="text-xs font-semibold uppercase tracking-[0.14em] text-emerald-100/90">{label}</div>
-            <div className="mt-2 font-display text-4xl font-extrabold tracking-tight">{shown}</div>
+            <div className="text-xs font-semibold uppercase tracking-[0.14em] text-lime-300/90">{label}</div>
+            <div className="mt-2 font-display text-4xl font-extrabold tracking-tight text-lime-400">{shown}</div>
           </div>
           {delta && (
             <span className="rounded-full bg-white/15 px-2.5 py-1 text-xs font-semibold text-white backdrop-blur">
@@ -99,7 +99,7 @@ export const StatCard = ({
           {Icon && <Icon className="h-[18px] w-[18px]" />}
         </span>
         {delta && (
-          <span className="rounded-full bg-emerald-50 px-2 py-0.5 text-xs font-semibold text-emerald-600">{delta}</span>
+          <span className="rounded-full bg-lime-50 px-2 py-0.5 text-xs font-semibold text-lime-600">{delta}</span>
         )}
       </div>
       <div className="mt-4 font-display text-2xl font-extrabold text-slate-900">{shown}</div>
@@ -137,7 +137,7 @@ export const DestinationCard = ({ image, title, location, rating, onClick, class
  * rather than a generic hover-colour change.
  */
 export const ListRow = ({ image, title, location, rating, right, hoverMeta, onClick }) => (
-  <button onClick={onClick} className="group flex w-full items-center gap-4 rounded-2xl px-2 py-2.5 text-left transition-colors hover:bg-emerald-50/60">
+  <button onClick={onClick} className="group flex w-full items-center gap-4 rounded-2xl px-2 py-2.5 text-left transition-colors hover:bg-lime-50/60">
     {image && <img src={image} alt={title} className="h-12 w-12 shrink-0 rounded-xl object-cover" />}
     <div className="min-w-0 flex-1">
       <p className="truncate text-sm font-semibold text-slate-900">{title}</p>
@@ -155,7 +155,7 @@ export const ListRow = ({ image, title, location, rating, right, hoverMeta, onCl
     </div>
     <div className="flex items-center gap-3">
       {hoverMeta && (
-        <span className="hidden -translate-x-1 items-center gap-1 whitespace-nowrap text-xs font-medium text-emerald-700 opacity-0 transition-all duration-300 group-hover:translate-x-0 group-hover:opacity-100 sm:flex">
+        <span className="hidden -translate-x-1 items-center gap-1 whitespace-nowrap text-xs font-medium text-lime-700 opacity-0 transition-all duration-300 group-hover:translate-x-0 group-hover:opacity-100 sm:flex">
           {hoverMeta}
         </span>
       )}
@@ -167,13 +167,13 @@ export const ListRow = ({ image, title, location, rating, right, hoverMeta, onCl
 /** Coloured status pill. */
 export const StatusPill = ({ status }) => {
   const map = {
-    Confirmed: "bg-emerald-50 text-emerald-600",
-    Upcoming: "bg-emerald-50 text-emerald-600",
+    Confirmed: "bg-lime-50 text-lime-600",
+    Upcoming: "bg-lime-50 text-lime-600",
     Completed: "bg-slate-100 text-slate-500",
     Pending: "bg-apricot-50 text-apricot-600",
     Cancelled: "bg-rose-50 text-rose-600",
-    Approved: "bg-emerald-50 text-emerald-600",
-    Active: "bg-emerald-50 text-emerald-600",
+    Approved: "bg-lime-50 text-lime-600",
+    Active: "bg-lime-50 text-lime-600",
     Resolved: "bg-slate-100 text-slate-500",
   };
   return (
@@ -184,13 +184,13 @@ export const StatusPill = ({ status }) => {
 };
 
 export const Btn = ({ children, className = "", ...props }) => (
-  <button className={`inline-flex items-center justify-center gap-2 rounded-full bg-emerald-500 px-5 py-2.5 text-sm font-semibold text-white transition-all hover:-translate-y-0.5 hover:bg-emerald-600 ${className}`} {...props}>
+  <button className={`inline-flex items-center justify-center gap-2 rounded-full bg-lime-400 px-5 py-2.5 text-sm font-semibold text-night-950 transition-all hover:-translate-y-0.5 hover:bg-lime-300 ${className}`} {...props}>
     {children}
   </button>
 );
 
 export const BtnGhost = ({ children, className = "", ...props }) => (
-  <button className={`inline-flex items-center justify-center gap-2 rounded-full border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-600 transition-colors hover:border-emerald-300 hover:text-emerald-700 ${className}`} {...props}>
+  <button className={`inline-flex items-center justify-center gap-2 rounded-full border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-600 transition-colors hover:border-lime-400 hover:text-lime-700 ${className}`} {...props}>
     {children}
   </button>
 );
@@ -202,12 +202,12 @@ export const BtnGhost = ({ children, className = "", ...props }) => (
 export const PromoCard = ({ title, body, cta, image, onClick }) => (
   <div className="relative overflow-hidden rounded-3xl p-5 text-white">
     <img src={image} alt="" className="absolute inset-0 h-full w-full object-cover" />
-    <div className="absolute inset-0 bg-gradient-to-t from-emerald-950/90 via-emerald-900/60 to-emerald-800/30" />
+    <div className="absolute inset-0 bg-gradient-to-t from-lime-950/90 via-lime-900/60 to-lime-800/30" />
     <Contour className="pointer-events-none absolute inset-0 h-full w-full text-white" opacity={0.12} />
     <div className="relative">
       <p className="text-sm font-bold">{title}</p>
       <p className="mt-1 text-xs text-white/80">{body}</p>
-      <button onClick={onClick} className="mt-4 inline-flex items-center gap-1.5 rounded-full bg-apricot-400 px-3.5 py-2 text-xs font-bold text-emerald-950 transition-transform hover:scale-105">
+      <button onClick={onClick} className="mt-4 inline-flex items-center gap-1.5 rounded-full bg-apricot-400 px-3.5 py-2 text-xs font-bold text-lime-950 transition-transform hover:scale-105">
         {cta} <ArrowUpRight className="h-3.5 w-3.5" />
       </button>
     </div>
@@ -220,7 +220,7 @@ export const PromoCard = ({ title, body, cta, image, onClick }) => (
  * Apply `[color-scheme:light]` too so date/select popups stay light.
  */
 export const adminInputCls =
-  "w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-800 placeholder-slate-400 shadow-sm outline-none transition-all [color-scheme:light] focus:border-emerald-400 focus:ring-4 focus:ring-emerald-500/10";
+  "w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-800 placeholder-slate-400 shadow-sm outline-none transition-all [color-scheme:light] focus:border-lime-400 focus:ring-4 focus:ring-lime-500/10";
 
 /** Error-state overrides for `adminInputCls` (rose border + ring). */
 export const adminInputErr =

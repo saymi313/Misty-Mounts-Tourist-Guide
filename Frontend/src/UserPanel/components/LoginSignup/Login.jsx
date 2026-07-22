@@ -7,7 +7,9 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../../context/AuthContext';
 import { Btn } from '../bento/tiles';
 import { required, email as emailRule, validate, hasErrors } from '../../../utils/validation';
+import { landingFor } from '../../../utils/roles';
 import OtpVerify from './OtpVerify';
+import ForgotPassword from './ForgotPassword';
 
 const EASE = [0.16, 1, 0.3, 1];
 
@@ -21,6 +23,7 @@ const Login = () => {
   const [remember, setRemember] = useState(false);
   const [loading, setLoading] = useState(false);
   const [verifyEmail, setVerifyEmail] = useState(null);
+  const [mode, setMode] = useState('login'); // 'login' | 'forgot'
   const navigate = useNavigate();
   const location = useLocation();
   const { login, applySession } = useAuth();
@@ -29,16 +32,7 @@ const Login = () => {
 
   const handleVerified = (data) => {
     applySession(data);
-    navigate(location.state?.from?.pathname || '/user', { replace: true });
-  };
-
-  const forgotPassword = () => {
-    setNotice('');
-    if (!email || emailRule()(email)) {
-      setErrors((x) => ({ ...x, email: 'Enter your email to reset your password' }));
-      return;
-    }
-    setNotice(`If an account exists for ${email}, a password-reset link is on its way.`);
+    navigate(location.state?.from?.pathname || landingFor(data.type), { replace: true });
   };
 
   const handleLogin = async (e) => {
@@ -59,8 +53,8 @@ const Login = () => {
     try {
       const result = await login(email, password);
       if (result.success) {
-        const from = location.state?.from?.pathname || '/user';
-        navigate(from, { replace: true });
+        const from = location.state?.from?.pathname;
+        navigate(from || landingFor(result.user?.type), { replace: true });
       } else if (result.needsVerification) {
         setVerifyEmail(result.email);
       } else {
@@ -75,6 +69,10 @@ const Login = () => {
 
   if (verifyEmail) {
     return <OtpVerify email={verifyEmail} onVerified={handleVerified} onBack={() => setVerifyEmail(null)} />;
+  }
+
+  if (mode === 'forgot') {
+    return <ForgotPassword onDone={handleVerified} onBack={() => setMode('login')} initialEmail={email} />;
   }
 
   return (
@@ -145,7 +143,7 @@ const Login = () => {
             />
             Remember me
           </label>
-          <button type="button" onClick={forgotPassword} className="font-semibold text-lime-400 transition-colors hover:text-lime-300">
+          <button type="button" onClick={() => setMode('forgot')} className="font-semibold text-lime-400 transition-colors hover:text-lime-300">
             Forgot password?
           </button>
         </div>

@@ -1,29 +1,57 @@
 import React, { useState, useEffect } from "react";
-import { Map as MapIcon, Gem, Building2, Plus, Pencil, Trash2 } from "lucide-react";
+import { Map as MapIcon, Gem, Building2, Plus, Pencil, Trash2, Check, Clock } from "lucide-react";
 import AdminLayout from "../AdminLayout";
 import { Card, SectionHead, StatCard, StatusPill, Btn, BtnGhost, Field, adminInputCls } from "../../components/dashboard/ui";
 import Modal from "../../components/dashboard/Modal";
-import { allPlaces } from "../../data/mockData";
 import { required, validate, hasErrors } from "../../utils/validation";
-import { LIVE, listPlaces, createPlace, updatePlace, deletePlace } from "../../data/adminApi";
+import { LIVE, listPlaces, createPlace, updatePlace, approvePlace, deletePlace, getSettings, updateSettings } from "../../data/adminApi";
+import { toast } from "../../utils/toast";
+import { confirmDialog } from "../../utils/confirm";
 
-// Seed local state from the mock layer, deriving a moderation status per spot.
-const seed = allPlaces.map((p) => ({ ...p, status: p.hiddenGem ? "Pending" : "Approved" }));
 // Flat place → row shape (status derived from approval).
 const toRow = (p) => ({ ...p, status: p.isApproved === false ? "Pending" : "Approved" });
 
 const emptyForm = { name: "", city: "", location: "", status: "Pending" };
 
 const TouristSpotManagement = () => {
-  const [spots, setSpots] = useState(seed);
+  const [spots, setSpots] = useState([]);
   const [modalOpen, setModalOpen] = useState(false);
   const [editing, setEditing] = useState(null); // row being edited, or null when adding
   const [form, setForm] = useState(emptyForm);
   const [errors, setErrors] = useState({});
+  const [autoApprove, setAutoApprove] = useState(false);
 
   useEffect(() => {
-    if (LIVE) listPlaces().then((places) => setSpots(places.map(toRow))).catch(() => {});
+    if (!LIVE) return;
+    listPlaces().then((places) => setSpots(places.map(toRow))).catch(() => {});
+    getSettings().then((s) => setAutoApprove(!!s.autoApproveSpots)).catch(() => {});
   }, []);
+
+  const handleApprove = async (spot) => {
+    if (LIVE) {
+      try {
+        const place = await approvePlace(spot._id, true);
+        setSpots((prev) => prev.map((s) => (s._id === spot._id ? toRow(place || { ...s, isApproved: true }) : s)));
+      } catch { toast.error("Couldn't approve this spot. Please try again."); return; }
+    } else {
+      setSpots((prev) => prev.map((s) => (s._id === spot._id ? { ...s, status: "Approved", isApproved: true } : s)));
+    }
+    toast.success(`"${spot.name}" approved and now visible to travellers.`);
+  };
+
+  const toggleAutoApprove = async () => {
+    const next = !autoApprove;
+    setAutoApprove(next); // optimistic
+    if (LIVE) {
+      try { await updateSettings({ autoApproveSpots: next }); }
+      catch { setAutoApprove(!next); toast.error("Couldn't update auto-approval. Please try again."); return; }
+    }
+    toast.success(
+      next
+        ? "Auto-approval on — new guide spots go live instantly."
+        : "Auto-approval off — new guide spots wait for review."
+    );
+  };
 
   const update = (key, val) => {
     setForm((f) => ({ ...f, [key]: val }));
@@ -44,11 +72,19 @@ const TouristSpotManagement = () => {
     setModalOpen(true);
   };
 
-  const handleDelete = async (id) => {
+  const handleDelete = async (spot) => {
+    const ok = await confirmDialog({
+      title: "Delete tourist spot?",
+      body: `"${spot.name}" will be removed from the map and destination pages.`,
+      confirmLabel: "Delete",
+    });
+    if (!ok) return;
     if (LIVE) {
-      try { await deletePlace(id); } catch { return; }
+      try { await deletePlace(spot._id); }
+      catch { toast.error("Couldn't delete this spot. Please try again."); return; }
     }
-    setSpots((prev) => prev.filter((s) => s._id !== id));
+    setSpots((prev) => prev.filter((s) => s._id !== spot._id));
+    toast.success(`"${spot.name}" deleted.`);
   };
 
   const handleSave = async (e) => {
@@ -76,7 +112,10 @@ const TouristSpotManagement = () => {
           const place = await createPlace(payload);
           setSpots((prev) => [toRow(place), ...prev]);
         }
-      } catch { return; }
+      } catch {
+        toast.error(editing ? "Couldn't save changes. Please try again." : "Couldn't add this spot. Please try again.");
+        return;
+      }
     } else if (editing) {
       setSpots((prev) => prev.map((s) => (s._id === editing._id ? { ...s, ...form } : s)));
     } else {
@@ -86,10 +125,11 @@ const TouristSpotManagement = () => {
       ]);
     }
     setModalOpen(false);
+    toast.success(editing ? `"${form.name}" updated.` : `"${form.name}" added.`);
   };
 
   const total = spots.length;
-  const hiddenGems = spots.filter((s) => s.hiddenGem).length;
+  const pending = spots.filter((s) => s.status === "Pending").length;
   const cityCount = new Set(spots.map((s) => s.city)).size;
 
   return (
@@ -97,7 +137,7 @@ const TouristSpotManagement = () => {
       {/* Stats */}
       <div className="grid gap-4 sm:grid-cols-3">
         <StatCard icon={MapIcon} tone="emerald" label="Total spots" value={total} />
-        <StatCard icon={Gem} tone="violet" label="Hidden gems" value={hiddenGems} />
+        <StatCard icon={Clock} tone="apricot" label="Pending review" value={pending} />
         <StatCard icon={Building2} tone="sky" label="Cities covered" value={cityCount} />
       </div>
 
@@ -105,11 +145,28 @@ const TouristSpotManagement = () => {
       <Card className="mt-6">
         <SectionHead
           title="All tourist spots"
-          sub={`${total} places listed`}
+          sub={`${total} places listed${pending ? ` · ${pending} pending` : ""}`}
           action={
-            <Btn onClick={openAdd}>
-              <Plus className="h-4 w-4" /> Add spot
-            </Btn>
+            <div className="flex flex-wrap items-center gap-4">
+              <label
+                className="flex cursor-pointer select-none items-center gap-2.5"
+                title="When on, spots submitted by local guides are approved automatically."
+              >
+                <span className="text-sm font-medium text-slate-600">Auto-approve guide spots</span>
+                <button
+                  type="button"
+                  role="switch"
+                  aria-checked={autoApprove}
+                  onClick={toggleAutoApprove}
+                  className={`relative h-6 w-11 shrink-0 rounded-full transition-colors ${autoApprove ? "bg-lime-400" : "bg-slate-200"}`}
+                >
+                  <span className={`absolute left-0.5 top-0.5 h-5 w-5 rounded-full bg-white shadow transition-transform ${autoApprove ? "translate-x-5" : ""}`} />
+                </button>
+              </label>
+              <Btn onClick={openAdd}>
+                <Plus className="h-4 w-4" /> Add spot
+              </Btn>
+            </div>
           }
         />
         <div className="overflow-x-auto">
@@ -131,7 +188,7 @@ const TouristSpotManagement = () => {
                       {spot.picture ? (
                         <img src={spot.picture} alt={spot.name} className="h-11 w-11 shrink-0 rounded-xl object-cover" />
                       ) : (
-                        <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-emerald-50 text-emerald-600">
+                        <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-lime-50 text-lime-600">
                           <MapIcon className="h-5 w-5" />
                         </span>
                       )}
@@ -152,15 +209,24 @@ const TouristSpotManagement = () => {
                   </td>
                   <td className="px-3 py-3">
                     <div className="flex items-center justify-end gap-2">
+                      {spot.status === "Pending" && (
+                        <button
+                          onClick={() => handleApprove(spot)}
+                          title="Approve spot"
+                          className="flex h-8 items-center gap-1 rounded-lg bg-lime-400 px-2.5 text-xs font-semibold text-night-950 transition-colors hover:bg-lime-300"
+                        >
+                          <Check className="h-3.5 w-3.5" /> Approve
+                        </button>
+                      )}
                       <button
                         onClick={() => openEdit(spot)}
                         title="Edit spot"
-                        className="flex h-8 w-8 items-center justify-center rounded-lg text-emerald-600 transition-colors hover:bg-emerald-50"
+                        className="flex h-8 w-8 items-center justify-center rounded-lg text-lime-600 transition-colors hover:bg-lime-50"
                       >
                         <Pencil className="h-4 w-4" />
                       </button>
                       <button
-                        onClick={() => handleDelete(spot._id)}
+                        onClick={() => handleDelete(spot)}
                         title="Delete spot"
                         className="flex h-8 w-8 items-center justify-center rounded-lg text-rose-500 transition-colors hover:bg-rose-50"
                       >

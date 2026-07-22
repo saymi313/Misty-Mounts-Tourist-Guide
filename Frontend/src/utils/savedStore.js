@@ -3,7 +3,6 @@
  * localStorage); when the backend is live it hydrates from the API and
  * write-throughs each toggle. Falls back to localStorage-only in dummy mode.
  */
-import { savedSpotIds } from "../data/mockData";
 import api, { LIVE } from "../data/api";
 
 const KEY = "mm_saved_spots";
@@ -13,9 +12,9 @@ let cache = null;
 const readLocal = () => {
   try {
     const stored = localStorage.getItem(KEY);
-    return stored ? JSON.parse(stored) : [...savedSpotIds];
+    return stored ? JSON.parse(stored) : [];
   } catch {
-    return [...savedSpotIds];
+    return [];
   }
 };
 const writeLocal = (ids) => {

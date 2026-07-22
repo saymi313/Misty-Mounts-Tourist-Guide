@@ -39,7 +39,7 @@ export default function MiniCalendar({ year = 2026, month = 4, rangeStart = 21, 
           <button onClick={() => shift(-1)} className="flex h-8 w-8 items-center justify-center rounded-full text-slate-400 transition-colors hover:bg-slate-100">
             <ChevronLeft className="h-4 w-4" />
           </button>
-          <button onClick={() => shift(1)} className="flex h-8 w-8 items-center justify-center rounded-full border border-emerald-500 text-emerald-600 transition-colors hover:bg-emerald-50">
+          <button onClick={() => shift(1)} className="flex h-8 w-8 items-center justify-center rounded-full border border-lime-500 text-lime-600 transition-colors hover:bg-lime-50">
             <ChevronRight className="h-4 w-4" />
           </button>
         </div>
@@ -59,9 +59,9 @@ export default function MiniCalendar({ year = 2026, month = 4, rangeStart = 21, 
               <span
                 className={`flex h-8 w-8 items-center justify-center rounded-full text-[13px] font-medium ${
                   isEnd
-                    ? "bg-emerald-500 text-white"
+                    ? "bg-lime-400 text-night-950"
                     : range
-                    ? "bg-emerald-100 text-emerald-700"
+                    ? "bg-lime-100 text-lime-700"
                     : isToday
                     ? "border border-apricot-400 text-apricot-600"
                     : "text-slate-600 hover:bg-slate-100"

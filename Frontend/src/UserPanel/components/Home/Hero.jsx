@@ -32,7 +32,7 @@ const Hero = () => {
       <motion.div style={{ y: imgY, scale: imgScale }} className="absolute inset-0 will-change-transform">
         <img
           src={img("hero-glacier", 2000, 1300)}
-          alt="Glacial lake and misted peaks of Northern Pakistan"
+          alt="Glacial lake and misted peaks of Hazara"
           className="h-full w-full object-cover"
           loading="eager"
         />
@@ -81,7 +81,7 @@ const Hero = () => {
             transition={{ delay: 0.15, duration: 0.7, ease: EASE }}
             className="eyebrow-glacier"
           >
-            Northern Pakistan · unfiltered
+            Hazara · unfiltered
           </motion.p>
 
           <h1 className="mt-5 font-display text-[clamp(2.7rem,8vw,7.5rem)] font-bold leading-[0.92] tracking-[-0.03em] text-frost-50">

@@ -1,4 +1,15 @@
 const Accommodation = require("../models/Accommodation");
+const { slugify } = require("../../utils/slug");
+
+// Unique slug from the name → used as the _id so /accommodations/:id is readable.
+const uniqueAccSlug = async (name) => {
+  const base = slugify(name);
+  const used = new Set((await Accommodation.find().select("_id")).map((a) => String(a._id)));
+  let slug = base;
+  let i = 2;
+  while (used.has(slug)) slug = `${base}-${i++}`;
+  return slug;
+};
 exports.getAccommodationById = async (req, res) => {
   const { id } = req.params;
   try {
@@ -14,11 +25,18 @@ exports.getAccommodationById = async (req, res) => {
 // Add an accommodation
 exports.addAccommodation = async (req, res) => {
   try {
-    const { name, location, description,picture, price, isAvailable, specialOffer } = req.body;
-    const accommodation = new Accommodation({ name, location, description, picture, price, isAvailable, specialOffer });
+    if (!req.body.name || req.body.price == null) {
+      return res.status(400).json({ error: "name and price are required" });
+    }
+    const { name, type, location, city, description, picture, price, rating, reviews, amenities, tags, isAvailable, specialOffer } = req.body;
+    const accommodation = new Accommodation({
+      _id: await uniqueAccSlug(name),
+      name, type, location, city, description, picture, price, rating, reviews, amenities, tags, isAvailable, specialOffer,
+    });
     await accommodation.save();
     res.status(201).json({ message: "Accommodation added successfully", accommodation });
   } catch (error) {
+    console.error("addAccommodation error:", error.message);
     res.status(500).json({ error: "Error adding accommodation" });
   }
 };

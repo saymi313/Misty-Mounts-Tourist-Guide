@@ -57,7 +57,7 @@ const LandingPage = () => {
         <section ref={heroRef} className="grid grid-cols-2 gap-3 md:grid-cols-4 md:grid-rows-3 md:h-[82vh] md:min-h-[640px]">
           {/* Headline */}
           <Tile glow="green" pad="p-6 sm:p-8" className="col-span-2 flex flex-col justify-between md:row-span-2">
-            <Eyebrow><Compass className="h-3.5 w-3.5" /> Northern Pakistan · unfiltered</Eyebrow>
+            <Eyebrow><Compass className="h-3.5 w-3.5" /> Hazara · unfiltered</Eyebrow>
             <div>
               <h1 className="font-sans text-[clamp(2.2rem,5vw,4rem)] font-extrabold leading-[0.98] tracking-tight text-white">
                 Explore the <span className="text-lime-400">high valleys</span> of the north.
@@ -275,7 +275,7 @@ const LandingPage = () => {
             </span>
             <span className="font-extrabold text-white/80">Misty<span className="text-lime-400">Mounts</span></span>
           </div>
-          <p>© {new Date().getFullYear()} Misty Mounts · Gilgit-Baltistan, Pakistan</p>
+          <p>© {new Date().getFullYear()} Misty Mounts · Hazara, Pakistan</p>
           <p>Prototype · dummy data</p>
         </footer>
       </main>

@@ -4,7 +4,7 @@ import { LayoutDashboard, Map, AlertTriangle, Star, MessageSquare } from "lucide
 import DashboardLayout from "../components/dashboard/DashboardLayout";
 import { PromoCard } from "../components/dashboard/ui";
 import { useAuth } from "../context/AuthContext";
-import { scheduleItems, img } from "../data/mockData";
+import { img } from "../data/mockData";
 
 const NAV = [
   { to: "/local-guide", label: "Dashboard", icon: LayoutDashboard, end: true },
@@ -33,7 +33,7 @@ export default function GuideLayout({ greeting, subtitle, rightRail = false, chi
       greeting={greeting}
       subtitle={subtitle}
       user={guideUser}
-      schedule={scheduleItems}
+      schedule={[]}
       rightRail={rightRail}
       footerCard={
         <PromoCard

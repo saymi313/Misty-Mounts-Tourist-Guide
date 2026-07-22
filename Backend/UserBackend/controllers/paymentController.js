@@ -122,6 +122,17 @@ exports.updateBookingApproval = async (req, res) => {
     }
     const booking = await Booking.findByIdAndUpdate(bookingId, { status }, { new: true });
     if (!booking) return res.status(404).json({ error: "Booking not found" });
+
+    // Let the traveller know their booking status changed (best-effort).
+    if (booking.userId) {
+      createNotification(booking.userId, {
+        type: "booking",
+        title: `Booking ${status.toLowerCase()}`,
+        body: `Your stay at ${booking.hotel} (ref ${booking.ref}) is now ${status.toLowerCase()}.`,
+        link: "/bookings",
+      });
+    }
+
     res.json({ booking: shapeBooking(booking) });
   } catch (err) {
     console.error("updateBookingApproval error:", err.message);

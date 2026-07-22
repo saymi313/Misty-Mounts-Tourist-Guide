@@ -12,7 +12,7 @@ export default function RightRail({ user, schedule = [], calendar }) {
         <img
           src={user?.avatar || img("admin-avatar", 120, 120)}
           alt={user?.name}
-          className="h-11 w-11 rounded-full object-cover ring-2 ring-emerald-400"
+          className="h-11 w-11 rounded-full object-cover ring-2 ring-lime-400"
         />
         <div className="min-w-0 flex-1">
           <p className="truncate text-sm font-bold text-slate-900">{user?.name || "Jemmy Max"}</p>
@@ -27,6 +27,7 @@ export default function RightRail({ user, schedule = [], calendar }) {
       {calendar || <MiniCalendar />}
 
       {/* Schedule */}
+      {schedule.length > 0 && (
       <div>
         <div className="mb-3 flex items-center justify-between px-1">
           <h3 className="text-base font-bold text-slate-900">My Schedule</h3>
@@ -52,13 +53,14 @@ export default function RightRail({ user, schedule = [], calendar }) {
                       />
                     ))}
                   </div>
-                  <span className="ml-1 text-[11px] font-medium text-emerald-600">+{s.people}</span>
+                  <span className="ml-1 text-[11px] font-medium text-lime-600">+{s.people}</span>
                 </div>
               </div>
             </div>
           ))}
         </div>
       </div>
+      )}
     </div>
   );
 }

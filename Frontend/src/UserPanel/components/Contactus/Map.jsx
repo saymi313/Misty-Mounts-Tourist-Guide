@@ -1,7 +1,7 @@
 import React, { useEffect, useRef } from 'react';
 import L from 'leaflet';
 
-// Mini Leaflet map for the contact page, centred on Gilgit-Baltistan.
+// Mini Leaflet map for the contact page, centred on Hazara.
 const Map = () => {
   const containerRef = useRef(null);
   const mapRef = useRef(null);
@@ -9,8 +9,8 @@ const Map = () => {
   useEffect(() => {
     if (!containerRef.current || mapRef.current) return;
     const map = L.map(containerRef.current, {
-      center: [35.8, 74.4],
-      zoom: 7,
+      center: [34.3, 73.2],
+      zoom: 9,
       scrollWheelZoom: false,
       zoomControl: false,
     });
@@ -26,7 +26,7 @@ const Map = () => {
       iconSize: [30, 30],
       iconAnchor: [15, 30],
     });
-    L.marker([35.9208, 74.3083], { icon: pin }).addTo(map).bindPopup('<strong>Misty Mounts · Gilgit</strong>');
+    L.marker([34.1688, 73.2215], { icon: pin }).addTo(map).bindPopup('<strong>Misty Mounts · Hazara</strong>');
 
     return () => { map.remove(); mapRef.current = null; };
   }, []);

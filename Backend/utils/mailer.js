@@ -11,8 +11,24 @@ const transporter = nodemailer.createTransport({
 
 const FROM = `"Misty Mounts" <${process.env.BREVO_SENDER_EMAIL || process.env.EMAIL_USER}>`;
 
+const COPY = {
+  verify: {
+    eyebrow: "Verify your email",
+    title: (n) => `Welcome${n ? `, ${n}` : ""} &#128075;`,
+    body: "Use the code below to finish creating your Misty Mounts account and start exploring Hazara.",
+    subject: (otp) => `${otp} is your Misty Mounts verification code`,
+  },
+  reset: {
+    eyebrow: "Reset your password",
+    title: (n) => `Hi${n ? ` ${n}` : ""} &#128272;`,
+    body: "Use the code below to reset your Misty Mounts password. If you didn't request this, you can safely ignore this email.",
+    subject: (otp) => `${otp} is your Misty Mounts password reset code`,
+  },
+};
+
 /** Premium dark "night + lime" OTP email (table-based, inline styles for email clients). */
-const otpEmailHtml = (name, otp) => {
+const otpEmailHtml = (name, otp, purpose = "verify") => {
+  const copy = COPY[purpose] || COPY.verify;
   const digits = String(otp)
     .split("")
     .map(
@@ -35,9 +51,9 @@ const otpEmailHtml = (name, otp) => {
           </td></tr>
           <!-- Body -->
           <tr><td style="padding:16px 32px 8px 32px;">
-            <p style="margin:0 0 6px 0;font-family:Arial,Helvetica,sans-serif;font-size:13px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:#a3e635;">Verify your email</p>
-            <h1 style="margin:0 0 12px 0;font-family:Arial,Helvetica,sans-serif;font-size:26px;line-height:1.2;font-weight:800;color:#ffffff;">Welcome${name ? `, ${name}` : ""} 👋</h1>
-            <p style="margin:0;font-family:Arial,Helvetica,sans-serif;font-size:15px;line-height:1.6;color:rgba(255,255,255,0.65);">Use the code below to finish creating your Misty Mounts account and start exploring Northern Pakistan.</p>
+            <p style="margin:0 0 6px 0;font-family:Arial,Helvetica,sans-serif;font-size:13px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:#a3e635;">${copy.eyebrow}</p>
+            <h1 style="margin:0 0 12px 0;font-family:Arial,Helvetica,sans-serif;font-size:26px;line-height:1.2;font-weight:800;color:#ffffff;">${copy.title(name)}</h1>
+            <p style="margin:0;font-family:Arial,Helvetica,sans-serif;font-size:15px;line-height:1.6;color:rgba(255,255,255,0.65);">${copy.body}</p>
           </td></tr>
           <!-- Code -->
           <tr><td style="padding:24px 32px;">
@@ -50,19 +66,20 @@ const otpEmailHtml = (name, otp) => {
             <p style="margin:0;font-family:Arial,Helvetica,sans-serif;font-size:12px;line-height:1.6;color:rgba(255,255,255,0.4);">Didn't request this? You can safely ignore this email — no account will be created without the code.</p>
           </td></tr>
         </table>
-        <p style="margin:20px 0 0 0;font-family:Arial,Helvetica,sans-serif;font-size:12px;color:rgba(255,255,255,0.3);">Misty Mounts · Gilgit-Baltistan, Pakistan</p>
+        <p style="margin:20px 0 0 0;font-family:Arial,Helvetica,sans-serif;font-size:12px;color:rgba(255,255,255,0.3);">Misty Mounts · Hazara, Pakistan</p>
       </td></tr>
     </table>
   </div>`;
 };
 
-const sendOtpEmail = async (to, name, otp) => {
+const sendOtpEmail = async (to, name, otp, purpose = "verify") => {
+  const copy = COPY[purpose] || COPY.verify;
   await transporter.sendMail({
     from: FROM,
     to,
-    subject: `${otp} is your Misty Mounts verification code`,
-    text: `Your Misty Mounts verification code is ${otp}. It expires in 10 minutes.`,
-    html: otpEmailHtml(name, otp),
+    subject: copy.subject(otp),
+    text: `Your Misty Mounts code is ${otp}. It expires in 10 minutes.`,
+    html: otpEmailHtml(name, otp, purpose),
   });
 };
 

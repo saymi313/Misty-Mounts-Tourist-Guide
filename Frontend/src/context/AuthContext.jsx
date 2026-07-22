@@ -1,7 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { io } from 'socket.io-client';
 import { socket as mockSocket } from '../data/mockSocket';
-import { mockUser } from '../data/mockData';
 import api, { LIVE, SOCKET_URL } from '../data/api';
 import { hydrateSaved } from '../utils/savedStore';
 import { fetchNotifications } from '../utils/notificationsStore';
@@ -71,17 +70,16 @@ export const AuthProvider = ({ children }) => {
       return;
     }
 
-    // Dummy-data mode: auto-login a mock user so every screen renders.
+    // No backend configured: restore any stored session, otherwise stay logged out.
     const stored = localStorage.getItem('user');
-    let activeUser = mockUser;
     if (stored) {
-      try { activeUser = JSON.parse(stored); } catch { activeUser = mockUser; }
-    } else {
-      localStorage.setItem('user', JSON.stringify(mockUser));
-      localStorage.setItem('token', 'mock-token');
+      try {
+        setUser(JSON.parse(stored));
+        if (!socket.connected) socket.connect();
+      } catch {
+        localStorage.removeItem('user');
+      }
     }
-    setUser(activeUser);
-    if (!socket.connected) socket.connect();
     setLoading(false);
   }, []);
 
@@ -103,8 +101,8 @@ export const AuthProvider = ({ children }) => {
       }
     }
 
-    // Mock login — accepts any credentials.
-    const userData = { email: email || mockUser.email, name: mockUser.name, type: 'user' };
+    // No backend configured — accept any credentials with a generic profile.
+    const userData = { email: email || 'guest@mistymounts.pk', name: (email || 'traveller').split('@')[0], type: 'user' };
     setUser(userData);
     localStorage.setItem('token', 'mock-token');
     localStorage.setItem('user', JSON.stringify(userData));

@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import { Mountain } from 'lucide-react';
 import Login from '../components/LoginSignup/Login';
 import Signup from '../components/LoginSignup/Signup';
 import { Tile, Eyebrow } from '../components/bento/tiles';
@@ -7,9 +6,7 @@ import { img } from '../../data/mockData';
 
 const Wordmark = ({ className = '' }) => (
   <div className={`flex items-center gap-2.5 ${className}`}>
-    <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-lime-400 text-night-950">
-      <Mountain className="h-5 w-5" strokeWidth={2.4} />
-    </span>
+    <img src="/Logo.png" alt="Misty Mounts" className="h-9 w-9 rounded-xl object-cover" />
     <span className="text-xl font-extrabold tracking-tight text-white">
       Misty<span className="text-lime-400">Mounts</span>
     </span>
@@ -25,7 +22,7 @@ const Authentication = () => {
       <aside className="relative hidden overflow-hidden lg:block">
         <img
           src={img('auth-hunza', 1400, 1800)}
-          alt="Mist over the peaks of Northern Pakistan"
+          alt="Mist over the peaks of Hazara"
           className="absolute inset-0 h-full w-full object-cover animate-slow-zoom"
         />
         <div className="absolute inset-0 bg-gradient-to-t from-night-950 via-night-950/55 to-night-900/25" />
@@ -35,7 +32,7 @@ const Authentication = () => {
           <Wordmark />
 
           <div className="max-w-md">
-            <Eyebrow>Northern Pakistan</Eyebrow>
+            <Eyebrow>Hazara</Eyebrow>
             <h1 className="mt-4 text-balance text-[clamp(2.4rem,4.6vw,3.6rem)] font-extrabold leading-[1.02] tracking-tight text-white">
               Where the mist meets the{' '}
               <span className="text-lime-400">mountains,</span> your journey begins.

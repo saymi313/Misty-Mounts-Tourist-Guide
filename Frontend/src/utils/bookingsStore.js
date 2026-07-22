@@ -3,7 +3,6 @@
  * fetches the user's real bookings from the API when live. `addBooking` is an
  * optimistic local insert (the server row is created by the payment call).
  */
-import { myBookings } from "../data/mockData";
 import api, { LIVE } from "../data/api";
 
 const KEY = "mm_bookings";
@@ -12,9 +11,9 @@ let cache = null;
 const readLocal = () => {
   try {
     const stored = localStorage.getItem(KEY);
-    return stored ? JSON.parse(stored) : myBookings.map((b) => ({ ...b }));
+    return stored ? JSON.parse(stored) : [];
   } catch {
-    return myBookings.map((b) => ({ ...b }));
+    return [];
   }
 };
 const writeLocal = (list) => {

@@ -1,4 +1,18 @@
 const TouristSpot = require("../models/TouristSport");
+const { slugify } = require("../../utils/slug");
+const { getAutoApprove } = require("./settingsController");
+
+// Build a slug from the name that's unique across every place (used as the _id,
+// so spot routes read /city/:city/spot/attabad-lake instead of a raw ObjectId).
+const uniquePlaceSlug = async (name) => {
+  const base = slugify(name);
+  const docs = await TouristSpot.find().select("nearbyPlaces._id");
+  const used = new Set(docs.flatMap((d) => d.nearbyPlaces.map((p) => String(p._id))));
+  let slug = base;
+  let i = 2;
+  while (used.has(slug)) slug = `${base}-${i++}`;
+  return slug;
+};
 
 // Flatten a city document's nearby places into the flat shape the admin/guide
 // spot lists use (each place carries its city + parent doc id).
@@ -46,14 +60,24 @@ exports.createPlace = async (req, res) => {
     let doc = await TouristSpot.findOne({ city });
     if (!doc) doc = new TouristSpot({ city, nearbyPlaces: [], isApproved: true });
 
-    const place = {};
+    const place = { _id: await uniquePlaceSlug(req.body.name) };
     for (const f of PLACE_FIELDS) if (f in req.body) place[f] = req.body[f];
+
+    // Approval gate: admins create approved spots directly; local-guide
+    // submissions wait for review unless auto-approval is enabled. Guides can
+    // never approve their own spot, so the client-sent value is ignored here.
+    if (req.user?.type === "local guide") {
+      place.isApproved = await getAutoApprove();
+    } else {
+      place.isApproved = "isApproved" in req.body ? !!req.body.isApproved : true;
+    }
+
     doc.nearbyPlaces.push(place);
     await doc.save();
 
-    const created = doc.nearbyPlaces[doc.nearbyPlaces.length - 1];
-    res.status(201).json({ place: flatten(doc).find((p) => String(p._id) === String(created._id)) });
+    res.status(201).json({ place: flatten(doc).find((p) => String(p._id) === place._id) });
   } catch (err) {
+    console.error("createPlace error:", err.message);
     res.status(500).json({ error: "Failed to create place" });
   }
 };
@@ -66,11 +90,31 @@ exports.updatePlace = async (req, res) => {
     if (!doc) return res.status(404).json({ error: "Place not found" });
 
     const place = doc.nearbyPlaces.id(id);
-    for (const f of PLACE_FIELDS) if (f in req.body) place[f] = req.body[f];
+    const isAdmin = req.user?.type === "admin";
+    for (const f of PLACE_FIELDS) {
+      // Only admins may change approval — guides can't self-approve via edit.
+      if (f === "isApproved" && !isAdmin) continue;
+      if (f in req.body) place[f] = req.body[f];
+    }
     await doc.save();
     res.json({ place: flatten(doc).find((p) => String(p._id) === String(id)) });
   } catch (err) {
     res.status(500).json({ error: "Failed to update place" });
+  }
+};
+
+// PATCH /api/admin/places/:id/approve — admin approves (or unapproves) a place.
+exports.approvePlace = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const doc = await TouristSpot.findOne({ "nearbyPlaces._id": id });
+    if (!doc) return res.status(404).json({ error: "Place not found" });
+    const place = doc.nearbyPlaces.id(id);
+    place.isApproved = "isApproved" in req.body ? !!req.body.isApproved : true;
+    await doc.save();
+    res.json({ place: flatten(doc).find((p) => String(p._id) === String(id)) });
+  } catch (err) {
+    res.status(500).json({ error: "Failed to update approval" });
   }
 };
 

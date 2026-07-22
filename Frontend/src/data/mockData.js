@@ -4,7 +4,7 @@
 // The backend is disconnected for this phase. Every shape below mirrors what the
 // original Express/Mongo API returned, so components keep working unchanged.
 // Images use deterministic picsum seeds so they always load and stay stable
-// across reloads — swap `img()` for real Northern Pakistan photography later.
+// across reloads — swap `img()` for real Hazara photography later.
 // ─────────────────────────────────────────────────────────────────────────────
 
 /** Deterministic placeholder image keyed to a slug. */
@@ -547,7 +547,7 @@ export const mockUser = {
   type: "user",
   phone: "+92 300 1234567",
   city: "Hunza",
-  bio: "Slow traveller chasing apricot blossoms and quiet mountain mornings across Gilgit-Baltistan.",
+  bio: "Slow traveller chasing apricot blossoms and quiet mountain mornings across Hazara.",
   memberSince: "2026-01-08",
 };
 
@@ -620,4 +620,38 @@ export const notifications = [
     body: "Save the spots you love and we'll keep an eye on prices and mountain weather for you.",
     time: "2026-07-15T08:30:00", read: true, link: "/destinations",
   },
+];
+
+// ── Users & guides (admin management screen — dummy fallback) ──────────────────
+export const adminUsers = [
+  {
+    _id: "usr-zara", name: mockUser.name, username: "zara", email: mockUser.email, type: "user",
+    city: "Hunza", phone: "+92 300 1234567", bio: mockUser.bio, avatar: img("avatar-zara", 120, 120),
+    interests: ["Trekking", "Lakes", "Food & cafés"], savedSpots: savedSpotIds, isVerified: true, memberSince: "2026-01-08",
+  },
+  {
+    _id: "usr-karim", name: "Karim Ali", username: "karimguide", email: "karim@mistymounts.pk", type: "local guide",
+    city: "Hunza", phone: "+92 345 2223344", bio: "Hunza-born guide — forts, glaciers and the best apricot cake.",
+    avatar: img("guide-0", 120, 120), interests: ["Culture & forts", "Trekking"], savedSpots: [], isVerified: true, memberSince: "2025-11-02",
+  },
+  {
+    _id: "usr-fatima", name: "Fatima Baig", username: "fatimaguide", email: "fatima@mistymounts.pk", type: "local guide",
+    city: "Skardu", phone: "+92 346 5556677", bio: "Skardu & Deosai specialist — wildlife and cold-desert nights.",
+    avatar: img("guide-1", 120, 120), interests: ["Wildlife", "Stargazing"], savedSpots: [], isVerified: true, memberSince: "2025-12-14",
+  },
+  ...feedbacks.slice(0, 4).map((f, i) => ({
+    _id: `usr-t${i}`,
+    name: f.name,
+    username: f.name.toLowerCase().replace(/\s+/g, ""),
+    email: `${f.name.toLowerCase().replace(/\s+/g, ".")}@example.com`,
+    type: "user",
+    city: ["Hunza", "Skardu", "Naran Kaghan", "Swat"][i % 4],
+    phone: "",
+    bio: f.trip ? `Travelled: ${f.trip}` : "",
+    avatar: f.avatar,
+    interests: [],
+    savedSpots: [],
+    isVerified: i % 2 === 0,
+    memberSince: "2026-03-10",
+  })),
 ];

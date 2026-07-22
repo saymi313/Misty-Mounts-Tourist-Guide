@@ -60,6 +60,21 @@ export const maxLen =
   (v) =>
     !isEmpty(v) && String(v).trim().length > n ? msg || `Must be ${n} characters or fewer` : "";
 
+/** Per-requirement password checks — drives the live signup checklist. */
+export const passwordChecks = (v) => ({
+  length: String(v || "").length >= 8,
+  letter: /[A-Za-z]/.test(String(v || "")),
+  number: /[0-9]/.test(String(v || "")),
+});
+
+export const strongPassword =
+  (msg = "Use 8+ characters with letters and a number") =>
+  (v) => {
+    if (isEmpty(v)) return "";
+    const c = passwordChecks(v);
+    return c.length && c.letter && c.number ? "" : msg;
+  };
+
 export const number =
   (msg = "Enter a valid number") =>
   (v) =>

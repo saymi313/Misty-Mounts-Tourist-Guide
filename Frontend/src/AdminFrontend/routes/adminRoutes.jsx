@@ -6,6 +6,7 @@ import TouristSpotManagement from "../pages/TouristSpotManagement";
 import AccommodationManagement from "../pages/AccommodationManagement";
 import TransportManagement from "../pages/TransportManagement";
 import PaymentsManagement from "../pages/PaymentManagement";
+import UserManagement from "../pages/UserManagement";
 
 const AdminRoutes = () => {
   const isAuthenticated = !!localStorage.getItem("adminToken"); // Check if token exists
@@ -41,6 +42,12 @@ const AdminRoutes = () => {
         path="payments"
         element={
           isAuthenticated ? <PaymentsManagement /> : <Navigate to="/admin/login" />
+        }
+      />
+      <Route
+        path="users"
+        element={
+          isAuthenticated ? <UserManagement /> : <Navigate to="/admin/login" />
         }
       />
       {/* Redirect unmatched paths to login */}

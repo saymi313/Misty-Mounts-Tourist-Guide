@@ -136,7 +136,7 @@ const Destination = () => {
           <div className="pointer-events-none absolute -left-16 bottom-0 h-72 w-72 rounded-full bg-lime-400/20 blur-3xl" />
           <div className="relative flex min-h-[360px] flex-col justify-end px-6 py-10 sm:min-h-[440px] sm:px-12 sm:py-14">
             <Eyebrow>
-              <Compass className="h-3.5 w-3.5" /> Discover Northern Pakistan
+              <Compass className="h-3.5 w-3.5" /> Discover Hazara
             </Eyebrow>
             <h1 className="mt-3 text-4xl font-extrabold tracking-tight text-white sm:text-6xl">
               {selectedCity || (

@@ -4,7 +4,6 @@
  * event for live cross-component updates; hydrates + write-throughs to the API
  * when the backend is live.
  */
-import { notifications } from "../data/mockData";
 import api, { LIVE } from "../data/api";
 
 const KEY = "mm_notifications";
@@ -14,9 +13,9 @@ let cache = null;
 const readLocal = () => {
   try {
     const stored = localStorage.getItem(KEY);
-    return stored ? JSON.parse(stored) : notifications.map((n) => ({ ...n }));
+    return stored ? JSON.parse(stored) : [];
   } catch {
-    return notifications.map((n) => ({ ...n }));
+    return [];
   }
 };
 const persist = () => {

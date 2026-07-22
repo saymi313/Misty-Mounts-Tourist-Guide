@@ -12,9 +12,12 @@ const api = axios.create({ baseURL: API_URL });
 api.interceptors.request.use((config) => {
   const url = config.url || "";
   const isAdmin = url.startsWith("/admin") || url.includes("/admin/");
+  // Admin routes prefer the admin token; shared routes (e.g. /notifications) use
+  // the user token, falling back to the admin token so the admin panel stays
+  // authenticated on endpoints it shares with travellers and guides.
   const token = isAdmin
     ? localStorage.getItem("adminToken") || localStorage.getItem("token")
-    : localStorage.getItem("token");
+    : localStorage.getItem("token") || localStorage.getItem("adminToken");
   // Don't clobber a token the caller set explicitly (e.g. image uploads).
   if (token && !config.headers.Authorization) config.headers.Authorization = `Bearer ${token}`;
   return config;

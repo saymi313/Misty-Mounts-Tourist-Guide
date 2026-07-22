@@ -65,7 +65,7 @@ const PaymentForm = ({ subtotal = 0, fee = 0, hotelName, hotelImage, accId, city
               _id: `mb-${res.data.bookingId}`,
               accId: accId || "",
               hotel: hotelName || "Your stay",
-              city: city || "Northern Pakistan",
+              city: city || "Hazara",
               image: hotelImage || "",
               checkIn: formData.date,
               nights,
@@ -183,7 +183,7 @@ const PaymentForm = ({ subtotal = 0, fee = 0, hotelName, hotelImage, accId, city
           <div className="p-6">
             <h3 className="text-lg font-extrabold tracking-tight text-white">{hotelName}</h3>
             <p className="mt-1 flex items-center gap-1 text-sm text-white/50">
-              <MapPin className="h-3.5 w-3.5 text-lime-400" /> Northern Pakistan
+              <MapPin className="h-3.5 w-3.5 text-lime-400" /> Hazara
             </p>
             <div className="mt-5 space-y-2 border-t border-white/[0.07] pt-5 text-sm">
               <Row label={`${formatPKR(subtotal)} × ${nights} night${nights > 1 ? 's' : ''}`} value={formatPKR(roomTotal)} />

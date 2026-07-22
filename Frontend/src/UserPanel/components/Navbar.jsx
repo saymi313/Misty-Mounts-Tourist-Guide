@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import {
-  Mountain, Menu, X, ArrowUpRight, User, Heart, CalendarCheck, Bell, LogOut, ChevronRight,
+  Menu, X, ArrowUpRight, User, Heart, CalendarCheck, Bell, LogOut, ChevronRight,
 } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
 import ProfileDropdown from "./ProfileDropdown";
@@ -59,9 +59,7 @@ const Navbar = () => {
           <nav className="flex items-center justify-between gap-3 rounded-full border border-white/10 bg-night-900/50 px-3 py-2 shadow-[0_8px_30px_-8px_rgba(0,0,0,0.6)] ring-1 ring-white/[0.06] backdrop-blur-xl sm:px-4">
             {/* Wordmark */}
             <Link to="/user" className="flex items-center gap-2.5 pl-1">
-              <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-lime-400 text-night-950 shadow-[0_0_20px_-4px_rgba(163,230,53,0.6)]">
-                <Mountain className="h-5 w-5" strokeWidth={2.4} />
-              </span>
+              <img src="/Logo.png" alt="Misty Mounts" className="h-9 w-9 rounded-xl object-cover shadow-[0_0_20px_-4px_rgba(163,230,53,0.6)]" />
               <span className="text-lg font-extrabold tracking-tight text-white">
                 Misty<span className="text-lime-400">Mounts</span>
               </span>
@@ -131,9 +129,7 @@ const Navbar = () => {
               {/* Header */}
               <div className="flex items-center justify-between">
                 <span className="flex items-center gap-2.5 text-white">
-                  <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-lime-400 text-night-950">
-                    <Mountain className="h-5 w-5" strokeWidth={2.4} />
-                  </span>
+                  <img src="/Logo.png" alt="Misty Mounts" className="h-9 w-9 rounded-xl object-cover" />
                   <span className="text-lg font-extrabold">
                     Misty<span className="text-lime-400">Mounts</span>
                   </span>
@@ -221,7 +217,7 @@ const Navbar = () => {
                     <LogOut className="h-4 w-4" /> Sign out
                   </button>
                 )}
-                <p className="pt-1 text-center text-xs text-white/40">Gilgit-Baltistan, Pakistan · Local guides on call</p>
+                <p className="pt-1 text-center text-xs text-white/40">Hazara, Pakistan · Local guides on call</p>
               </div>
             </motion.div>
           </div>

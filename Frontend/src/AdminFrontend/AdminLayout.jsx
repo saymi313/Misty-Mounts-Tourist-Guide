@@ -1,9 +1,9 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
-import { LayoutDashboard, Map, BedDouble, Bus, Wallet, Plus } from "lucide-react";
+import { LayoutDashboard, Map, BedDouble, Bus, Wallet, Users, Plus } from "lucide-react";
 import DashboardLayout from "../components/dashboard/DashboardLayout";
 import { PromoCard } from "../components/dashboard/ui";
-import { scheduleItems, img } from "../data/mockData";
+import { img } from "../data/mockData";
 
 const NAV = [
   { to: "/admin/dashboard", label: "Dashboard", icon: LayoutDashboard, end: true },
@@ -11,6 +11,7 @@ const NAV = [
   { to: "/admin/accommodation", label: "Accommodation", icon: BedDouble },
   { to: "/admin/transportation", label: "Transport", icon: Bus },
   { to: "/admin/payments", label: "Payments", icon: Wallet },
+  { to: "/admin/users", label: "Users", icon: Users },
 ];
 
 const adminUser = { name: "Admin · Saymi", role: "Platform Administrator", avatar: img("admin-avatar", 120, 120) };
@@ -30,7 +31,7 @@ export default function AdminLayout({ greeting, subtitle, rightRail = false, chi
       greeting={greeting}
       subtitle={subtitle}
       user={adminUser}
-      schedule={scheduleItems}
+      schedule={[]}
       rightRail={rightRail}
       footerCard={
         <PromoCard

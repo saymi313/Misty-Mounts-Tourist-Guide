@@ -3,11 +3,12 @@ import { BedDouble, Banknote, Star, Plus, Pencil, Trash2, MapPin, UtensilsCrosse
 import AdminLayout from "../AdminLayout";
 import { Card, SectionHead, StatCard, Btn, BtnGhost, Field, adminInputCls } from "../../components/dashboard/ui";
 import Modal from "../../components/dashboard/Modal";
-import { accommodations as seed } from "../../data/mockData";
 import { required, number, min, max, validate, hasErrors } from "../../utils/validation";
 import { formatPKR } from "../../utils/currency";
 import { LIVE, listAccommodations, createAccommodation, updateAccommodation, deleteAccommodation } from "../../data/adminApi";
 import ImageUploadButton from "../../components/dashboard/ImageUploadButton";
+import { toast } from "../../utils/toast";
+import { confirmDialog } from "../../utils/confirm";
 
 const emptyForm = { name: "", type: "hotel", location: "", city: "", price: "", rating: "", picture: "" };
 
@@ -16,7 +17,7 @@ const TypeBadge = ({ type }) => {
   return (
     <span
       className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-semibold ${
-        isFood ? "bg-amber-50 text-amber-600" : "bg-emerald-50 text-emerald-600"
+        isFood ? "bg-amber-50 text-amber-600" : "bg-lime-50 text-lime-600"
       }`}
     >
       {isFood ? <UtensilsCrossed className="h-3 w-3" /> : <BedDouble className="h-3 w-3" />}
@@ -26,7 +27,7 @@ const TypeBadge = ({ type }) => {
 };
 
 const AccommodationManagement = () => {
-  const [stays, setStays] = useState(seed);
+  const [stays, setStays] = useState([]);
   const [modalOpen, setModalOpen] = useState(false);
   const [editing, setEditing] = useState(null);
   const [form, setForm] = useState(emptyForm);
@@ -63,11 +64,19 @@ const AccommodationManagement = () => {
     setModalOpen(true);
   };
 
-  const handleDelete = async (id) => {
+  const handleDelete = async (item) => {
+    const ok = await confirmDialog({
+      title: "Delete accommodation?",
+      body: `"${item.name}" will be removed permanently. This can't be undone.`,
+      confirmLabel: "Delete",
+    });
+    if (!ok) return;
     if (LIVE) {
-      try { await deleteAccommodation(id); } catch { return; }
+      try { await deleteAccommodation(item._id); }
+      catch { toast.error("Couldn't delete this listing. Please try again."); return; }
     }
-    setStays((prev) => prev.filter((s) => s._id !== id));
+    setStays((prev) => prev.filter((s) => s._id !== item._id));
+    toast.success(`"${item.name}" deleted.`);
   };
 
   const handleSave = async (e) => {
@@ -93,7 +102,10 @@ const AccommodationManagement = () => {
           const created = await createAccommodation(parsed);
           setStays((prev) => [created || { _id: `acc-${Date.now()}`, ...parsed }, ...prev]);
         }
-      } catch { return; }
+      } catch {
+        toast.error(editing ? "Couldn't save changes. Please try again." : "Couldn't add this listing. Please try again.");
+        return;
+      }
     } else if (editing) {
       setStays((prev) => prev.map((s) => (s._id === editing._id ? { ...s, ...parsed } : s)));
     } else {
@@ -103,6 +115,7 @@ const AccommodationManagement = () => {
       ]);
     }
     setModalOpen(false);
+    toast.success(editing ? `"${parsed.name}" updated.` : `"${parsed.name}" added.`);
   };
 
   const total = stays.length;
@@ -136,7 +149,7 @@ const AccommodationManagement = () => {
                 {item.picture ? (
                   <img src={item.picture} alt={item.name} className="h-full w-full object-cover" />
                 ) : (
-                  <div className="flex h-full w-full items-center justify-center bg-emerald-50 text-emerald-600">
+                  <div className="flex h-full w-full items-center justify-center bg-lime-50 text-lime-600">
                     <BedDouble className="h-8 w-8" />
                   </div>
                 )}
@@ -161,12 +174,12 @@ const AccommodationManagement = () => {
                     <button
                       onClick={() => openEdit(item)}
                       title="Edit"
-                      className="flex h-8 w-8 items-center justify-center rounded-lg text-emerald-600 transition-colors hover:bg-emerald-50"
+                      className="flex h-8 w-8 items-center justify-center rounded-lg text-lime-600 transition-colors hover:bg-lime-50"
                     >
                       <Pencil className="h-4 w-4" />
                     </button>
                     <button
-                      onClick={() => handleDelete(item._id)}
+                      onClick={() => handleDelete(item)}
                       title="Delete"
                       className="flex h-8 w-8 items-center justify-center rounded-lg text-rose-500 transition-colors hover:bg-rose-50"
                     >

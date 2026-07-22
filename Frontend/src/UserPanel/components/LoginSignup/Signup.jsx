@@ -1,15 +1,17 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Eye, EyeOff, Mail, Lock, User, ArrowRight, AlertCircle, CheckCircle2, ChevronDown, Compass } from 'lucide-react';
+import { Eye, EyeOff, Mail, Lock, User, ArrowRight, AlertCircle, CheckCircle2, ChevronDown, Compass, Check } from 'lucide-react';
 import { FcGoogle } from 'react-icons/fc';
 import { FaApple } from 'react-icons/fa';
 import { useNavigate } from 'react-router-dom';
 import { Field, inputClass, inputErrClass, Divider, SocialButton } from './Login';
 import { Btn } from '../bento/tiles';
-import { required, email as emailRule, minLen, mustBeTrue, validate, hasErrors } from '../../../utils/validation';
+import { required, email as emailRule, minLen, strongPassword, passwordChecks, mustBeTrue, validate, hasErrors } from '../../../utils/validation';
 import api, { LIVE } from '../../../data/api';
 import { useAuth } from '../../../context/AuthContext';
+import { landingFor } from '../../../utils/roles';
 import OtpVerify from './OtpVerify';
+import LegalModal from './LegalModal';
 
 const EASE = [0.16, 1, 0.3, 1];
 
@@ -25,14 +27,16 @@ const Signup = ({ onSwitchToLogin }) => {
   const [success, setSuccess] = useState('');
   const [loading, setLoading] = useState(false);
   const [verifyEmail, setVerifyEmail] = useState(null);
+  const [legal, setLegal] = useState(null); // 'terms' | 'privacy' | null
   const navigate = useNavigate();
   const { applySession } = useAuth();
+  const pw = passwordChecks(password);
 
   const clear = (key) => errors[key] && setErrors((x) => ({ ...x, [key]: undefined }));
 
   const handleVerified = (data) => {
     applySession(data);
-    navigate('/user', { replace: true });
+    navigate(landingFor(data.type), { replace: true });
   };
 
   const handleSubmit = async (e) => {
@@ -45,7 +49,7 @@ const Signup = ({ onSwitchToLogin }) => {
       {
         email: [required('Email is required'), emailRule()],
         username: [required('Username is required'), minLen(3, 'Username must be at least 3 characters')],
-        password: [required('Password is required'), minLen(6, 'Password must be at least 6 characters')],
+        password: [required('Password is required'), strongPassword()],
         type: [required('Please select a traveller type')],
         terms: [mustBeTrue('Please accept the terms to continue')],
       }
@@ -136,6 +140,16 @@ const Signup = ({ onSwitchToLogin }) => {
           </button>
         </Field>
 
+        {password && (
+          <ul className="-mt-3 flex flex-wrap gap-x-4 gap-y-1.5 text-xs">
+            {[['8+ characters', pw.length], ['A letter', pw.letter], ['A number', pw.number]].map(([label, ok]) => (
+              <li key={label} className={`flex items-center gap-1.5 ${ok ? 'text-lime-400' : 'text-white/40'}`}>
+                {ok ? <Check className="h-3.5 w-3.5" /> : <span className="h-1.5 w-1.5 rounded-full bg-white/25" />} {label}
+              </li>
+            ))}
+          </ul>
+        )}
+
         <Field label="I'm joining as a" error={errors.type}>
           <Compass className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-white/40" />
           <select
@@ -156,9 +170,9 @@ const Signup = ({ onSwitchToLogin }) => {
             <input type="checkbox" checked={terms} onChange={(e) => { setTerms(e.target.checked); clear('terms'); }} className="mt-0.5 h-4 w-4 rounded border-white/20 bg-night-900 accent-lime-400 focus:ring-2 focus:ring-lime-400/30" />
             <span>
               I agree to the{' '}
-              <button type="button" className="font-semibold text-lime-400 transition-colors hover:text-lime-300 hover:underline">Terms of Service</button>{' '}
+              <button type="button" onClick={() => setLegal('terms')} className="font-semibold text-lime-400 transition-colors hover:text-lime-300 hover:underline">Terms of Service</button>{' '}
               and{' '}
-              <button type="button" className="font-semibold text-lime-400 transition-colors hover:text-lime-300 hover:underline">Privacy Policy</button>.
+              <button type="button" onClick={() => setLegal('privacy')} className="font-semibold text-lime-400 transition-colors hover:text-lime-300 hover:underline">Privacy Policy</button>.
             </span>
           </label>
           {errors.terms && (
@@ -197,6 +211,8 @@ const Signup = ({ onSwitchToLogin }) => {
           </button>
         </p>
       )}
+
+      <LegalModal doc={legal} onClose={() => setLegal(null)} />
     </motion.div>
   );
 };

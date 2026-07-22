@@ -35,12 +35,22 @@ export const deleteTransportation = async (id) => (await api.delete(`/admin/tran
 export const listPlaces = async () => (await api.get("/admin/places")).data.places;
 export const createPlace = async (b) => (await api.post("/admin/places", b)).data.place;
 export const updatePlace = async (id, b) => (await api.put(`/admin/places/${id}`, b)).data.place;
+export const approvePlace = async (id, isApproved = true) =>
+  (await api.patch(`/admin/places/${id}/approve`, { isApproved })).data.place;
 export const deletePlace = async (id) => (await api.delete(`/admin/places/${id}`)).data;
+
+// ── Platform settings (admin) ─────────────────────────────────────────────────
+export const getSettings = async () => (await api.get("/admin/settings")).data.settings;
+export const updateSettings = async (b) => (await api.patch("/admin/settings", b)).data.settings;
 
 // ── Payments / bookings (admin) ───────────────────────────────────────────────
 export const listPayments = async () => (await api.get("/payment")).data.payments;
 export const updatePaymentStatus = async (bookingId, status) =>
   (await api.put("/payment/approve", { bookingId, status })).data;
+
+// ── Users & guides (admin) ────────────────────────────────────────────────────
+export const listUsers = async () => (await api.get("/admin/users")).data.users;
+export const deleteUser = async (id) => (await api.delete(`/admin/users/${id}`)).data;
 
 // ── Natural-disaster alerts ───────────────────────────────────────────────────
 export const listDisasters = async () => (await api.get("/natural-disaster/get-disaster")).data.data;
