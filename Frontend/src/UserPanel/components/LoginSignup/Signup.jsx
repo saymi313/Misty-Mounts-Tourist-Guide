@@ -6,6 +6,7 @@ import { FaApple } from 'react-icons/fa';
 import { Field, inputClass, inputErrClass, Divider, SocialButton } from './Login';
 import { Btn } from '../bento/tiles';
 import { required, email as emailRule, minLen, mustBeTrue, validate, hasErrors } from '../../../utils/validation';
+import api, { LIVE } from '../../../data/api';
 
 const EASE = [0.16, 1, 0.3, 1];
 
@@ -45,8 +46,12 @@ const Signup = ({ onSwitchToLogin }) => {
 
     setLoading(true);
     try {
-      // Backend disconnected (dummy-data phase): simulate a successful signup.
-      await new Promise((res) => setTimeout(res, 600));
+      if (LIVE) {
+        await api.post('/user/auth/signup', { email, username, password, type });
+      } else {
+        // Dummy-data phase: simulate a successful signup.
+        await new Promise((res) => setTimeout(res, 600));
+      }
       setSuccess('Account created! You can now sign in.');
       setEmail('');
       setUsername('');
@@ -55,7 +60,7 @@ const Signup = ({ onSwitchToLogin }) => {
       setTerms(false);
       setErrors({});
     } catch (err) {
-      setError(err.message);
+      setError(err.response?.data?.message || err.message || 'Signup failed');
     } finally {
       setLoading(false);
     }

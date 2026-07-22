@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Bus, Route, Users, Plus, Pencil, Trash2, ArrowRight } from "lucide-react";
 import AdminLayout from "../AdminLayout";
 import { Card, SectionHead, StatCard, Btn, BtnGhost, Field } from "../../components/dashboard/ui";
@@ -6,6 +6,7 @@ import Modal from "../../components/dashboard/Modal";
 import { transportationBySpot } from "../../data/mockData";
 import { required, number, integer, min, validate, hasErrors } from "../../utils/validation";
 import { formatPKR } from "../../utils/currency";
+import { LIVE, listTransportation, createTransportation, updateTransportation, deleteTransportation } from "../../data/adminApi";
 
 const seed = transportationBySpot.default;
 
@@ -17,6 +18,10 @@ const TransportManagement = () => {
   const [editing, setEditing] = useState(null);
   const [form, setForm] = useState(emptyForm);
   const [errors, setErrors] = useState({});
+
+  useEffect(() => {
+    if (LIVE) listTransportation().then(setRoutes).catch(() => {});
+  }, []);
 
   const update = (key, val) => {
     setForm((f) => ({ ...f, [key]: val }));
@@ -46,9 +51,14 @@ const TransportManagement = () => {
     setModalOpen(true);
   };
 
-  const handleDelete = (id) => setRoutes((prev) => prev.filter((r) => r._id !== id));
+  const handleDelete = async (id) => {
+    if (LIVE) {
+      try { await deleteTransportation(id); } catch { return; }
+    }
+    setRoutes((prev) => prev.filter((r) => r._id !== id));
+  };
 
-  const handleSave = (e) => {
+  const handleSave = async (e) => {
     e.preventDefault();
     const found = validate(form, {
       type: [required("Vehicle type is required")],
@@ -62,7 +72,17 @@ const TransportManagement = () => {
       return;
     }
     const parsed = { ...form, price: Number(form.price) || 0, seats: Number(form.seats) || 0 };
-    if (editing) {
+    if (LIVE) {
+      try {
+        if (editing) {
+          const updated = await updateTransportation(editing._id, parsed);
+          setRoutes((prev) => prev.map((r) => (r._id === editing._id ? (updated || { ...r, ...parsed }) : r)));
+        } else {
+          const created = await createTransportation(parsed);
+          setRoutes((prev) => [created || { _id: `tr-${Date.now()}`, ...parsed }, ...prev]);
+        }
+      } catch { return; }
+    } else if (editing) {
       setRoutes((prev) => prev.map((r) => (r._id === editing._id ? { ...r, ...parsed } : r)));
     } else {
       setRoutes((prev) => [{ _id: `tr-${Date.now()}`, ...parsed }, ...prev]);

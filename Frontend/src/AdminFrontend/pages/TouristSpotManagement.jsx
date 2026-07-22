@@ -1,13 +1,16 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Map as MapIcon, Gem, Building2, Plus, Pencil, Trash2 } from "lucide-react";
 import AdminLayout from "../AdminLayout";
 import { Card, SectionHead, StatCard, StatusPill, Btn, BtnGhost, Field, adminInputCls } from "../../components/dashboard/ui";
 import Modal from "../../components/dashboard/Modal";
 import { allPlaces } from "../../data/mockData";
 import { required, validate, hasErrors } from "../../utils/validation";
+import { LIVE, listPlaces, createPlace, updatePlace, deletePlace } from "../../data/adminApi";
 
 // Seed local state from the mock layer, deriving a moderation status per spot.
 const seed = allPlaces.map((p) => ({ ...p, status: p.hiddenGem ? "Pending" : "Approved" }));
+// Flat place → row shape (status derived from approval).
+const toRow = (p) => ({ ...p, status: p.isApproved === false ? "Pending" : "Approved" });
 
 const emptyForm = { name: "", city: "", location: "", status: "Pending" };
 
@@ -17,6 +20,10 @@ const TouristSpotManagement = () => {
   const [editing, setEditing] = useState(null); // row being edited, or null when adding
   const [form, setForm] = useState(emptyForm);
   const [errors, setErrors] = useState({});
+
+  useEffect(() => {
+    if (LIVE) listPlaces().then((places) => setSpots(places.map(toRow))).catch(() => {});
+  }, []);
 
   const update = (key, val) => {
     setForm((f) => ({ ...f, [key]: val }));
@@ -37,9 +44,14 @@ const TouristSpotManagement = () => {
     setModalOpen(true);
   };
 
-  const handleDelete = (id) => setSpots((prev) => prev.filter((s) => s._id !== id));
+  const handleDelete = async (id) => {
+    if (LIVE) {
+      try { await deletePlace(id); } catch { return; }
+    }
+    setSpots((prev) => prev.filter((s) => s._id !== id));
+  };
 
-  const handleSave = (e) => {
+  const handleSave = async (e) => {
     e.preventDefault();
     const found = validate(form, {
       name: [required("Name is required")],
@@ -49,7 +61,23 @@ const TouristSpotManagement = () => {
       setErrors(found);
       return;
     }
-    if (editing) {
+    if (LIVE) {
+      const payload = {
+        name: form.name,
+        city: form.city,
+        location: form.location,
+        isApproved: form.status !== "Pending",
+      };
+      try {
+        if (editing) {
+          const place = await updatePlace(editing._id, payload);
+          setSpots((prev) => prev.map((s) => (s._id === editing._id ? toRow(place || { ...s, ...payload }) : s)));
+        } else {
+          const place = await createPlace(payload);
+          setSpots((prev) => [toRow(place), ...prev]);
+        }
+      } catch { return; }
+    } else if (editing) {
       setSpots((prev) => prev.map((s) => (s._id === editing._id ? { ...s, ...form } : s)));
     } else {
       setSpots((prev) => [

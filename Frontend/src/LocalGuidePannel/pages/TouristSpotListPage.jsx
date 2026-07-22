@@ -1,16 +1,26 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { MapPin, Plus, Pencil, Trash2, Map as MapIcon, Gem, Building2 } from "lucide-react";
 import GuideLayout from "../GuideLayout";
 import { Card, SectionHead, StatCard, Btn } from "../../components/dashboard/ui";
 import { allPlaces } from "../../data/mockData";
+import { LIVE, listPlaces, deletePlace } from "../../data/adminApi";
 
 /** Local Guide — list of tourist spots the guide has curated. */
 export default function TouristSpotListPage() {
   const navigate = useNavigate();
   const [spots, setSpots] = useState(() => allPlaces.filter((p) => p.curatedBy));
 
-  const handleDelete = (id) => setSpots((prev) => prev.filter((s) => s._id !== id));
+  useEffect(() => {
+    if (LIVE) listPlaces().then((places) => setSpots(places.filter((p) => p.curatedBy))).catch(() => {});
+  }, []);
+
+  const handleDelete = async (id) => {
+    if (LIVE) {
+      try { await deletePlace(id); } catch { return; }
+    }
+    setSpots((prev) => prev.filter((s) => s._id !== id));
+  };
 
   const citiesCovered = new Set(spots.map((s) => s.city)).size;
   const hiddenGems = spots.filter((s) => s.hiddenGem).length;

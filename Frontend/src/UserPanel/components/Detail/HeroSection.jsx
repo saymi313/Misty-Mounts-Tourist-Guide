@@ -1,12 +1,16 @@
-import React, { useRef } from 'react';
+import React, { useRef, useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { motion, useScroll, useTransform } from 'framer-motion';
-import { MapPin, Mountain, CalendarRange, ChevronLeft, MessageCircle } from 'lucide-react';
+import { MapPin, Mountain, CalendarRange, ChevronLeft, MessageCircle, Heart } from 'lucide-react';
+import { isSaved, toggleSaved, subscribeSaved } from '../../../utils/savedStore';
 
 const HeroSection = ({ spot }) => {
   const ref = useRef(null);
   const { scrollYProgress } = useScroll({ target: ref, offset: ['start start', 'end start'] });
   const imgY = useTransform(scrollYProgress, [0, 1], ['0%', '14%']);
+  const [saved, setSaved] = useState(() => isSaved(spot?._id));
+
+  useEffect(() => subscribeSaved(() => setSaved(isSaved(spot?._id))), [spot]);
 
   if (!spot) return null;
   const { name, city, location, picture, elevation, bestTime, hiddenGem, curatedBy } = spot;
@@ -66,9 +70,21 @@ const HeroSection = ({ spot }) => {
                 <CalendarRange className="h-4 w-4 text-lime-400" /> Best: {bestTime}
               </span>
             )}
+            <button
+              type="button"
+              onClick={() => setSaved(toggleSaved(spot._id))}
+              aria-label={saved ? "Remove from saved" : "Save this spot"}
+              className={`ml-auto inline-flex items-center gap-2 rounded-full border px-5 py-3 text-sm font-bold backdrop-blur transition-colors ${
+                saved
+                  ? "border-lime-400/50 bg-lime-400/15 text-lime-400"
+                  : "border-white/15 bg-white/10 text-white hover:border-lime-400/50 hover:text-lime-400"
+              }`}
+            >
+              <Heart className={`h-4 w-4 ${saved ? "fill-current" : ""}`} /> {saved ? "Saved" : "Save"}
+            </button>
             <Link
               to="/feedback"
-              className="ml-auto inline-flex items-center gap-2 rounded-full bg-lime-400 px-6 py-3 text-sm font-bold text-night-950 transition-transform hover:-translate-y-0.5 hover:bg-lime-300"
+              className="inline-flex items-center gap-2 rounded-full bg-lime-400 px-6 py-3 text-sm font-bold text-night-950 transition-transform hover:-translate-y-0.5 hover:bg-lime-300"
             >
               <MessageCircle className="h-4 w-4" /> Ask a local guide
             </Link>

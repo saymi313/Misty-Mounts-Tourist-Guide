@@ -5,6 +5,7 @@ import GuideLayout from "../GuideLayout";
 import { Card, SectionHead, Btn, BtnGhost } from "../../components/dashboard/ui";
 import { disasters } from "../../data/mockData";
 import { required, minLen, validate, hasErrors } from "../../utils/validation";
+import { LIVE, createDisaster, updateDisaster } from "../../data/adminApi";
 
 const inputCls =
   "w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-800 outline-none [color-scheme:light] focus:border-emerald-400";
@@ -36,7 +37,7 @@ export default function NaturalDisasterForm() {
 
   const errCls = (k) => (errors[k] ? " !border-rose-300 focus:!border-rose-400" : "");
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     const found = validate(form, {
       name: [required("Alert name is required")],
@@ -48,7 +49,12 @@ export default function NaturalDisasterForm() {
       setErrors(found);
       return;
     }
-    // Local only — the backend is disconnected. Navigate back to the list.
+    if (LIVE) {
+      try {
+        if (id) await updateDisaster(id, form);
+        else await createDisaster(form);
+      } catch { /* fall through and navigate back */ }
+    }
     navigate("/local-guide/natural-disasters");
   };
 

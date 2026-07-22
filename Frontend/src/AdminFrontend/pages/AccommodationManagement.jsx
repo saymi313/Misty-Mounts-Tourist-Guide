@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { BedDouble, Banknote, Star, Plus, Pencil, Trash2, MapPin, UtensilsCrossed } from "lucide-react";
 import AdminLayout from "../AdminLayout";
 import { Card, SectionHead, StatCard, Btn, BtnGhost, Field, adminInputCls } from "../../components/dashboard/ui";
@@ -6,6 +6,7 @@ import Modal from "../../components/dashboard/Modal";
 import { accommodations as seed } from "../../data/mockData";
 import { required, number, min, max, validate, hasErrors } from "../../utils/validation";
 import { formatPKR } from "../../utils/currency";
+import { LIVE, listAccommodations, createAccommodation, updateAccommodation, deleteAccommodation } from "../../data/adminApi";
 
 const emptyForm = { name: "", type: "hotel", location: "", city: "", price: "", rating: "" };
 
@@ -29,6 +30,10 @@ const AccommodationManagement = () => {
   const [editing, setEditing] = useState(null);
   const [form, setForm] = useState(emptyForm);
   const [errors, setErrors] = useState({});
+
+  useEffect(() => {
+    if (LIVE) listAccommodations().then(setStays).catch(() => {});
+  }, []);
 
   const update = (key, val) => {
     setForm((f) => ({ ...f, [key]: val }));
@@ -56,9 +61,14 @@ const AccommodationManagement = () => {
     setModalOpen(true);
   };
 
-  const handleDelete = (id) => setStays((prev) => prev.filter((s) => s._id !== id));
+  const handleDelete = async (id) => {
+    if (LIVE) {
+      try { await deleteAccommodation(id); } catch { return; }
+    }
+    setStays((prev) => prev.filter((s) => s._id !== id));
+  };
 
-  const handleSave = (e) => {
+  const handleSave = async (e) => {
     e.preventDefault();
     const found = validate(form, {
       name: [required("Name is required")],
@@ -72,7 +82,17 @@ const AccommodationManagement = () => {
       return;
     }
     const parsed = { ...form, price: Number(form.price) || 0, rating: Number(form.rating) || 0 };
-    if (editing) {
+    if (LIVE) {
+      try {
+        if (editing) {
+          const updated = await updateAccommodation(editing._id, parsed);
+          setStays((prev) => prev.map((s) => (s._id === editing._id ? (updated || { ...s, ...parsed }) : s)));
+        } else {
+          const created = await createAccommodation(parsed);
+          setStays((prev) => [created || { _id: `acc-${Date.now()}`, ...parsed }, ...prev]);
+        }
+      } catch { return; }
+    } else if (editing) {
       setStays((prev) => prev.map((s) => (s._id === editing._id ? { ...s, ...parsed } : s)));
     } else {
       setStays((prev) => [

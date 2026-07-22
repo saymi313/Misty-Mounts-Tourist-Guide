@@ -8,36 +8,9 @@ import {
 import { allPlaces, feedbacks, img } from "../../data/mockData";
 import { useCountUp } from "../../components/dashboard/motion";
 import { Tile, PhotoTile, Eyebrow } from "../components/bento/tiles";
+import Navbar from "../components/Navbar";
 
 const byId = (id) => allPlaces.find((p) => p._id === id);
-
-/* ── Top bar ─────────────────────────────────────────────────────────── */
-const NavBar = () => (
-  <header className="sticky top-0 z-40 border-b border-white/5 bg-night-950/80 backdrop-blur-md">
-    <div className="mx-auto flex max-w-[1400px] items-center justify-between px-4 py-3 sm:px-6">
-      <Link to="/user" className="flex items-center gap-2.5">
-        <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-lime-400 text-night-950">
-          <Mountain className="h-5 w-5" strokeWidth={2.4} />
-        </span>
-        <span className="text-lg font-extrabold tracking-tight text-white">
-          Misty<span className="text-lime-400">Mounts</span>
-        </span>
-      </Link>
-      <nav className="hidden items-center gap-7 text-sm font-semibold text-white/70 md:flex">
-        <Link to="/destinations" className="transition-colors hover:text-white">Destinations</Link>
-        <Link to="/feedback" className="transition-colors hover:text-white">Guides</Link>
-        <Link to="/feedback" className="transition-colors hover:text-white">Reviews</Link>
-        <Link to="/about" className="transition-colors hover:text-white">About</Link>
-      </nav>
-      <Link
-        to="/destinations"
-        className="inline-flex items-center gap-1.5 rounded-full bg-lime-400 px-4 py-2 text-sm font-bold text-night-950 transition-transform hover:-translate-y-0.5"
-      >
-        Explore <ArrowUpRight className="h-4 w-4" />
-      </Link>
-    </div>
-  </header>
-);
 
 /* ── Section header ──────────────────────────────────────────────────── */
 const SectionHead = ({ eyebrow, title, icon: Icon, to = "/destinations", link = "Explore all" }) => (
@@ -77,7 +50,7 @@ const LandingPage = () => {
 
   return (
     <div className="min-h-screen bg-night-950 text-white selection:bg-lime-400 selection:text-night-950">
-      <NavBar />
+      <Navbar />
 
       <main className="mx-auto max-w-[1400px] space-y-4 px-4 pb-6 pt-4 sm:px-6">
         {/* ── HERO BENTO ─────────────────────────────────────────────── */}

@@ -168,6 +168,8 @@ export const ListRow = ({ image, title, location, rating, right, hoverMeta, onCl
 export const StatusPill = ({ status }) => {
   const map = {
     Confirmed: "bg-emerald-50 text-emerald-600",
+    Upcoming: "bg-emerald-50 text-emerald-600",
+    Completed: "bg-slate-100 text-slate-500",
     Pending: "bg-apricot-50 text-apricot-600",
     Cancelled: "bg-rose-50 text-rose-600",
     Approved: "bg-emerald-50 text-emerald-600",

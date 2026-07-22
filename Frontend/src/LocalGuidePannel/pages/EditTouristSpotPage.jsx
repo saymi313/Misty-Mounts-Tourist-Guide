@@ -5,6 +5,7 @@ import GuideLayout from "../GuideLayout";
 import { Card, SectionHead, Btn, BtnGhost } from "../../components/dashboard/ui";
 import { allPlaces } from "../../data/mockData";
 import { required, url, minLen, validate, hasErrors } from "../../utils/validation";
+import { LIVE, updatePlace } from "../../data/adminApi";
 
 const inputCls =
   "w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-800 outline-none [color-scheme:light] focus:border-emerald-400";
@@ -36,7 +37,7 @@ export default function EditTouristSpotPage() {
 
   const errCls = (k) => (errors[k] ? " !border-rose-300 focus:!border-rose-400" : "");
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     const found = validate(form, {
       name: [required("Name is required")],
@@ -49,7 +50,18 @@ export default function EditTouristSpotPage() {
       setErrors(found);
       return;
     }
-    // Local only — the backend is disconnected. Navigate back to the list.
+    if (LIVE) {
+      try {
+        await updatePlace(id, {
+          name: form.name,
+          city: form.city,
+          location: form.location,
+          description: form.description,
+          picture: form.picture,
+          activities: form.activities ? form.activities.split(",").map((s) => s.trim()).filter(Boolean) : [],
+        });
+      } catch { /* fall through and navigate back */ }
+    }
     navigate("/local-guide/spots");
   };
 

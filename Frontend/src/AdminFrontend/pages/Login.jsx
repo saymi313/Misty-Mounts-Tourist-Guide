@@ -2,7 +2,8 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Mountain, Mail, Lock, ArrowRight, AlertCircle } from "lucide-react";
 import { img } from "../../data/mockData";
-import { required, email as emailRule, minLen, validate, hasErrors } from "../../utils/validation";
+import { required, validate, hasErrors } from "../../utils/validation";
+import api, { LIVE } from "../../data/api";
 
 const inputBase =
   "w-full rounded-2xl border border-slate-200 bg-white py-3.5 pl-11 pr-4 text-sm text-slate-800 outline-none [color-scheme:light] focus:border-emerald-400";
@@ -10,19 +11,21 @@ const inputBase =
 const Login = () => {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
-  const [email, setEmail] = useState("admin@mistymounts.pk");
-  const [password, setPassword] = useState("admin123");
+  const [email, setEmail] = useState("saymi313");
+  const [password, setPassword] = useState("usairam1234");
   const [errors, setErrors] = useState({});
+  const [loginError, setLoginError] = useState("");
 
   const clear = (key) => errors[key] && setErrors((e) => ({ ...e, [key]: undefined }));
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
+    setLoginError("");
     const found = validate(
       { email, password },
       {
-        email: [required("Email is required"), emailRule()],
-        password: [required("Password is required"), minLen(4, "Password must be at least 4 characters")],
+        email: [required("Username is required")],
+        password: [required("Password is required")],
       }
     );
     if (hasErrors(found)) {
@@ -30,7 +33,20 @@ const Login = () => {
       return;
     }
     setLoading(true);
-    // Backend disconnected (dummy-data phase): any valid-looking credentials sign in.
+
+    if (LIVE) {
+      try {
+        const { data } = await api.post("/admin/auth/login", { username: email, password });
+        localStorage.setItem("adminToken", data.token);
+        navigate("/admin/dashboard");
+      } catch (err) {
+        setLoginError(err.response?.data?.error || "Login failed");
+        setLoading(false);
+      }
+      return;
+    }
+
+    // Dummy-data mode: any valid-looking credentials sign in.
     setTimeout(() => {
       localStorage.setItem("adminToken", "mock-admin-token");
       navigate("/admin/dashboard");
@@ -74,20 +90,25 @@ const Login = () => {
 
           <p className="text-sm font-semibold uppercase tracking-widest text-emerald-600">Welcome back</p>
           <h2 className="mt-2 text-3xl font-bold text-slate-900">Sign in to admin</h2>
-          <p className="mt-2 text-sm text-slate-400">Demo mode — any email &amp; password works.</p>
+          <p className="mt-2 text-sm text-slate-400">Sign in with your admin username and password.</p>
 
           <form onSubmit={handleSubmit} noValidate className="mt-8 space-y-4">
+            {loginError && (
+              <div className="flex items-center gap-2 rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm font-medium text-rose-600">
+                <AlertCircle className="h-4 w-4 shrink-0" /> {loginError}
+              </div>
+            )}
             <div>
               <div className="relative">
                 <Mail className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
                 <input
-                  type="email"
+                  type="text"
                   value={email}
                   onChange={(e) => {
                     setEmail(e.target.value);
                     clear("email");
                   }}
-                  placeholder="you@example.com"
+                  placeholder="Username"
                   aria-invalid={!!errors.email}
                   className={`${inputBase} ${errors.email ? "!border-rose-300 focus:!border-rose-400" : ""}`}
                 />

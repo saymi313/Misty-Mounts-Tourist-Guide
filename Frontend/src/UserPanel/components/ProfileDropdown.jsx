@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { User, LogOut, ChevronDown, Heart, CalendarCheck } from 'lucide-react';
+import { User, LogOut, ChevronDown, Heart, CalendarCheck, Bell } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
 
@@ -33,9 +33,13 @@ const ProfileDropdown = () => {
         onClick={() => setIsOpen(!isOpen)}
         className="flex items-center gap-2 rounded-full border border-white/12 bg-night-800 py-1.5 pl-1.5 pr-3 transition-colors duration-200 hover:border-lime-400/50"
       >
-        <span className="flex h-8 w-8 items-center justify-center rounded-full bg-lime-400 text-sm font-bold text-night-950">
-          {initial}
-        </span>
+        {user?.avatar ? (
+          <img src={user.avatar} alt="" className="h-8 w-8 rounded-full object-cover" />
+        ) : (
+          <span className="flex h-8 w-8 items-center justify-center rounded-full bg-lime-400 text-sm font-bold text-night-950">
+            {initial}
+          </span>
+        )}
         <span className="hidden text-sm font-semibold text-white sm:block">
           {user?.name?.split(' ')[0] || 'User'}
         </span>
@@ -45,18 +49,31 @@ const ProfileDropdown = () => {
       {isOpen && (
         <div className="absolute right-0 z-50 mt-2 w-60 overflow-hidden rounded-2xl border border-white/10 bg-night-800 shadow-2xl">
           <div className="flex items-center gap-3 border-b border-white/8 bg-night-900 px-4 py-3.5">
-            <span className="flex h-10 w-10 items-center justify-center rounded-full bg-lime-400 font-bold text-night-950">
-              {initial}
-            </span>
+            {user?.avatar ? (
+              <img src={user.avatar} alt="" className="h-10 w-10 rounded-full object-cover" />
+            ) : (
+              <span className="flex h-10 w-10 items-center justify-center rounded-full bg-lime-400 font-bold text-night-950">
+                {initial}
+              </span>
+            )}
             <div className="min-w-0">
               <p className="truncate text-sm font-bold text-white">{user?.name || 'User'}</p>
               <p className="truncate text-xs text-white/50">{user?.email || ''}</p>
             </div>
           </div>
           <div className="py-1.5">
-            {[[Heart, 'Saved spots'], [CalendarCheck, 'My bookings'], [User, 'Profile']].map(([Icon, label]) => (
+            {[
+              [Heart, 'Saved spots', '/saved'],
+              [CalendarCheck, 'My bookings', '/bookings'],
+              [Bell, 'Notifications', '/notifications'],
+              [User, 'Profile', '/profile'],
+            ].map(([Icon, label, to]) => (
               <button
                 key={label}
+                onClick={() => {
+                  navigate(to);
+                  setIsOpen(false);
+                }}
                 className="flex w-full items-center gap-2.5 px-4 py-2.5 text-sm text-white/70 transition-colors hover:bg-night-700 hover:text-white"
               >
                 <Icon className="h-4 w-4" /> {label}

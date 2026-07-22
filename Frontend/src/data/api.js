@@ -1,0 +1,22 @@
+import axios from "axios";
+
+// Live-backend config. When VITE_API_URL is set (see .env), the app talks to the
+// real Express API + Socket.io; otherwise it stays on the dummy-data layer.
+export const API_URL = import.meta.env.VITE_API_URL || "";
+export const SOCKET_URL = import.meta.env.VITE_SOCKET_URL || "";
+export const LIVE = Boolean(API_URL);
+
+const api = axios.create({ baseURL: API_URL });
+
+// Attach the JWT — admin routes use the admin token, everything else the user token.
+api.interceptors.request.use((config) => {
+  const url = config.url || "";
+  const isAdmin = url.startsWith("/admin") || url.includes("/admin/");
+  const token = isAdmin
+    ? localStorage.getItem("adminToken") || localStorage.getItem("token")
+    : localStorage.getItem("token");
+  if (token) config.headers.Authorization = `Bearer ${token}`;
+  return config;
+});
+
+export default api;

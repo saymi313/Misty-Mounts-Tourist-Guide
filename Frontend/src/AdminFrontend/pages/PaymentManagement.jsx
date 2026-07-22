@@ -1,10 +1,11 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Wallet, Receipt, Clock, Pencil, Trash2 } from "lucide-react";
 import AdminLayout from "../AdminLayout";
 import { Card, SectionHead, StatCard, StatusPill, Btn, BtnGhost, adminInputCls, Field } from "../../components/dashboard/ui";
 import Modal from "../../components/dashboard/Modal";
 import { bookings as seed } from "../../data/mockData";
 import { formatPKR } from "../../utils/currency";
+import { LIVE, listPayments, updatePaymentStatus } from "../../data/adminApi";
 
 const money = formatPKR;
 
@@ -12,7 +13,11 @@ const PaymentManagement = () => {
   const [payments, setPayments] = useState(seed);
   const [modalOpen, setModalOpen] = useState(false);
   const [editing, setEditing] = useState(null);
-  const [status, setStatus] = useState("Pending");
+  const [status, setStatus] = useState("Upcoming");
+
+  useEffect(() => {
+    if (LIVE) listPayments().then(setPayments).catch(() => {});
+  }, []);
 
   const openEdit = (payment) => {
     setEditing(payment);
@@ -22,8 +27,11 @@ const PaymentManagement = () => {
 
   const handleDelete = (id) => setPayments((prev) => prev.filter((p) => p._id !== id));
 
-  const handleSave = (e) => {
+  const handleSave = async (e) => {
     e.preventDefault();
+    if (LIVE) {
+      try { await updatePaymentStatus(editing._id, status); } catch { return; }
+    }
     setPayments((prev) => prev.map((p) => (p._id === editing._id ? { ...p, status } : p)));
     setModalOpen(false);
   };
@@ -146,8 +154,8 @@ const PaymentManagement = () => {
                 onChange={(e) => setStatus(e.target.value)}
                 className={adminInputCls}
               >
-                <option>Pending</option>
-                <option>Confirmed</option>
+                <option>Upcoming</option>
+                <option>Completed</option>
                 <option>Cancelled</option>
               </select>
             </Field>

@@ -1,8 +1,8 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { Star, MessageSquare, TrendingUp, Award } from "lucide-react";
 import GuideLayout from "../GuideLayout";
 import { Card, SectionHead, StatCard } from "../../components/dashboard/ui";
-import { feedbacks } from "../../data/mockData";
+import { getFeedbacks } from "../../data/mockApi";
 
 /** Five-star row, filled up to `rating`. */
 const Stars = ({ rating }) => (
@@ -26,6 +26,12 @@ const fmtDate = (iso) => {
 };
 
 const Feedback = () => {
+  const [feedbacks, setFeedbacks] = useState([]);
+
+  useEffect(() => {
+    getFeedbacks().then((d) => setFeedbacks(d.feedbacks || [])).catch(() => {});
+  }, []);
+
   const total = feedbacks.length;
   const avg = total ? (feedbacks.reduce((s, r) => s + r.rating, 0) / total).toFixed(1) : "0.0";
   const fiveStar = feedbacks.filter((r) => r.rating === 5).length;

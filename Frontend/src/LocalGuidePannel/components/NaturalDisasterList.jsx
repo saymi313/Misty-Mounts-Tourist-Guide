@@ -1,9 +1,10 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { MapPin, Calendar, Plus, Pencil, Trash2, AlertTriangle, ShieldCheck } from "lucide-react";
 import GuideLayout from "../GuideLayout";
 import { Card, SectionHead, StatCard, StatusPill, Btn } from "../../components/dashboard/ui";
 import { disasters as seedDisasters } from "../../data/mockData";
+import { LIVE, listDisasters, deleteDisaster } from "../../data/adminApi";
 
 const severityCls = {
   High: "bg-rose-50 text-rose-600",
@@ -19,7 +20,16 @@ export default function NaturalDisasterList() {
   const navigate = useNavigate();
   const [alerts, setAlerts] = useState(seedDisasters);
 
-  const handleDelete = (id) => setAlerts((prev) => prev.filter((a) => a._id !== id));
+  useEffect(() => {
+    if (LIVE) listDisasters().then(setAlerts).catch(() => {});
+  }, []);
+
+  const handleDelete = async (id) => {
+    if (LIVE) {
+      try { await deleteDisaster(id); } catch { return; }
+    }
+    setAlerts((prev) => prev.filter((a) => a._id !== id));
+  };
 
   const active = alerts.filter((a) => !a.isResolved).length;
   const highSeverity = alerts.filter((a) => a.severity === "High").length;

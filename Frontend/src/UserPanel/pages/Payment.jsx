@@ -28,7 +28,7 @@ const Steps = () => (
 
 const Payment = () => {
   const location = useLocation();
-  const { subtotal, fee, hotelName, hotelImage } = location.state || {};
+  const { subtotal, fee, hotelName, hotelImage, accId, city } = location.state || {};
 
   if (subtotal == null) {
     return (
@@ -56,7 +56,7 @@ const Payment = () => {
           </h1>
         </div>
         <div className="mt-8"><Steps /></div>
-        <PaymentForm subtotal={subtotal} fee={fee} hotelName={hotelName} hotelImage={hotelImage} />
+        <PaymentForm subtotal={subtotal} fee={fee} hotelName={hotelName} hotelImage={hotelImage} accId={accId} city={city} />
       </div>
       <Footer />
     </div>

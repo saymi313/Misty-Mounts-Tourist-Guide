@@ -6,7 +6,7 @@ import { formatPKR } from '../../../utils/currency';
 
 const BookingComponent = ({ hotel = {} }) => {
   const navigate = useNavigate();
-  const { name, price, picture, type, rating } = hotel;
+  const { _id, name, price, picture, type, rating, city } = hotel;
   const isFood = type === 'food';
   const fee = 1500;
 
@@ -17,6 +17,8 @@ const BookingComponent = ({ hotel = {} }) => {
         fee,
         hotelName: name,
         hotelImage: picture,
+        accId: _id,
+        city,
       },
     });
   };

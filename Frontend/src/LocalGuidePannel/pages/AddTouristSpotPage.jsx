@@ -4,6 +4,7 @@ import { ArrowLeft, Save, ImageIcon, AlertCircle } from "lucide-react";
 import GuideLayout from "../GuideLayout";
 import { Card, SectionHead, Btn, BtnGhost } from "../../components/dashboard/ui";
 import { required, url, minLen, validate, hasErrors } from "../../utils/validation";
+import { LIVE, createPlace } from "../../data/adminApi";
 
 const inputCls =
   "w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-800 outline-none [color-scheme:light] focus:border-emerald-400";
@@ -31,7 +32,7 @@ export default function AddTouristSpotPage() {
 
   const errCls = (k) => (errors[k] ? " !border-rose-300 focus:!border-rose-400" : "");
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     const found = validate(form, {
       name: [required("Name is required")],
@@ -44,7 +45,19 @@ export default function AddTouristSpotPage() {
       setErrors(found);
       return;
     }
-    // Local only — the backend is disconnected. Navigate back to the list.
+    if (LIVE) {
+      try {
+        await createPlace({
+          name: form.name,
+          city: form.city,
+          location: form.location,
+          description: form.description,
+          picture: form.picture,
+          activities: form.activities ? form.activities.split(",").map((s) => s.trim()).filter(Boolean) : [],
+          curatedBy: "Local guide",
+        });
+      } catch { /* fall through and navigate back */ }
+    }
     navigate("/local-guide/spots");
   };
 

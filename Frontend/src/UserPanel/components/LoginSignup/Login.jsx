@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Eye, EyeOff, Mail, Lock, ArrowRight, AlertCircle } from 'lucide-react';
+import { Eye, EyeOff, Mail, Lock, ArrowRight, AlertCircle, CheckCircle2 } from 'lucide-react';
 import { FcGoogle } from 'react-icons/fc';
 import { FaApple } from 'react-icons/fa';
 import { useNavigate, useLocation } from 'react-router-dom';
@@ -16,12 +16,23 @@ const Login = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const [errors, setErrors] = useState({});
+  const [notice, setNotice] = useState('');
+  const [remember, setRemember] = useState(false);
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
   const { login } = useAuth();
 
   const clear = (key) => errors[key] && setErrors((x) => ({ ...x, [key]: undefined }));
+
+  const forgotPassword = () => {
+    setNotice('');
+    if (!email || emailRule()(email)) {
+      setErrors((x) => ({ ...x, email: 'Enter your email to reset your password' }));
+      return;
+    }
+    setNotice(`If an account exists for ${email}, a password-reset link is on its way.`);
+  };
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -63,6 +74,12 @@ const Login = () => {
         <div className="mb-5 flex items-center gap-2.5 rounded-2xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-200">
           <AlertCircle className="h-4 w-4 shrink-0" />
           <span>{error}</span>
+        </div>
+      )}
+      {notice && (
+        <div className="mb-5 flex items-center gap-2.5 rounded-2xl border border-lime-400/25 bg-lime-400/10 px-4 py-3 text-sm text-lime-300">
+          <CheckCircle2 className="h-4 w-4 shrink-0" />
+          <span>{notice}</span>
         </div>
       )}
 
@@ -109,11 +126,13 @@ const Login = () => {
           <label className="flex items-center gap-2 text-white/70">
             <input
               type="checkbox"
+              checked={remember}
+              onChange={(e) => setRemember(e.target.checked)}
               className="h-4 w-4 rounded border-white/20 bg-night-900 accent-lime-400 focus:ring-2 focus:ring-lime-400/30"
             />
             Remember me
           </label>
-          <button type="button" className="font-semibold text-lime-400 transition-colors hover:text-lime-300">
+          <button type="button" onClick={forgotPassword} className="font-semibold text-lime-400 transition-colors hover:text-lime-300">
             Forgot password?
           </button>
         </div>

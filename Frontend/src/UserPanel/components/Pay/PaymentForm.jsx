@@ -7,12 +7,14 @@ import {
   validate, hasErrors, todayStr,
 } from '../../../utils/validation';
 import { formatPKR } from '../../../utils/currency';
+import { addBooking } from '../../../utils/bookingsStore';
+import { LIVE } from '../../../data/api';
 
 const labelCls = 'mb-1.5 block text-sm font-semibold text-white/70';
 const inputErr = '!border-rose-400/60 focus:!border-rose-400/60 focus:!ring-rose-400/15';
 const errNote = 'mt-1.5 flex items-center gap-1 text-xs font-medium text-rose-400';
 
-const PaymentForm = ({ subtotal = 0, fee = 0, hotelName, hotelImage }) => {
+const PaymentForm = ({ subtotal = 0, fee = 0, hotelName, hotelImage, accId, city }) => {
   const [formData, setFormData] = useState({
     firstName: '', lastName: '', email: '', phone: '', date: '', numberOfDays: '1', hasPromoCode: false,
   });
@@ -50,7 +52,30 @@ const PaymentForm = ({ subtotal = 0, fee = 0, hotelName, hotelImage }) => {
 
     setLoading(true);
     try {
-      const res = await createPayment({ ...formData, subtotal, fee, totalAmount, hotelName, numberOfDays: nights });
+      const res = await createPayment({
+        ...formData, subtotal, fee, totalAmount, hotelName, numberOfDays: nights,
+        accId, city, hotelImage,
+      });
+      // Record the booking so it shows in "My bookings" — the real server row
+      // when live, an optimistic local one otherwise.
+      addBooking(
+        LIVE && res.data.booking
+          ? res.data.booking
+          : {
+              _id: `mb-${res.data.bookingId}`,
+              accId: accId || "",
+              hotel: hotelName || "Your stay",
+              city: city || "Northern Pakistan",
+              image: hotelImage || "",
+              checkIn: formData.date,
+              nights,
+              guests: 1,
+              amount: totalAmount,
+              status: "Upcoming",
+              bookedOn: todayStr(),
+              ref: res.data.bookingId,
+            }
+      );
       setConfirmation(res.data);
     } catch {
       setError('Unable to process the booking. Please try again.');

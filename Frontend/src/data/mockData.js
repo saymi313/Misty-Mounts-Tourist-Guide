@@ -545,4 +545,79 @@ export const mockUser = {
   email: "traveller@mistymounts.pk",
   name: "Zara Ahmed",
   type: "user",
+  phone: "+92 300 1234567",
+  city: "Hunza",
+  bio: "Slow traveller chasing apricot blossoms and quiet mountain mornings across Gilgit-Baltistan.",
+  memberSince: "2026-01-08",
 };
+
+// ── The signed-in traveller's saved spots (ids into `allPlaces`) ───────────────
+export const savedSpotIds = [
+  "hunza-attabad",
+  "skardu-deosai",
+  "hunza-eagles-nest",
+  "skardu-cold-desert",
+];
+
+// ── The signed-in traveller's bookings (mirrors GET /api/bookings/me) ──────────
+export const myBookings = [
+  {
+    _id: "mb-1", accId: "acc-serena-hunza", hotel: "Hunza Serena Inn", city: "Hunza",
+    image: img("serena-hunza", 800, 600), checkIn: "2026-08-14", nights: 3, guests: 2,
+    amount: 81000, status: "Upcoming", bookedOn: "2026-07-02", ref: "MM-8F3K2A",
+  },
+  {
+    _id: "mb-2", accId: "acc-luxus-attabad", hotel: "Luxus Hunza — Attabad Lake", city: "Hunza",
+    image: img("luxus-attabad", 800, 600), checkIn: "2026-09-02", nights: 2, guests: 2,
+    amount: 72000, status: "Upcoming", bookedOn: "2026-07-10", ref: "MM-2P9Q7B",
+  },
+  {
+    _id: "mb-3", accId: "acc-shangrila-skardu", hotel: "Shangrila Resort Skardu", city: "Skardu",
+    image: img("shangrila-resort", 800, 600), checkIn: "2026-05-18", nights: 4, guests: 3,
+    amount: 96000, status: "Completed", bookedOn: "2026-04-20", ref: "MM-5T1R4C",
+  },
+  {
+    _id: "mb-4", accId: "acc-ptdc-naran", hotel: "PTDC Motel Naran", city: "Naran Kaghan",
+    image: img("ptdc-naran", 800, 600), checkIn: "2026-06-11", nights: 2, guests: 4,
+    amount: 28000, status: "Completed", bookedOn: "2026-05-30", ref: "MM-9K3M8D",
+  },
+  {
+    _id: "mb-5", accId: "acc-cafe-de-hunza", hotel: "Café de Hunza", city: "Hunza",
+    image: img("cafe-hunza", 800, 600), checkIn: "2026-04-02", nights: 1, guests: 2,
+    amount: 1800, status: "Cancelled", bookedOn: "2026-03-25", ref: "MM-1B7N6E",
+  },
+];
+
+// ── The signed-in traveller's notifications (mirrors GET /api/notifications) ────
+export const notifications = [
+  {
+    _id: "nt-1", type: "booking", title: "Booking confirmed",
+    body: "Your stay at Hunza Serena Inn on 14 Aug is confirmed. Reference MM-8F3K2A.",
+    time: "2026-07-21T09:12:00", read: false, link: "/bookings",
+  },
+  {
+    _id: "nt-2", type: "guide", title: "Karim replied to your message",
+    body: "“Attabad is calm at sunrise — I can arrange a boat for 6 AM if you'd like.”",
+    time: "2026-07-21T07:40:00", read: false, link: "/feedback",
+  },
+  {
+    _id: "nt-3", type: "alert", title: "Weather advisory — Hunza River",
+    body: "Light flooding expected near Gojal this weekend. Plan lake visits for the morning.",
+    time: "2026-07-20T18:05:00", read: false, link: "/destinations",
+  },
+  {
+    _id: "nt-4", type: "price", title: "Price drop on a saved stay",
+    body: "Luxus Hunza — Attabad Lake is now Rs 36,000 / night for your travel dates.",
+    time: "2026-07-19T14:22:00", read: true, link: "/saved",
+  },
+  {
+    _id: "nt-5", type: "review", title: "Share your Skardu trip",
+    body: "How was Shangrila Resort Skardu? Leave a review to help other travellers.",
+    time: "2026-07-18T11:00:00", read: true, link: "/feedback",
+  },
+  {
+    _id: "nt-6", type: "system", title: "Welcome to Misty Mounts",
+    body: "Save the spots you love and we'll keep an eye on prices and mountain weather for you.",
+    time: "2026-07-15T08:30:00", read: true, link: "/destinations",
+  },
+];
