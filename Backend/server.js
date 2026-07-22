@@ -1,31 +1,39 @@
 const express = require("express");
-const bcrypt = require("bcrypt");
-const mongoose = require("mongoose");
 const cors = require("cors");
 const http = require("http");
+const path = require("path");
 const { Server } = require("socket.io");
 
 require("dotenv").config();
 
-// Importing your routes
+const connectDB = require("./config/db");
+const Message = require("./UserBackend/models/message");
+
+// Importing routes
 const authRoutes = require("./AdminBackend/routes/authRoutes");
 const AdminRoutes = require("./AdminBackend/routes/adminRoutes");
-const feedbackRoutes = require('./UserBackend/routes/feedbackRoutes');
-const paymentRoutes = require('./UserBackend/routes/paymentRoutes');
+const feedbackRoutes = require("./UserBackend/routes/feedbackRoutes");
+const paymentRoutes = require("./UserBackend/routes/paymentRoutes");
 const naturalDisasterRoutes = require("./LocalGuidePannel/routes/naturalDisasterRoutes");
-const userAuthRoutes=require("./LocalGuidePannel/routes/authRoutes")
+const userAuthRoutes = require("./LocalGuidePannel/routes/authRoutes");
+const guideSpotRoutes = require("./LocalGuidePannel/routes/touristSpotRoutes");
+const userRoutes = require("./UserBackend/routes/userRoutes");
+const notificationRoutes = require("./UserBackend/routes/notificationRoutes");
+const uploadRoutes = require("./routes/uploadRoutes");
 
 const app = express();
 const server = http.createServer(app);
+
+const PORT = process.env.PORT || 5000;
+const CLIENT_URL = process.env.CLIENT_URL || "http://localhost:5173";
+
 const io = new Server(server, {
   cors: {
-    origin: "http://localhost:5173", // React frontend URL
+    origin: CLIENT_URL,
     methods: ["GET", "POST"],
     credentials: true,
   },
 });
-
-const PORT = 5000;
 
 // Enhanced active users storage with more information
 let activeUsers = {}; // Store active users with their socket IDs and user info
@@ -36,25 +44,40 @@ let deletedChats = {}; // Track deleted chats per guide
 
 // Middleware
 app.use(cors({
-  origin: "http://localhost:5173", // Allow frontend requests
-  methods: ["GET", "POST", "PUT", "DELETE", "PATCH"], // Allow PATCH method
+  origin: CLIENT_URL, // Allow frontend requests
+  methods: ["GET", "POST", "PUT", "DELETE", "PATCH"],
   credentials: true,
 }));
 
-app.use(express.json()); // Parse incoming JSON data
+app.use(express.json({ limit: "5mb" }));
+app.use(express.urlencoded({ extended: true }));
+
+// Serve uploaded files (e.g. profile avatars)
+app.use("/uploads", express.static(path.join(__dirname, "uploads")));
+
+// Health check
+app.get("/api/health", (req, res) => res.json({ ok: true, uptime: process.uptime() }));
 
 // Routes
 app.use("/api/admin/auth", authRoutes);
 app.use("/api/user/auth", userAuthRoutes);
-app.use("/api/admin", AdminRoutes); // Mount the spot routes
-app.use('/api/feedback', feedbackRoutes);
+app.use("/api/user", userRoutes);         // Profile, avatar, saved spots
+app.use("/api/admin", AdminRoutes);       // Admin resource CRUD
+app.use("/api/guide", guideSpotRoutes);   // Local-guide tourist-spot CRUD
+app.use("/api/feedback", feedbackRoutes);
 app.use("/api/payment", paymentRoutes);
-app.use("/api/natural-disaster", naturalDisasterRoutes); // Natural disaster routes
+app.use("/api/notifications", notificationRoutes);
+app.use("/api/upload", uploadRoutes);
+app.use("/api/natural-disaster", naturalDisasterRoutes);
 
-// MongoDB Connection
-mongoose.connect(process.env.MONGO_URI)
-  .then(() => console.log("MongoDB connected successfully"))
-  .catch((err) => console.error("Failed to connect to MongoDB", err));
+// 404 for unmatched API routes
+app.use((req, res) => res.status(404).json({ error: "Route not found" }));
+
+// Central error handler
+app.use((err, req, res, next) => {
+  console.error("Unhandled error:", err.message);
+  res.status(err.status || 500).json({ error: err.message || "Internal server error" });
+});
 
 // Helper function to get or create conversation history
 const getConversationHistory = (userId1, userId2) => {
@@ -200,9 +223,11 @@ io.on("connection", (socket) => {
       isRead: false
     };
     
-    // Add to message history
+    // Add to message history (in-memory) and persist to MongoDB
     addMessageToHistory(userId, 'guide', messageObj);
-    
+    Message.create({ userId, sender: "user", senderName: username, text: message })
+      .catch((e) => console.error("persist user message:", e.message));
+
     // Broadcast the user message to all connected local guides
     io.emit("user-message", messageObj);
     
@@ -248,7 +273,19 @@ io.on("connection", (socket) => {
       timestamp: new Date(),
       isRead: false
     };
-    
+
+    // Persist guide message(s) to MongoDB (broadcast → one per active tourist).
+    const persistGuideMessage = (uid) =>
+      Message.create({ userId: uid, sender: "guide", senderName: guideUsername, text: message })
+        .catch((e) => console.error("persist guide message:", e.message));
+    if (broadcastToAll || !targetUserId) {
+      Object.values(activeUsers)
+        .filter((u) => u.userType === "user")
+        .forEach((u) => persistGuideMessage(u.userId));
+    } else {
+      persistGuideMessage(targetUserId);
+    }
+
     if (broadcastToAll) {
       // Broadcast to all users (general announcement)
       console.log("Broadcasting message to all users");
@@ -317,9 +354,10 @@ io.on("connection", (socket) => {
     
     console.log(`Guide ${guideInfo.username} deleting chat with user ${targetUserId}`);
     
-    // Delete chat history
+    // Delete chat history (in-memory + persisted)
     deleteChatHistory(guideInfo.userId, targetUserId);
-    
+    Message.deleteMany({ userId: targetUserId }).catch((e) => console.error("delete chat:", e.message));
+
     // Notify the guide that chat was deleted
     socket.emit("chat-deleted", {
       targetUserId: targetUserId,
@@ -335,32 +373,41 @@ io.on("connection", (socket) => {
     }
   });
 
-  // Handle request for message history (filtered for deleted chats)
-  socket.on("get-message-history", (data) => {
+  // Handle request for message history (loaded from MongoDB, filtered for deleted chats)
+  socket.on("get-message-history", async (data) => {
     const { userId, otherUserId } = data;
     const userInfo = activeUsers[socket.id];
-    
+
     if (!userInfo) {
       socket.emit("error", "User not authenticated");
       return;
     }
-    
+
     // For guides, check if chat is deleted
     if (userInfo.userType === 'local guide' && isChatDeleted(userInfo.userId, otherUserId)) {
-      socket.emit("message-history", {
-        userId: otherUserId,
-        messages: [],
-        isDeleted: true
-      });
+      socket.emit("message-history", { userId: otherUserId, messages: [], isDeleted: true });
       return;
     }
-    
-    const history = getConversationHistory(userId, otherUserId);
-    socket.emit("message-history", {
-      userId: otherUserId,
-      messages: history,
-      isDeleted: false
-    });
+
+    // Conversations are keyed by the tourist's id.
+    const touristId = userInfo.userType === 'user' ? userId : otherUserId;
+    try {
+      const docs = await Message.find({ userId: touristId }).sort({ createdAt: 1 }).limit(200);
+      const messages = docs.map((d) => ({
+        id: d._id.toString(),
+        text: d.text,
+        sender: d.sender,
+        username: d.sender === 'user' ? d.senderName : undefined,
+        guideUsername: d.sender === 'guide' ? d.senderName : undefined,
+        timestamp: d.createdAt,
+        isRead: d.read,
+      }));
+      socket.emit("message-history", { userId: otherUserId, messages, isDeleted: false });
+    } catch (err) {
+      // Fall back to in-memory history if the DB is unreachable.
+      const history = getConversationHistory(userId, otherUserId);
+      socket.emit("message-history", { userId: otherUserId, messages: history, isDeleted: false });
+    }
   });
 
   // Handle message read status
@@ -403,7 +450,8 @@ io.on("connection", (socket) => {
   });
 });
 
-// Start the server
+// Connect to MongoDB, then start the server
+connectDB();
 server.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
+  console.log(`Server running on port ${PORT} (client: ${CLIENT_URL})`);
 });

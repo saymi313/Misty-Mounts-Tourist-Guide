@@ -5,6 +5,7 @@ import GuideLayout from "../GuideLayout";
 import { Card, SectionHead, Btn, BtnGhost } from "../../components/dashboard/ui";
 import { required, url, minLen, validate, hasErrors } from "../../utils/validation";
 import { LIVE, createPlace } from "../../data/adminApi";
+import ImageUploadButton from "../../components/dashboard/ImageUploadButton";
 
 const inputCls =
   "w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-800 outline-none [color-scheme:light] focus:border-emerald-400";
@@ -132,14 +133,23 @@ export default function AddTouristSpotPage() {
           </div>
 
           <div className="mt-5 space-y-1.5">
-            <label htmlFor="picture" className={labelCls}>Image URL</label>
+            <div className="flex items-center justify-between gap-3">
+              <label htmlFor="picture" className={labelCls}>Image</label>
+              <ImageUploadButton
+                folder="spots"
+                onUploaded={(url) => {
+                  setForm((f) => ({ ...f, picture: url }));
+                  if (errors.picture) setErrors((er) => ({ ...er, picture: undefined }));
+                }}
+              />
+            </div>
             <input
               id="picture"
               name="picture"
               type="url"
               value={form.picture}
               onChange={handleChange}
-              placeholder="https://..."
+              placeholder="https://…  or use Upload"
               aria-invalid={!!errors.picture}
               className={inputCls + errCls("picture")}
             />

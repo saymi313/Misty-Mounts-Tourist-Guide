@@ -7,8 +7,9 @@ import { accommodations as seed } from "../../data/mockData";
 import { required, number, min, max, validate, hasErrors } from "../../utils/validation";
 import { formatPKR } from "../../utils/currency";
 import { LIVE, listAccommodations, createAccommodation, updateAccommodation, deleteAccommodation } from "../../data/adminApi";
+import ImageUploadButton from "../../components/dashboard/ImageUploadButton";
 
-const emptyForm = { name: "", type: "hotel", location: "", city: "", price: "", rating: "" };
+const emptyForm = { name: "", type: "hotel", location: "", city: "", price: "", rating: "", picture: "" };
 
 const TypeBadge = ({ type }) => {
   const isFood = type === "food";
@@ -56,6 +57,7 @@ const AccommodationManagement = () => {
       city: item.city,
       price: item.price,
       rating: item.rating,
+      picture: item.picture || "",
     });
     setErrors({});
     setModalOpen(true);
@@ -270,6 +272,19 @@ const AccommodationManagement = () => {
               hint="Average guest rating out of 5."
               error={errors.rating}
             />
+          </div>
+          <div>
+            <div className="mb-1.5 flex items-center justify-between gap-3">
+              <span className="text-xs font-semibold uppercase tracking-wide text-slate-500">Photo</span>
+              <ImageUploadButton folder="accommodations" onUploaded={(url) => update("picture", url)} />
+            </div>
+            <input
+              value={form.picture}
+              onChange={(e) => update("picture", e.target.value)}
+              placeholder="https://…  or use Upload"
+              className={adminInputCls}
+            />
+            {form.picture && <img src={form.picture} alt="" className="mt-2 h-28 w-full rounded-xl object-cover" />}
           </div>
         </div>
       </Modal>

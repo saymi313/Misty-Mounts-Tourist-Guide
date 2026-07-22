@@ -1,9 +1,24 @@
 const Transportation = require('../models/Transportation');
 
+// Fetch all transportation options (admin list view)
+exports.getAllTransportation = async (req, res) => {
+  try {
+    const transportation = await Transportation.find();
+    res.status(200).json(transportation);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to fetch transportation options' });
+  }
+};
+
 // Fetch transportation options by spot ID
 exports.getTransportationBySpotId = async (req, res) => {
   try {
-    const transportation = await Transportation.find({ spotId: req.params.spotId });
+    const { spotId } = req.params;
+    let transportation = await Transportation.find({ spotId });
+    // Fall back to general options (seeded with spotId "") when a spot has none.
+    if (!transportation.length) {
+      transportation = await Transportation.find({ spotId: { $in: ["", null] } });
+    }
     res.status(200).json(transportation);
   } catch (error) {
     res.status(500).json({ error: 'Failed to fetch transportation options' });
@@ -12,11 +27,10 @@ exports.getTransportationBySpotId = async (req, res) => {
 
 // Add transportation
 exports.addTransportation = async (req, res) => {
-  const { spotId, transportType, Number, availability } = req.body;
   try {
-    const newTransportation = new Transportation({ spotId, transportType, Number, availability });
+    const newTransportation = new Transportation(req.body);
     await newTransportation.save();
-    res.status(201).json({ message: 'Transportation added successfully' });
+    res.status(201).json({ message: 'Transportation added successfully', transportation: newTransportation });
   } catch (error) {
     res.status(500).json({ error: 'Failed to add transportation' });
   }

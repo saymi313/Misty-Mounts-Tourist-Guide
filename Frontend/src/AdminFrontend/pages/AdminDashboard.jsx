@@ -1,17 +1,29 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { CalendarCheck, Map as MapIcon, BedDouble, SlidersHorizontal, ArrowUpRight, Mountain } from "lucide-react";
 import AdminLayout from "../AdminLayout";
 import { Card, SectionHead, StatCard, DestinationCard, ListRow, BtnGhost, Contour } from "../../components/dashboard/ui";
 import { Stagger, Reveal } from "../../components/dashboard/motion";
-import { allPlaces, accommodations, bookings, img } from "../../data/mockData";
+import { allPlaces as seedPlaces, accommodations as seedAcc, bookings as seedBookings, img } from "../../data/mockData";
 import { formatPKR, PKR_PREFIX } from "../../utils/currency";
+import { LIVE, listPlaces, listAccommodations, listPayments } from "../../data/adminApi";
 
 const AdminDashboard = () => {
   const navigate = useNavigate();
-  const revenue = bookings.reduce((s, b) => s + b.amount, 0);
-  const featured = allPlaces.slice(0, 3);
-  const best = accommodations.slice(0, 5);
+  const [places, setPlaces] = useState(seedPlaces);
+  const [accs, setAccs] = useState(seedAcc);
+  const [bookings, setBookings] = useState(seedBookings);
+
+  useEffect(() => {
+    if (!LIVE) return;
+    listPlaces().then((p) => setPlaces(p.length ? p : seedPlaces)).catch(() => {});
+    listAccommodations().then((a) => setAccs(a.length ? a : seedAcc)).catch(() => {});
+    listPayments().then(setBookings).catch(() => {});
+  }, []);
+
+  const revenue = bookings.reduce((s, b) => s + (b.amount || 0), 0);
+  const featured = places.slice(0, 3);
+  const best = accs.slice(0, 5);
   const trend = [14, 19, 16, 24, 21, 28, 34];
 
   return (
@@ -23,8 +35,8 @@ const AdminDashboard = () => {
             <StatCard featured tone="emerald" label="Total revenue" count={revenue} prefix={PKR_PREFIX} delta="+12%" spark={trend} />
             <div className="grid gap-4 sm:grid-cols-3 lg:col-span-2">
               <StatCard icon={CalendarCheck} tone="apricot" label="Bookings" count={bookings.length} delta="+4" />
-              <StatCard icon={MapIcon} tone="emerald" label="Tourist spots" count={allPlaces.length} />
-              <StatCard icon={BedDouble} tone="violet" label="Stays & food" count={accommodations.length} />
+              <StatCard icon={MapIcon} tone="emerald" label="Tourist spots" count={places.length} />
+              <StatCard icon={BedDouble} tone="violet" label="Stays & food" count={accs.length} />
             </div>
           </div>
         </Reveal>
@@ -44,7 +56,7 @@ const AdminDashboard = () => {
             <Card className="lg:col-span-2">
               <SectionHead
                 title="Top-booked stays"
-                sub={`${accommodations.length} places across 6 valleys`}
+                sub={`${accs.length} places across 6 valleys`}
                 action={<BtnGhost><SlidersHorizontal className="h-4 w-4" /> Filters</BtnGhost>}
               />
               <div className="divide-y divide-slate-100">

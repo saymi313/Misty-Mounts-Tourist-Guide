@@ -7,12 +7,17 @@ const {
   updateNaturalDisaster,
   deleteNaturalDisaster,
 } = require("../controllers/naturalDisasterController");
+const { authenticate, requireRole } = require("../../middleware/auth");
 
-// Routes for natural disaster management
-router.post("/add-disaster", createNaturalDisaster); // Create a new disaster
-router.get("/get-disaster", getAllNaturalDisasters); // Get all disasters
-router.get("/:id", getNaturalDisasterById); // Get a single disaster by ID
-router.put("/:id", updateNaturalDisaster); // Update a disaster
-router.delete("/:id", deleteNaturalDisaster); // Delete a disaster
+const guideOrAdmin = [authenticate, requireRole("local guide", "admin")];
+
+// Reads (public — travellers see safety alerts)
+router.get("/get-disaster", getAllNaturalDisasters);
+router.get("/:id", getNaturalDisasterById);
+
+// Writes (guide/admin only)
+router.post("/add-disaster", guideOrAdmin, createNaturalDisaster);
+router.put("/:id", guideOrAdmin, updateNaturalDisaster);
+router.delete("/:id", guideOrAdmin, deleteNaturalDisaster);
 
 module.exports = router;

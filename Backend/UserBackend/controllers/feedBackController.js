@@ -1,4 +1,4 @@
-const Feedback = require('../models/Feedback');
+const Feedback = require('../models/feedback');
 
 // Add new feedback
 exports.addFeedback = async (req, res) => {
@@ -34,12 +34,9 @@ exports.getFeedbacksByLocation = async (req, res) => {
   try {
     const feedbacks = await Feedback.find({ locationName });
 
-    if (feedbacks.length === 0) {
-      return res.status(404).json({ message: 'No feedback found for this location' });
-    }
-
+    // Return 200 with an empty array when a location simply has no reviews yet.
     res.status(200).json({
-      message: 'Feedbacks fetched successfully',
+      message: feedbacks.length ? 'Feedbacks fetched successfully' : 'No feedback yet for this location',
       feedbacks,
     });
   } catch (error) {

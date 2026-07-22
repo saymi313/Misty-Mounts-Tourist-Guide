@@ -1,25 +1,28 @@
 const Admin = require("../models/Admin");
-const bcrypt = require('bcrypt'); // Using bcryptjs for password hashing
+const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
+
+const signToken = (admin) =>
+  jwt.sign({ id: admin._id, type: "admin" }, process.env.JWT_SECRET, { expiresIn: "30d" });
 
 // Register Admin
 exports.registerAdmin = async (req, res) => {
   try {
-    const { username, password } = req.body;
-    console.log("Username: ", username);
-    console.log("Plain Password: ", password);
+    const { username, email, password } = req.body;
+    if (!username || !email || !password) {
+      return res.status(400).json({ error: "username, email and password are required" });
+    }
 
-    // Hash password
+    const exists = await Admin.findOne({ $or: [{ username }, { email }] });
+    if (exists) return res.status(409).json({ error: "Admin already exists" });
+
     const hashedPassword = await bcrypt.hash(password, 10);
-    console.log("Hashed Password: ", hashedPassword);
-
-    // Create admin
-    const admin = new Admin({ username, password: hashedPassword });
+    const admin = new Admin({ username, email, password: hashedPassword });
     await admin.save();
 
-    res.status(201).json({ message: "Admin registered successfully" });
+    res.status(201).json({ message: "Admin registered successfully", token: signToken(admin) });
   } catch (error) {
-    console.error("Error in registerAdmin:", error);
+    console.error("Error in registerAdmin:", error.message);
     res.status(500).json({ error: "Failed to register admin" });
   }
 };
@@ -28,29 +31,19 @@ exports.registerAdmin = async (req, res) => {
 exports.loginAdmin = async (req, res) => {
   try {
     const { username, password } = req.body;
-    console.log("Incoming Username: ", username);
-    console.log("Incoming Plain Password: ", password);
+    if (!username || !password) {
+      return res.status(400).json({ error: "username and password are required" });
+    }
 
-    // Check if admin exists
     const admin = await Admin.findOne({ username });
-    console.log("Admin Found: ", admin);
     if (!admin) return res.status(404).json({ error: "Admin not found" });
 
-    // Log the stored hashed password for debugging purposes
-    console.log("Stored Hashed Password: ", admin.password);
-
-    // Verify password
     const isMatch = await bcrypt.compare(password, admin.password);
-    console.log("Password Match Result: ", isMatch); // This will be true if passwords match
-
     if (!isMatch) return res.status(401).json({ error: "Invalid credentials" });
 
-    // Generate JWT
-    const token = jwt.sign({ id: admin._id }, "your-secret-key", { expiresIn: "1h" });
-
-    res.status(200).json({ message: "Login successful", token });
+    res.status(200).json({ message: "Login successful", token: signToken(admin) });
   } catch (error) {
-    console.error("Error in loginAdmin:", error);
+    console.error("Error in loginAdmin:", error.message);
     res.status(500).json({ error: "Failed to login admin" });
   }
 };

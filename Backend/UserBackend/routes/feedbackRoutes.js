@@ -4,20 +4,19 @@ const {
   getFeedbacksByLocation,
   deleteFeedback,
   getAllFeedbacks
-} = require('../controllers/feedbackController');
+} = require('../controllers/feedBackController');
+const { authenticate, requireAdmin } = require('../../middleware/auth');
 
 const router = express.Router();
 
-// Route to submit feedback for a specific location
-router.post('/submit', addFeedback);
-
-// Route to fetch all feedbacks for a specific location
+// Reads (public)
+router.get('/', getAllFeedbacks);
 router.get('/:locationName', getFeedbacksByLocation);
 
-// Route to delete feedback by ID
-router.delete('/:id', deleteFeedback);
+// Submit a review (any signed-in user)
+router.post('/submit', authenticate, addFeedback);
 
-router.get('/', getAllFeedbacks);
-
+// Delete a review (admin only)
+router.delete('/:id', authenticate, requireAdmin, deleteFeedback);
 
 module.exports = router;

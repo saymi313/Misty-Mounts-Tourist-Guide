@@ -97,7 +97,9 @@ export const AuthProvider = ({ children }) => {
         hydrateUserData();
         return { success: true, user: userData };
       } catch (err) {
-        return { success: false, error: err.response?.data?.message || 'Login failed' };
+        const d = err.response?.data;
+        if (d?.needsVerification) return { success: false, needsVerification: true, email: d.email };
+        return { success: false, error: d?.message || 'Login failed' };
       }
     }
 
@@ -108,6 +110,17 @@ export const AuthProvider = ({ children }) => {
     localStorage.setItem('user', JSON.stringify(userData));
     if (!socket.connected) socket.connect();
     return { success: true, user: userData };
+  };
+
+  // Apply a session from an auth response (used after OTP verification).
+  const applySession = (data) => {
+    const userData = { email: data.email, name: data.name, type: data.type, avatar: data.avatar || '' };
+    setUser(userData);
+    localStorage.setItem('token', data.token);
+    localStorage.setItem('user', JSON.stringify(userData));
+    if (!socket.connected) socket.connect();
+    hydrateUserData();
+    return userData;
   };
 
   const logout = () => {
@@ -127,7 +140,7 @@ export const AuthProvider = ({ children }) => {
     if (LIVE) api.put('/user/me', patch).catch(() => {});
   };
 
-  const value = { user, login, logout, updateUser, loading, socket, socketConnected };
+  const value = { user, login, logout, updateUser, applySession, loading, socket, socketConnected };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };

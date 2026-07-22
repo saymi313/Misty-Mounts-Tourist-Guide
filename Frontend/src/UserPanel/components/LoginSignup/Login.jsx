@@ -7,6 +7,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../../context/AuthContext';
 import { Btn } from '../bento/tiles';
 import { required, email as emailRule, validate, hasErrors } from '../../../utils/validation';
+import OtpVerify from './OtpVerify';
 
 const EASE = [0.16, 1, 0.3, 1];
 
@@ -19,11 +20,17 @@ const Login = () => {
   const [notice, setNotice] = useState('');
   const [remember, setRemember] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [verifyEmail, setVerifyEmail] = useState(null);
   const navigate = useNavigate();
   const location = useLocation();
-  const { login } = useAuth();
+  const { login, applySession } = useAuth();
 
   const clear = (key) => errors[key] && setErrors((x) => ({ ...x, [key]: undefined }));
+
+  const handleVerified = (data) => {
+    applySession(data);
+    navigate(location.state?.from?.pathname || '/user', { replace: true });
+  };
 
   const forgotPassword = () => {
     setNotice('');
@@ -54,6 +61,8 @@ const Login = () => {
       if (result.success) {
         const from = location.state?.from?.pathname || '/user';
         navigate(from, { replace: true });
+      } else if (result.needsVerification) {
+        setVerifyEmail(result.email);
       } else {
         setError(result.error);
       }
@@ -63,6 +72,10 @@ const Login = () => {
       setLoading(false);
     }
   };
+
+  if (verifyEmail) {
+    return <OtpVerify email={verifyEmail} onVerified={handleVerified} onBack={() => setVerifyEmail(null)} />;
+  }
 
   return (
     <motion.div

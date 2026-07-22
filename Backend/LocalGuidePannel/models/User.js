@@ -1,28 +1,44 @@
 const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
 
-const userSchema = new mongoose.Schema({
-  email: {
-    type: String,
-    required: true,
-    unique: true,
-    lowercase: true,
+const userSchema = new mongoose.Schema(
+  {
+    email: {
+      type: String,
+      required: true,
+      unique: true,
+      lowercase: true,
+    },
+    username: {
+      type: String,
+      required: true,
+      unique: true,
+    },
+    password: {
+      type: String,
+      required: true,
+    },
+    type: {
+      type: String,
+      enum: ['user', 'local guide'],
+      required: true,
+    },
+    // Profile fields (editable from the user Profile page)
+    name: { type: String, trim: true, default: '' },
+    phone: { type: String, default: '' },
+    city: { type: String, default: '' },
+    bio: { type: String, default: '', maxlength: 300 },
+    avatar: { type: String, default: '' },
+    interests: { type: [String], default: [] },
+    // Per-user saved tourist-spot ids (Phase 4)
+    savedSpots: { type: [String], default: [] },
+    // Email OTP verification
+    isVerified: { type: Boolean, default: false },
+    otp: { type: String, select: false },
+    otpExpires: { type: Date, select: false },
   },
-  username: {
-    type: String,
-    required: true,
-    unique: true,
-  },
-  password: {
-    type: String,
-    required: true,
-  },
-  type: {
-    type: String,
-    enum: ['user', 'local guide'],
-    required: true,
-  },
-});
+  { timestamps: true }
+);
 
 // Hash password before saving to the database
 userSchema.pre('save', async function (next) {

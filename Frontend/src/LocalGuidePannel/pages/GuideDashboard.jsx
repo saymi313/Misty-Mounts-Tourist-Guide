@@ -1,20 +1,32 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Map as MapIcon, AlertTriangle, MessageSquare, Plus, MapPin } from "lucide-react";
 import GuideLayout from "../GuideLayout";
 import { useAuth } from "../../context/AuthContext";
 import { Card, SectionHead, StatCard, DestinationCard, ListRow, StatusPill, Btn, BtnGhost } from "../../components/dashboard/ui";
 import { Stagger, Reveal } from "../../components/dashboard/motion";
-import { allPlaces, disasters, feedbacks } from "../../data/mockData";
+import { allPlaces as seedPlaces, disasters as seedDisasters, feedbacks as seedFeedbacks } from "../../data/mockData";
+import { LIVE, listPlaces, listDisasters } from "../../data/adminApi";
+import { getFeedbacks } from "../../data/mockApi";
 
 const GuideDashboard = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
   const first = (user?.name || "Karim").split(" ")[0];
+  const [places, setPlaces] = useState(seedPlaces);
+  const [disasters, setDisasters] = useState(seedDisasters);
+  const [feedbacks, setFeedbacks] = useState(seedFeedbacks);
 
-  const mySpots = allPlaces.filter((p) => p.curatedBy);
+  useEffect(() => {
+    if (!LIVE) return;
+    listPlaces().then((p) => setPlaces(p.length ? p : seedPlaces)).catch(() => {});
+    listDisasters().then((d) => setDisasters(d || [])).catch(() => {});
+    getFeedbacks().then((r) => setFeedbacks(r.feedbacks?.length ? r.feedbacks : seedFeedbacks)).catch(() => {});
+  }, []);
+
+  const mySpots = places.filter((p) => p.curatedBy);
   const activeAlerts = disasters.filter((d) => !d.isResolved);
-  const avgNum = feedbacks.reduce((s, r) => s + r.rating, 0) / feedbacks.length;
+  const avgNum = feedbacks.length ? feedbacks.reduce((s, r) => s + r.rating, 0) / feedbacks.length : 0;
   const ratingTrend = [4.2, 4.4, 4.5, 4.6, 4.7, 4.8, 4.7];
 
   return (

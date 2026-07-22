@@ -23,7 +23,8 @@ const createTestUser = async () => {
       email: "test@example.com",
       username: "testuser",
       password: "password123",
-      type: "user"
+      type: "user",
+      isVerified: true
     });
 
     await testUser.save();
@@ -39,7 +40,8 @@ const createTestUser = async () => {
         email: "guide@example.com",
         username: "testguide",
         password: "password123",
-        type: "local guide"
+        type: "local guide",
+        isVerified: true
       });
 
       await testGuide.save();

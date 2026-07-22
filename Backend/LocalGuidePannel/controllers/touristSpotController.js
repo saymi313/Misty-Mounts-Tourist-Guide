@@ -193,7 +193,8 @@ exports.deleteNearbyPlace = async (req, res) => {
       return res.status(404).json({ success: false, message: "Nearby place not found" });
     }
 
-    nearbyPlace.remove();
+    // Mongoose 8 removed subdocument .remove(); pull by _id instead.
+    spot.nearbyPlaces.pull(nearbyPlaceId);
 
     await spot.save();
     res.status(200).json({ 

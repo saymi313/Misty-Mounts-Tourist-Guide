@@ -3,10 +3,13 @@ import { motion } from 'framer-motion';
 import { Eye, EyeOff, Mail, Lock, User, ArrowRight, AlertCircle, CheckCircle2, ChevronDown, Compass } from 'lucide-react';
 import { FcGoogle } from 'react-icons/fc';
 import { FaApple } from 'react-icons/fa';
+import { useNavigate } from 'react-router-dom';
 import { Field, inputClass, inputErrClass, Divider, SocialButton } from './Login';
 import { Btn } from '../bento/tiles';
 import { required, email as emailRule, minLen, mustBeTrue, validate, hasErrors } from '../../../utils/validation';
 import api, { LIVE } from '../../../data/api';
+import { useAuth } from '../../../context/AuthContext';
+import OtpVerify from './OtpVerify';
 
 const EASE = [0.16, 1, 0.3, 1];
 
@@ -21,8 +24,16 @@ const Signup = ({ onSwitchToLogin }) => {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [loading, setLoading] = useState(false);
+  const [verifyEmail, setVerifyEmail] = useState(null);
+  const navigate = useNavigate();
+  const { applySession } = useAuth();
 
   const clear = (key) => errors[key] && setErrors((x) => ({ ...x, [key]: undefined }));
+
+  const handleVerified = (data) => {
+    applySession(data);
+    navigate('/user', { replace: true });
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -47,12 +58,17 @@ const Signup = ({ onSwitchToLogin }) => {
     setLoading(true);
     try {
       if (LIVE) {
-        await api.post('/user/auth/signup', { email, username, password, type });
+        const { data } = await api.post('/user/auth/signup', { email, username, password, type });
+        if (data.needsVerification) {
+          setVerifyEmail(email);
+          return;
+        }
+        setSuccess('Account created! You can now sign in.');
       } else {
         // Dummy-data phase: simulate a successful signup.
         await new Promise((res) => setTimeout(res, 600));
+        setSuccess('Account created! You can now sign in.');
       }
-      setSuccess('Account created! You can now sign in.');
       setEmail('');
       setUsername('');
       setPassword('');
@@ -65,6 +81,10 @@ const Signup = ({ onSwitchToLogin }) => {
       setLoading(false);
     }
   };
+
+  if (verifyEmail) {
+    return <OtpVerify email={verifyEmail} onVerified={handleVerified} onBack={() => setVerifyEmail(null)} />;
+  }
 
   return (
     <motion.div

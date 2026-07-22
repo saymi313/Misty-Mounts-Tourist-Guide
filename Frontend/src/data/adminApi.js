@@ -4,6 +4,21 @@ import api, { LIVE } from "./api";
 
 export { LIVE };
 
+// ── Image upload (Cloudinary via /api/upload) ─────────────────────────────────
+// Works for admin, guide or user — attaches whichever token exists explicitly.
+export const uploadImage = async (file, folder) => {
+  const fd = new FormData();
+  fd.append("image", file);
+  const token = localStorage.getItem("adminToken") || localStorage.getItem("token");
+  const { data } = await api.post(`/upload${folder ? `?folder=${folder}` : ""}`, fd, {
+    headers: {
+      "Content-Type": "multipart/form-data",
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    },
+  });
+  return data.url;
+};
+
 // ── Accommodations ────────────────────────────────────────────────────────────
 export const listAccommodations = async () => (await api.get("/admin/accommodations")).data;
 export const createAccommodation = async (b) => (await api.post("/admin/accommodations", b)).data.accommodation;

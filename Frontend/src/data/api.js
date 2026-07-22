@@ -15,7 +15,8 @@ api.interceptors.request.use((config) => {
   const token = isAdmin
     ? localStorage.getItem("adminToken") || localStorage.getItem("token")
     : localStorage.getItem("token");
-  if (token) config.headers.Authorization = `Bearer ${token}`;
+  // Don't clobber a token the caller set explicitly (e.g. image uploads).
+  if (token && !config.headers.Authorization) config.headers.Authorization = `Bearer ${token}`;
   return config;
 });
 

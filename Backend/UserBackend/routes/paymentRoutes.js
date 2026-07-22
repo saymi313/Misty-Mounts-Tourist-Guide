@@ -1,15 +1,20 @@
 // routes/paymentRoutes.js
 const express = require('express');
 const router = express.Router();
-const { createPayment, getAllPayments, updateBookingApproval } = require('../controllers/paymentController');
+const {
+  createPayment, getMyBookings, cancelBooking, getAllPayments, updateBookingApproval,
+} = require('../controllers/paymentController');
+const { authenticate, requireAdmin } = require('../../middleware/auth');
 
-// Route to create a payment
-router.post('/create', createPayment);
+// Create a booking (signed-in user)
+router.post('/create', authenticate, createPayment);
 
-// Route to get all payments (admin view)
-router.get('/', getAllPayments);
+// The signed-in user's own bookings
+router.get('/me', authenticate, getMyBookings);
+router.patch('/:id/cancel', authenticate, cancelBooking);
 
-// Route to update booking approval status by admin
-router.put('/approve', updateBookingApproval);
+// Admin views/updates
+router.get('/', authenticate, requireAdmin, getAllPayments);
+router.put('/approve', authenticate, requireAdmin, updateBookingApproval);
 
 module.exports = router;

@@ -20,7 +20,7 @@ const testConnection = async () => {
       console.log("❌ Admin user not found. Creating admin user...");
       
       // Create admin user
-      const bcrypt = require("bcrypt");
+      const bcrypt = require("bcryptjs");
       const hashedPassword = await bcrypt.hash("usairam1234", 10);
       
       const newAdmin = new Admin({
