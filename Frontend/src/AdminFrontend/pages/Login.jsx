@@ -11,8 +11,8 @@ const inputBase =
 const Login = () => {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
-  const [email, setEmail] = useState("saymi313");
-  const [password, setPassword] = useState("usairam1234");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [errors, setErrors] = useState({});
   const [loginError, setLoginError] = useState("");
 
@@ -24,7 +24,7 @@ const Login = () => {
     const found = validate(
       { email, password },
       {
-        email: [required("Username is required")],
+        email: [required("Email or username is required")],
         password: [required("Password is required")],
       }
     );
@@ -40,17 +40,18 @@ const Login = () => {
         localStorage.setItem("adminToken", data.token);
         navigate("/admin/dashboard");
       } catch (err) {
-        setLoginError(err.response?.data?.error || "Login failed");
+        setLoginError(
+          err.response?.data?.error ||
+            (err.response ? "Login failed" : "Couldn't reach the server — please try again.")
+        );
         setLoading(false);
       }
       return;
     }
 
-    // Dummy-data mode: any valid-looking credentials sign in.
-    setTimeout(() => {
-      localStorage.setItem("adminToken", "mock-admin-token");
-      navigate("/admin/dashboard");
-    }, 500);
+    // No backend configured — admin access requires valid credentials via the API.
+    setLoginError("Admin login is unavailable — the backend is not configured.");
+    setLoading(false);
   };
 
   return (
@@ -86,7 +87,7 @@ const Login = () => {
 
           <p className="text-sm font-semibold uppercase tracking-widest text-lime-600">Welcome back</p>
           <h2 className="mt-2 text-3xl font-bold text-slate-900">Sign in to admin</h2>
-          <p className="mt-2 text-sm text-slate-400">Sign in with your admin username and password.</p>
+          <p className="mt-2 text-sm text-slate-400">Sign in with your admin email and password.</p>
 
           <form onSubmit={handleSubmit} noValidate className="mt-8 space-y-4">
             {loginError && (
@@ -104,7 +105,7 @@ const Login = () => {
                     setEmail(e.target.value);
                     clear("email");
                   }}
-                  placeholder="Username"
+                  placeholder="Email or username"
                   aria-invalid={!!errors.email}
                   className={`${inputBase} ${errors.email ? "!border-rose-300 focus:!border-rose-400" : ""}`}
                 />

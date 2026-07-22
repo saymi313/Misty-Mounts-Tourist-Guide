@@ -30,9 +30,22 @@ const Login = () => {
 
   const clear = (key) => errors[key] && setErrors((x) => ({ ...x, [key]: undefined }));
 
+  // Where to land after auth: the account's role home by default, honouring a
+  // deep-link only when it belongs to that account's own area — so a guest
+  // bounced off "/" or "/user" and then signing in as a guide/admin still lands
+  // in their panel instead of the traveller app.
+  const destFor = (type) => {
+    const from = location.state?.from?.pathname;
+    const home = landingFor(type);
+    if (!from || from === "/" || from === "/user" || from === "/auth") return home;
+    if (type === "local guide") return from.startsWith("/local-guide") ? from : home;
+    if (type === "admin") return from.startsWith("/admin") ? from : home;
+    return from;
+  };
+
   const handleVerified = (data) => {
     applySession(data);
-    navigate(location.state?.from?.pathname || landingFor(data.type), { replace: true });
+    navigate(destFor(data.type), { replace: true });
   };
 
   const handleLogin = async (e) => {
@@ -53,8 +66,7 @@ const Login = () => {
     try {
       const result = await login(email, password);
       if (result.success) {
-        const from = location.state?.from?.pathname;
-        navigate(from || landingFor(result.user?.type), { replace: true });
+        navigate(destFor(result.user?.type), { replace: true });
       } else if (result.needsVerification) {
         setVerifyEmail(result.email);
       } else {

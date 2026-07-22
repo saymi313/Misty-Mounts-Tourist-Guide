@@ -1,4 +1,6 @@
 const TouristSpot = require("../models/TouristSport");
+const Admin = require("../models/Admin");
+const User = require("../../LocalGuidePannel/models/User");
 const { slugify } = require("../../utils/slug");
 const { getAutoApprove } = require("./settingsController");
 
@@ -32,6 +34,8 @@ const flatten = (doc) =>
     activities: p.activities || [],
     hiddenGem: !!p.hiddenGem,
     curatedBy: p.curatedBy || "",
+    uploaderRole: p.uploaderRole || "",
+    uploaderName: p.uploaderName || "",
     isApproved: p.isApproved !== false,
   }));
 
@@ -70,6 +74,19 @@ exports.createPlace = async (req, res) => {
       place.isApproved = await getAutoApprove();
     } else {
       place.isApproved = "isApproved" in req.body ? !!req.body.isApproved : true;
+    }
+
+    // Record who uploaded the spot, resolved from the authenticated user so it
+    // can't be spoofed by the client.
+    if (req.user?.type === "local guide") {
+      const guide = await User.findById(req.user.id).select("name");
+      place.uploaderRole = "local guide";
+      place.uploaderName = guide?.name || "Local guide";
+      place.curatedBy = place.uploaderName;
+    } else if (req.user?.type === "admin") {
+      const admin = await Admin.findById(req.user.id).select("username");
+      place.uploaderRole = "admin";
+      place.uploaderName = admin?.username || "Admin";
     }
 
     doc.nearbyPlaces.push(place);

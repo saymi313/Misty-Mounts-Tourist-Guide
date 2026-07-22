@@ -34,3 +34,4 @@ uploads/
 # Project markdown — keep only the README
 *.md
 !README.md
+seedAdmin.js

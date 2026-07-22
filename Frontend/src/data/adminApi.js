@@ -43,6 +43,12 @@ export const deletePlace = async (id) => (await api.delete(`/admin/places/${id}`
 export const getSettings = async () => (await api.get("/admin/settings")).data.settings;
 export const updateSettings = async (b) => (await api.patch("/admin/settings", b)).data.settings;
 
+// ── Cities (read public; write admin) ─────────────────────────────────────────
+export const listCities = async () => (await api.get("/admin/cities")).data.cities;
+export const createCity = async (b) => (await api.post("/admin/cities", b)).data.city;
+export const updateCity = async (id, b) => (await api.put(`/admin/cities/${id}`, b)).data.city;
+export const deleteCity = async (id) => (await api.delete(`/admin/cities/${id}`)).data;
+
 // ── Payments / bookings (admin) ───────────────────────────────────────────────
 export const listPayments = async () => (await api.get("/payment")).data.payments;
 export const updatePaymentStatus = async (bookingId, status) =>

@@ -27,9 +27,14 @@ const userSchema = new mongoose.Schema(
     name: { type: String, trim: true, default: '' },
     phone: { type: String, default: '' },
     city: { type: String, default: '' },
-    bio: { type: String, default: '', maxlength: 300 },
+    bio: { type: String, default: '', maxlength: 500 },
     avatar: { type: String, default: '' },
     interests: { type: [String], default: [] },
+    // Local-guide profile extras (only meaningful when type === 'local guide')
+    languages: { type: [String], default: [] },
+    specialties: { type: [String], default: [] },
+    serviceAreas: { type: [String], default: [] },
+    experience: { type: String, default: '' },
     // Per-user saved tourist-spot ids (Phase 4)
     savedSpots: { type: [String], default: [] },
     // Email OTP verification

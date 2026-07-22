@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Map as MapIcon, Gem, Building2, Plus, Pencil, Trash2, Check, Clock } from "lucide-react";
+import { Map as MapIcon, Gem, Building2, Plus, Pencil, Trash2, Check, Clock, Shield, User as UserIcon } from "lucide-react";
 import AdminLayout from "../AdminLayout";
 import { Card, SectionHead, StatCard, StatusPill, Btn, BtnGhost, Field, adminInputCls } from "../../components/dashboard/ui";
 import Modal from "../../components/dashboard/Modal";
@@ -7,11 +7,34 @@ import { required, validate, hasErrors } from "../../utils/validation";
 import { LIVE, listPlaces, createPlace, updatePlace, approvePlace, deletePlace, getSettings, updateSettings } from "../../data/adminApi";
 import { toast } from "../../utils/toast";
 import { confirmDialog } from "../../utils/confirm";
+import ImageUploadButton from "../../components/dashboard/ImageUploadButton";
+import useCities from "../../hooks/useCities";
 
 // Flat place → row shape (status derived from approval).
 const toRow = (p) => ({ ...p, status: p.isApproved === false ? "Pending" : "Approved" });
 
-const emptyForm = { name: "", city: "", location: "", status: "Pending" };
+// Chip showing who uploaded a spot — the admin, or a named local guide.
+const UploaderBadge = ({ place }) => {
+  const role = place.uploaderRole || (place.curatedBy ? "local guide" : "");
+  const name = place.uploaderName || place.curatedBy || "";
+  if (role === "admin") {
+    return (
+      <span className="inline-flex items-center gap-1 rounded-full bg-lime-50 px-2.5 py-1 text-xs font-semibold text-lime-700">
+        <Shield className="h-3 w-3" /> Admin{name && name.toLowerCase() !== "admin" ? ` · ${name}` : ""}
+      </span>
+    );
+  }
+  if (role === "local guide") {
+    return (
+      <span className="inline-flex items-center gap-1 rounded-full bg-violet-50 px-2.5 py-1 text-xs font-semibold text-violet-600">
+        <UserIcon className="h-3 w-3" /> {name || "Local guide"}
+      </span>
+    );
+  }
+  return <span className="text-xs text-slate-400">—</span>;
+};
+
+const emptyForm = { name: "", city: "", location: "", picture: "", status: "Pending" };
 
 const TouristSpotManagement = () => {
   const [spots, setSpots] = useState([]);
@@ -20,6 +43,8 @@ const TouristSpotManagement = () => {
   const [form, setForm] = useState(emptyForm);
   const [errors, setErrors] = useState({});
   const [autoApprove, setAutoApprove] = useState(false);
+  const cities = useCities();
+  const cityOptions = [...new Set([...cities.map((c) => c.name), form.city].filter(Boolean))];
 
   useEffect(() => {
     if (!LIVE) return;
@@ -67,7 +92,7 @@ const TouristSpotManagement = () => {
 
   const openEdit = (spot) => {
     setEditing(spot);
-    setForm({ name: spot.name, city: spot.city, location: spot.location, status: spot.status });
+    setForm({ name: spot.name, city: spot.city, location: spot.location, picture: spot.picture || "", status: spot.status });
     setErrors({});
     setModalOpen(true);
   };
@@ -102,6 +127,7 @@ const TouristSpotManagement = () => {
         name: form.name,
         city: form.city,
         location: form.location,
+        picture: form.picture,
         isApproved: form.status !== "Pending",
       };
       try {
@@ -170,12 +196,13 @@ const TouristSpotManagement = () => {
           }
         />
         <div className="overflow-x-auto">
-          <table className="w-full min-w-[640px] border-collapse">
+          <table className="w-full min-w-[760px] border-collapse">
             <thead>
               <tr className="text-left text-xs font-semibold uppercase tracking-wide text-slate-400">
                 <th className="px-3 py-3">Spot</th>
                 <th className="px-3 py-3">City</th>
                 <th className="px-3 py-3">Location</th>
+                <th className="px-3 py-3">Uploaded by</th>
                 <th className="px-3 py-3">Status</th>
                 <th className="px-3 py-3 text-right">Actions</th>
               </tr>
@@ -204,6 +231,7 @@ const TouristSpotManagement = () => {
                   </td>
                   <td className="px-3 py-3 text-sm text-slate-600">{spot.city}</td>
                   <td className="px-3 py-3 text-sm text-slate-500">{spot.location}</td>
+                  <td className="px-3 py-3"><UploaderBadge place={spot} /></td>
                   <td className="px-3 py-3">
                     <StatusPill status={spot.status} />
                   </td>
@@ -238,7 +266,7 @@ const TouristSpotManagement = () => {
               ))}
               {spots.length === 0 && (
                 <tr>
-                  <td colSpan={5} className="px-3 py-10 text-center text-sm text-slate-400">
+                  <td colSpan={6} className="px-3 py-10 text-center text-sm text-slate-400">
                     No tourist spots yet. Add your first one.
                   </td>
                 </tr>
@@ -282,12 +310,20 @@ const TouristSpotManagement = () => {
             <Field
               label="City / valley"
               required
-              value={form.city}
-              onChange={(v) => update("city", v)}
-              placeholder="e.g. Hunza"
-              hint="Which city or valley this spot belongs to."
+              hint={cityOptions.length ? "Pick the city this spot belongs to." : "Add cities in Settings first."}
               error={errors.city}
-            />
+            >
+              <select
+                value={form.city}
+                onChange={(e) => update("city", e.target.value)}
+                className={adminInputCls}
+              >
+                <option value="">Select a city</option>
+                {cityOptions.map((c) => (
+                  <option key={c} value={c}>{c}</option>
+                ))}
+              </select>
+            </Field>
             <Field
               label="Location"
               value={form.location}
@@ -295,6 +331,19 @@ const TouristSpotManagement = () => {
               placeholder="e.g. Gojal, Upper Hunza"
               hint="A short area or district description."
             />
+          </div>
+          <div>
+            <div className="mb-1.5 flex items-center justify-between gap-3">
+              <span className="text-xs font-semibold uppercase tracking-wide text-slate-500">Photo</span>
+              <ImageUploadButton folder="spots" onUploaded={(url) => update("picture", url)} />
+            </div>
+            <input
+              value={form.picture}
+              onChange={(e) => update("picture", e.target.value)}
+              placeholder="https://…  or use Upload"
+              className={adminInputCls}
+            />
+            {form.picture && <img src={form.picture} alt="" className="mt-2 h-32 w-full rounded-xl object-cover" />}
           </div>
           <Field
             label="Moderation status"

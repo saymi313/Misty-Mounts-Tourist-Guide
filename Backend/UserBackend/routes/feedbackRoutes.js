@@ -3,7 +3,9 @@ const {
   addFeedback,
   getFeedbacksByLocation,
   deleteFeedback,
-  getAllFeedbacks
+  getAllFeedbacks,
+  getGuideFeedbacks,
+  addGuideFeedback,
 } = require('../controllers/feedBackController');
 const { authenticate, requireAdmin } = require('../../middleware/auth');
 
@@ -11,10 +13,12 @@ const router = express.Router();
 
 // Reads (public)
 router.get('/', getAllFeedbacks);
+router.get('/guide/:guideId', getGuideFeedbacks);
 router.get('/:locationName', getFeedbacksByLocation);
 
 // Submit a review (any signed-in user)
 router.post('/submit', authenticate, addFeedback);
+router.post('/guide/:guideId', authenticate, addGuideFeedback);
 
 // Delete a review (admin only)
 router.delete('/:id', authenticate, requireAdmin, deleteFeedback);

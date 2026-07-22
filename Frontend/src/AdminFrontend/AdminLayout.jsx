@@ -1,9 +1,10 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
-import { LayoutDashboard, Map, BedDouble, Bus, Wallet, Users, Plus } from "lucide-react";
+import { LayoutDashboard, Map, BedDouble, Bus, Wallet, Users, Settings, Plus } from "lucide-react";
 import DashboardLayout from "../components/dashboard/DashboardLayout";
 import { PromoCard } from "../components/dashboard/ui";
 import { img } from "../data/mockData";
+import { confirmDialog } from "../utils/confirm";
 
 const NAV = [
   { to: "/admin/dashboard", label: "Dashboard", icon: LayoutDashboard, end: true },
@@ -12,6 +13,7 @@ const NAV = [
   { to: "/admin/transportation", label: "Transport", icon: Bus },
   { to: "/admin/payments", label: "Payments", icon: Wallet },
   { to: "/admin/users", label: "Users", icon: Users },
+  { to: "/admin/settings", label: "Settings", icon: Settings },
 ];
 
 const adminUser = { name: "Admin · Saymi", role: "Platform Administrator", avatar: img("admin-avatar", 120, 120) };
@@ -19,7 +21,14 @@ const adminUser = { name: "Admin · Saymi", role: "Platform Administrator", avat
 /** Admin panel shell — wraps the shared DashboardLayout with admin nav. */
 export default function AdminLayout({ greeting, subtitle, rightRail = false, children }) {
   const navigate = useNavigate();
-  const onLogout = () => {
+  const onLogout = async () => {
+    const ok = await confirmDialog({
+      title: "Sign out?",
+      body: "You'll need to sign in again to manage the platform.",
+      confirmLabel: "Sign out",
+      danger: false,
+    });
+    if (!ok) return;
     localStorage.removeItem("adminToken");
     navigate("/admin/login");
   };

@@ -28,6 +28,9 @@ export default function Modal({ open, onClose, title, subtitle, icon: Icon, onSu
   const maxW =
     { sm: "max-w-md", md: "max-w-lg", lg: "max-w-2xl", xl: "max-w-3xl" }[size] || "max-w-lg";
   const Dialog = onSubmit ? motion.form : motion.div;
+  // The dialog portals outside the panel shell; mirror the panel's night mode
+  // (set on <body>) so its surfaces + native controls theme with it.
+  const night = typeof document !== "undefined" && document.body.classList.contains("mm-night");
 
   return createPortal(
     <AnimatePresence>
@@ -51,7 +54,7 @@ export default function Modal({ open, onClose, title, subtitle, icon: Icon, onSu
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.97, y: 8 }}
             transition={{ duration: 0.22, ease: [0.16, 1, 0.3, 1] }}
-            className={`relative flex max-h-[calc(100vh-3rem)] w-full ${maxW} flex-col overflow-hidden rounded-3xl bg-white shadow-2xl ring-1 ring-slate-900/5 [color-scheme:light]`}
+            className={`relative flex max-h-[calc(100vh-3rem)] w-full ${maxW} flex-col overflow-hidden rounded-3xl bg-white shadow-2xl ring-1 ring-slate-900/5 ${night ? "[color-scheme:dark]" : "[color-scheme:light]"}`}
           >
             <div className="flex shrink-0 items-start justify-between gap-4 border-b border-slate-100 px-7 py-5">
               <div className="flex items-start gap-3.5">

@@ -3,7 +3,7 @@ import { Send, MessageSquare, Mountain, Bell, Check, CheckCheck } from "lucide-r
 import { useAuth } from "../../../context/AuthContext";
 import { inputCls } from "../bento/tiles";
 
-const ChatBox = () => {
+const ChatBox = ({ guide }) => {
   const { user, socket, socketConnected } = useAuth();
   const [messages, setMessages] = useState([]);
   const [newMessage, setNewMessage] = useState("");
@@ -70,7 +70,7 @@ const ChatBox = () => {
   const handleSendMessage = (e) => {
     e.preventDefault();
     if (newMessage.trim() && user && socketConnected) {
-      socket.emit("user-message", { message: newMessage, userId: user.email, username: user.name });
+      socket.emit("user-message", { message: newMessage, userId: user.email, username: user.name, guideId: guide?._id, guideName: guide?.name });
       setMessages((prev) => [...prev, {
         id: Date.now(), text: newMessage, sender: "user", username: user.name,
         timestamp: new Date(), isRead: false,
@@ -109,11 +109,17 @@ const ChatBox = () => {
       {/* Header */}
       <div className="flex items-center justify-between border-b border-white/[0.06] bg-night-800 px-5 py-4">
         <div className="flex items-center gap-3">
-          <span className="flex h-10 w-10 items-center justify-center rounded-full bg-lime-400/15 text-lime-400">
-            <Mountain className="h-5 w-5" />
-          </span>
+          {guide?.avatar ? (
+            <img src={guide.avatar} alt={guide.name} className="h-10 w-10 rounded-full object-cover" />
+          ) : (
+            <span className="flex h-10 w-10 items-center justify-center rounded-full bg-lime-400/15 text-lime-400">
+              <Mountain className="h-5 w-5" />
+            </span>
+          )}
           <div>
-            <h2 className="text-base font-extrabold tracking-tight text-white">Guide chat · Karim</h2>
+            <h2 className="text-base font-extrabold tracking-tight text-white">
+              {guide?.name ? `Chat · ${guide.name}` : "Guide chat"}
+            </h2>
             <div className="flex items-center gap-1.5">
               <span className={`h-2 w-2 rounded-full ${socketConnected ? "bg-lime-400" : "bg-rose-400"}`} />
               <span className="text-xs text-white/50">{socketConnected ? "Online" : "Connecting…"}</span>

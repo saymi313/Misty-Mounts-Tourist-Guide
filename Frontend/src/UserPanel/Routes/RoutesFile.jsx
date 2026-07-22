@@ -6,6 +6,8 @@ import Payment from '../pages/Payment';
 import Contact from '../pages/Contact';
 import About from '../pages/About';
 import Feedback from '../pages/Feedback';
+import Guides from '../pages/Guides';
+import GuideDetail from '../pages/GuideDetail';
 import Profile from '../pages/Profile';
 import SavedSpots from '../pages/SavedSpots';
 import MyBookings from '../pages/MyBookings';
@@ -21,6 +23,8 @@ const RoutesFile = () => {
       <Route path="/accommodations/:id" element={<Hotel />} />
       <Route path="/payment" element={<Payment />} />
       <Route path="/feedback" element={<Feedback />} />
+      <Route path="/guides" element={<Guides />} />
+      <Route path="/guides/:id" element={<GuideDetail />} />
       <Route path="/profile" element={<Profile />} />
       <Route path="/saved" element={<SavedSpots />} />
       <Route path="/bookings" element={<MyBookings />} />

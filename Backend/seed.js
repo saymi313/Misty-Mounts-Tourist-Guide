@@ -116,16 +116,23 @@ async function seed() {
   await NaturalDisaster.insertMany(disasters);
   console.log(`✓ ${disasters.length} disaster alerts seeded`);
 
-  // ── Admin (idempotent) ───────────────────────────────────────────────────────
-  if (!(await Admin.findOne({ username: "saymi313" }))) {
-    await Admin.create({
-      username: "saymi313",
-      email: "saymi.usa313@gmail.com",
-      password: await bcrypt.hash("usairam1234", 10),
-    });
-    console.log("✓ admin seeded  (saymi313 / usairam1234)");
+  // ── Admin (idempotent; credentials come from .env, never hardcoded) ───────────
+  const adminUsername = process.env.ADMIN_USERNAME;
+  const adminEmail = (process.env.ADMIN_EMAIL || "").trim().toLowerCase();
+  const adminPassword = process.env.ADMIN_PASSWORD;
+  if (adminUsername && adminEmail && adminPassword) {
+    if (!(await Admin.findOne({ $or: [{ username: adminUsername }, { email: adminEmail }] }))) {
+      await Admin.create({
+        username: adminUsername,
+        email: adminEmail,
+        password: await bcrypt.hash(adminPassword, 10),
+      });
+      console.log(`✓ admin seeded  (${adminUsername})`);
+    } else {
+      console.log("• admin already exists");
+    }
   } else {
-    console.log("• admin already exists");
+    console.log("• admin skipped — set ADMIN_USERNAME/ADMIN_EMAIL/ADMIN_PASSWORD in .env");
   }
 
   // ── Test users (idempotent; model pre-save hook hashes the password) ─────────

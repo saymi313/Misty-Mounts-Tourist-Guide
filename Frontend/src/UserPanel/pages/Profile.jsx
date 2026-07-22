@@ -9,6 +9,7 @@ import Navbar from "../components/Navbar";
 import Footer from "../components/Home/Footer";
 import { Tile, Eyebrow, SectionHead, Btn, Chip, inputCls } from "../components/bento/tiles";
 import { useAuth } from "../../context/AuthContext";
+import { confirmDialog } from "../../utils/confirm";
 import { cities, feedbacks } from "../../data/mockData";
 import { required, email as emailRule, phone as phoneRule, maxLen, validate, hasErrors } from "../../utils/validation";
 import { formatDate } from "../../utils/datetime";
@@ -29,6 +30,16 @@ const INTERESTS = [
 const Profile = () => {
   const { user, logout, updateUser } = useAuth();
   const fileRef = useRef(null);
+
+  const handleSignOut = async () => {
+    const ok = await confirmDialog({
+      title: "Sign out?",
+      body: "You'll be signed out of your Misty Mounts account.",
+      confirmLabel: "Sign out",
+      danger: false,
+    });
+    if (ok) logout();
+  };
   const [form, setForm] = useState({
     name: user?.name || "",
     email: user?.email || "",
@@ -239,7 +250,7 @@ const Profile = () => {
                   </Link>
                 ))}
                 <button
-                  onClick={logout}
+                  onClick={handleSignOut}
                   className="mt-1 flex w-full items-center gap-3 rounded-2xl border-t border-white/8 px-3 py-3 text-sm font-semibold text-rose-400 transition-colors hover:bg-rose-500/10"
                 >
                   <LogOut className="h-4 w-4" /> Sign out

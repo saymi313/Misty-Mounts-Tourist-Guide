@@ -1,4 +1,5 @@
 const Feedback = require('../models/feedback');
+const User = require('../../LocalGuidePannel/models/User');
 
 // Add new feedback
 exports.addFeedback = async (req, res) => {
@@ -62,6 +63,42 @@ exports.deleteFeedback = async (req, res) => {
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: 'Failed to delete feedback' });
+  }
+};
+
+// GET /api/feedback/guide/:guideId — reviews for a local guide (public).
+exports.getGuideFeedbacks = async (req, res) => {
+  try {
+    const feedbacks = await Feedback.find({ guideId: req.params.guideId }).sort({ createdAt: -1 });
+    res.status(200).json({ feedbacks });
+  } catch (error) {
+    console.error('getGuideFeedbacks error:', error.message);
+    res.status(500).json({ error: 'Failed to fetch feedbacks' });
+  }
+};
+
+// POST /api/feedback/guide/:guideId — a signed-in traveller reviews a guide.
+exports.addGuideFeedback = async (req, res) => {
+  const { guideId } = req.params;
+  const { rating, message } = req.body;
+  if (!rating || !message) {
+    return res.status(400).json({ error: 'Rating and message are required' });
+  }
+  try {
+    const me = await User.findById(req.user.id).select('name username avatar');
+    const feedback = await Feedback.create({
+      guideId,
+      locationName: `guide:${guideId}`,
+      rating: Number(rating),
+      message,
+      name: me?.name || me?.username || 'Traveller',
+      avatar: me?.avatar || '',
+      date: new Date().toISOString().slice(0, 10),
+    });
+    res.status(201).json({ message: 'Feedback submitted successfully!', feedback });
+  } catch (error) {
+    console.error('addGuideFeedback error:', error.message);
+    res.status(500).json({ error: 'Failed to submit feedback' });
   }
 };
 

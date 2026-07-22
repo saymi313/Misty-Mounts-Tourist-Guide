@@ -31,9 +31,9 @@ function App() {
             </ProtectedRoute>
           } />
           
-          {/* Local Guide Panel (preview: allow the mock user to view it) */}
+          {/* Local Guide Panel — local guides only */}
           <Route path="/local-guide/*" element={
-            <ProtectedRoute allowedUserTypes={['user', 'local guide']}>
+            <ProtectedRoute allowedUserTypes={['local guide']}>
               <LocalGuidePanel />
             </ProtectedRoute>
           } />

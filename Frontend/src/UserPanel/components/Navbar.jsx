@@ -5,12 +5,14 @@ import {
   Menu, X, ArrowUpRight, User, Heart, CalendarCheck, Bell, LogOut, ChevronRight,
 } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
+import { confirmDialog } from "../../utils/confirm";
 import ProfileDropdown from "./ProfileDropdown";
 import NotificationSystem from "../../components/NotificationSystem";
 
 const links = [
   { to: "/user", label: "Home" },
   { to: "/destinations", label: "Destinations" },
+  { to: "/guides", label: "Local Guides" },
   { to: "/feedback", label: "Guides & Reviews" },
   { to: "/about", label: "About" },
   { to: "/contact", label: "Contact" },
@@ -43,7 +45,14 @@ const Navbar = () => {
 
   const initial = (user?.name || "U").charAt(0).toUpperCase();
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
+    const ok = await confirmDialog({
+      title: "Sign out?",
+      body: "You'll be signed out of your Misty Mounts account.",
+      confirmLabel: "Sign out",
+      danger: false,
+    });
+    if (!ok) return;
     logout();
     setMobileOpen(false);
     navigate("/auth");

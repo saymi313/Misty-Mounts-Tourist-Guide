@@ -13,6 +13,10 @@ const publicUser = (u) => ({
   bio: u.bio || "",
   avatar: u.avatar || "",
   interests: u.interests || [],
+  languages: u.languages || [],
+  specialties: u.specialties || [],
+  serviceAreas: u.serviceAreas || [],
+  experience: u.experience || "",
   savedSpots: u.savedSpots || [],
   memberSince: u.createdAt,
 });
@@ -32,7 +36,10 @@ exports.getMe = async (req, res) => {
 // PUT /api/user/me
 exports.updateMe = async (req, res) => {
   try {
-    const allowed = ["name", "email", "phone", "city", "bio", "interests", "avatar"];
+    const allowed = [
+      "name", "email", "phone", "city", "bio", "interests", "avatar",
+      "languages", "specialties", "serviceAreas", "experience",
+    ];
     const updates = {};
     for (const key of allowed) if (key in req.body) updates[key] = req.body[key];
 

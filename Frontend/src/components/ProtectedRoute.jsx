@@ -1,6 +1,7 @@
 import React from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { landingFor } from '../utils/roles';
 
 const ProtectedRoute = ({ children, allowedUserTypes = ['user', 'local guide'] }) => {
   const { user, loading } = useAuth();
@@ -20,8 +21,8 @@ const ProtectedRoute = ({ children, allowedUserTypes = ['user', 'local guide'] }
   }
 
   if (!allowedUserTypes.includes(user.type)) {
-    // Redirect to auth page
-    return <Navigate to="/auth" replace />;
+    // Signed in but not permitted here — send them to their own home, not /auth.
+    return <Navigate to={landingFor(user.type)} replace />;
   }
 
   return children;

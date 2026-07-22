@@ -35,7 +35,11 @@ exports.loginAdmin = async (req, res) => {
       return res.status(400).json({ error: "username and password are required" });
     }
 
-    const admin = await Admin.findOne({ username });
+    // Accept either the admin's username or email as the identifier.
+    const identifier = String(username).trim();
+    const admin = await Admin.findOne({
+      $or: [{ username: identifier }, { email: identifier.toLowerCase() }],
+    });
     if (!admin) return res.status(404).json({ error: "Admin not found" });
 
     const isMatch = await bcrypt.compare(password, admin.password);

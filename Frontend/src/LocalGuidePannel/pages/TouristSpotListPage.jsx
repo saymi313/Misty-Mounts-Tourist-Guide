@@ -94,6 +94,11 @@ export default function TouristSpotListPage() {
                         <p className="mt-0.5 flex items-center gap-1 text-xs text-slate-400">
                           <MapPin className="h-3 w-3" /> {spot.location}
                         </p>
+                        {(spot.uploaderName || spot.curatedBy) && (
+                          <p className="mt-0.5 text-xs text-slate-400">
+                            By {spot.uploaderName || spot.curatedBy}
+                          </p>
+                        )}
                       </div>
                       <div className="flex shrink-0 items-center gap-1.5">
                         <button

@@ -4,6 +4,7 @@ const router = express.Router();
 const {
   getMe, updateMe, uploadAvatar, getSaved, addSaved, removeSaved,
 } = require("../controllers/userController");
+const { listGuides, getGuide } = require("../controllers/guidesController");
 const { authenticate } = require("../../middleware/auth");
 
 // In-memory upload → streamed to Cloudinary in the controller.
@@ -15,6 +16,10 @@ const upload = multer({
     else cb(new Error("Only image files are allowed"));
   },
 });
+
+// Public local-guide directory
+router.get("/guides", listGuides);
+router.get("/guides/:id", getGuide);
 
 router.get("/me", authenticate, getMe);
 router.put("/me", authenticate, updateMe);

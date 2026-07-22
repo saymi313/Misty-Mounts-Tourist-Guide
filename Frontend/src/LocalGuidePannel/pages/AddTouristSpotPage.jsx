@@ -7,6 +7,7 @@ import { required, url, minLen, validate, hasErrors } from "../../utils/validati
 import { LIVE, createPlace } from "../../data/adminApi";
 import ImageUploadButton from "../../components/dashboard/ImageUploadButton";
 import { toast } from "../../utils/toast";
+import useCities from "../../hooks/useCities";
 
 const inputCls =
   "w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-800 outline-none [color-scheme:light] focus:border-lime-400";
@@ -25,6 +26,8 @@ export default function AddTouristSpotPage() {
     activities: "",
   });
   const [errors, setErrors] = useState({});
+  const cities = useCities();
+  const cityOptions = [...new Set([...cities.map((c) => c.name), form.city].filter(Boolean))];
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -57,7 +60,6 @@ export default function AddTouristSpotPage() {
           description: form.description,
           picture: form.picture,
           activities: form.activities ? form.activities.split(",").map((s) => s.trim()).filter(Boolean) : [],
-          curatedBy: "Local guide",
         });
       } catch { ok = false; toast.error("Couldn't save this spot to the server. Please try again."); }
     }
@@ -94,16 +96,21 @@ export default function AddTouristSpotPage() {
             </div>
             <div className="space-y-1.5">
               <label htmlFor="city" className={labelCls}>City</label>
-              <input
+              <select
                 id="city"
                 name="city"
                 value={form.city}
                 onChange={handleChange}
-                placeholder="e.g. Hunza"
                 aria-invalid={!!errors.city}
                 className={inputCls + errCls("city")}
-              />
+              >
+                <option value="">Select a city</option>
+                {cityOptions.map((c) => (
+                  <option key={c} value={c}>{c}</option>
+                ))}
+              </select>
               {errors.city && <p className={errNote}><AlertCircle className="h-3.5 w-3.5 shrink-0" /> {errors.city}</p>}
+              {cityOptions.length === 0 && <p className="mt-1 text-xs text-slate-400">No cities yet — ask an admin to add cities.</p>}
             </div>
           </div>
 

@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { User, LogOut, ChevronDown, Heart, CalendarCheck, Bell } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
+import { confirmDialog } from '../../utils/confirm';
 import { useNavigate } from 'react-router-dom';
 
 const ProfileDropdown = () => {
@@ -19,10 +20,17 @@ const ProfileDropdown = () => {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
+    setIsOpen(false);
+    const ok = await confirmDialog({
+      title: 'Sign out?',
+      body: "You'll be signed out of your Misty Mounts account.",
+      confirmLabel: 'Sign out',
+      danger: false,
+    });
+    if (!ok) return;
     logout();
     navigate('/auth');
-    setIsOpen(false);
   };
 
   const initial = (user?.name || 'U').charAt(0).toUpperCase();

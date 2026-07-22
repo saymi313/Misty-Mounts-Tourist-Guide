@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Search, Compass, SlidersHorizontal, RotateCcw } from 'lucide-react';
 import { getCities, getSpotsByCity } from '../../data/mockApi';
+import useCities from '../../hooks/useCities';
 import Navbar from '../components/Navbar';
 import CityCard from '../components/Destinations/CityCard';
 import Footer from '../components/Home/Footer';
@@ -46,6 +47,21 @@ const Destination = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
 
+  // Admin-managed cities (with photos) overlaid onto the region banner + chips.
+  const adminCities = useCities();
+  const cityPhotos = useMemo(
+    () => Object.fromEntries(adminCities.filter((c) => c.photo).map((c) => [c.name, c.photo])),
+    [adminCities]
+  );
+  const cityTaglines = useMemo(
+    () => Object.fromEntries(adminCities.filter((c) => c.tagline).map((c) => [c.name, c.tagline])),
+    [adminCities]
+  );
+  const chipCities = useMemo(
+    () => [...new Set([...cities, ...adminCities.map((c) => c.name)])],
+    [cities, adminCities]
+  );
+
   // Search + advanced filters
   const [query, setQuery] = useState('');
   const [showFilters, setShowFilters] = useState(false);
@@ -75,12 +91,19 @@ const Destination = () => {
     })();
   }, []);
 
+  // Once cities load (mock + admin), make sure something is selected.
+  useEffect(() => {
+    if (!selectedCity && chipCities.length) setSelectedCity(chipCities[0]);
+  }, [chipCities, selectedCity]);
+
   useEffect(() => {
     if (!selectedCity) return;
     setIsLoading(true);
     getSpotsByCity(selectedCity)
-      .then((data) => setCityData(data))
-      .catch(() => setError('Failed to load spots for this region.'))
+      // Admin-added cities may have no demo spots yet — render the banner + an
+      // empty state rather than an error.
+      .then((data) => setCityData(data || { nearbyPlaces: [] }))
+      .catch(() => setCityData({ nearbyPlaces: [] }))
       .finally(() => setIsLoading(false));
   }, [selectedCity]);
 
@@ -121,14 +144,14 @@ const Destination = () => {
       <main className="mx-auto max-w-7xl space-y-8 px-5 pb-4 pt-6 sm:px-8 lg:space-y-10">
         {/* ── Region banner ─────────────────────────────────────────────── */}
         <motion.section
-          key={cityData?.heroImage || selectedCity}
+          key={cityPhotos[selectedCity] || cityData?.heroImage || selectedCity}
           initial={{ opacity: 0, y: 22 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, ease: EASE }}
           className="relative overflow-hidden rounded-[1.8rem] border border-white/[0.07] bg-night-800"
         >
           <img
-            src={cityData?.heroImage || 'https://picsum.photos/seed/mm-region/1600/900'}
+            src={cityPhotos[selectedCity] || cityData?.heroImage || 'https://picsum.photos/seed/mm-region/1600/900'}
             alt={selectedCity}
             className="absolute inset-0 h-full w-full object-cover"
           />
@@ -145,14 +168,16 @@ const Destination = () => {
                 </>
               )}
             </h1>
-            {cityData?.tagline && <p className="mt-3 max-w-xl text-white/70">{cityData.tagline}</p>}
+            {(cityData?.tagline || cityTaglines[selectedCity]) && (
+              <p className="mt-3 max-w-xl text-white/70">{cityData?.tagline || cityTaglines[selectedCity]}</p>
+            )}
           </div>
         </motion.section>
 
         {/* ── Region chips + search + filters toggle ────────────────────── */}
         <section className="space-y-4">
           <div className="flex flex-wrap gap-2">
-            {cities.map((city) => (
+            {chipCities.map((city) => (
               <Chip
                 key={city}
                 active={selectedCity === city}

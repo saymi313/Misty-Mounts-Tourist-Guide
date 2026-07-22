@@ -3,12 +3,13 @@ import { Link } from "react-router-dom";
 import { motion, useScroll, useTransform } from "framer-motion";
 import { useRef } from "react";
 import {
-  Mountain, ArrowUpRight, Star, MessageCircle, Compass, Send, Quote, MapPin,
+  ArrowUpRight, Star, MessageCircle, Compass, Send, Quote, MapPin,
 } from "lucide-react";
 import { allPlaces, feedbacks, img } from "../../data/mockData";
 import { useCountUp } from "../../components/dashboard/motion";
 import { Tile, PhotoTile, Eyebrow } from "../components/bento/tiles";
 import Navbar from "../components/Navbar";
+import Footer from "../components/Home/Footer";
 
 const byId = (id) => allPlaces.find((p) => p._id === id);
 
@@ -267,18 +268,8 @@ const LandingPage = () => {
           </div>
         </section>
 
-        {/* ── FOOTER ─────────────────────────────────────────────────── */}
-        <footer className="flex flex-col items-center justify-between gap-4 border-t border-white/5 pt-6 text-sm text-white/40 sm:flex-row">
-          <div className="flex items-center gap-2.5">
-            <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-lime-400 text-night-950">
-              <Mountain className="h-4 w-4" strokeWidth={2.4} />
-            </span>
-            <span className="font-extrabold text-white/80">Misty<span className="text-lime-400">Mounts</span></span>
-          </div>
-          <p>© {new Date().getFullYear()} Misty Mounts · Hazara, Pakistan</p>
-          <p>Prototype · dummy data</p>
-        </footer>
       </main>
+      <Footer />
     </div>
   );
 };

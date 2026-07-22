@@ -7,6 +7,7 @@ import { required, url, minLen, validate, hasErrors } from "../../utils/validati
 import { LIVE, listPlaces, updatePlace } from "../../data/adminApi";
 import ImageUploadButton from "../../components/dashboard/ImageUploadButton";
 import { toast } from "../../utils/toast";
+import useCities from "../../hooks/useCities";
 
 const inputCls =
   "w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-800 outline-none [color-scheme:light] focus:border-lime-400";
@@ -24,6 +25,8 @@ export default function EditTouristSpotPage() {
     name: "", city: "", location: "", description: "", picture: "", activities: "",
   });
   const [errors, setErrors] = useState({});
+  const cities = useCities();
+  const cityOptions = [...new Set([...cities.map((c) => c.name), form.city].filter(Boolean))];
 
   // Load the live record to prefill the form.
   useEffect(() => {
@@ -136,15 +139,19 @@ export default function EditTouristSpotPage() {
             </div>
             <div className="space-y-1.5">
               <label htmlFor="city" className={labelCls}>City</label>
-              <input
+              <select
                 id="city"
                 name="city"
                 value={form.city}
                 onChange={handleChange}
-                placeholder="e.g. Hunza"
                 aria-invalid={!!errors.city}
                 className={inputCls + errCls("city")}
-              />
+              >
+                <option value="">Select a city</option>
+                {cityOptions.map((c) => (
+                  <option key={c} value={c}>{c}</option>
+                ))}
+              </select>
               {errors.city && <p className={errNote}><AlertCircle className="h-3.5 w-3.5 shrink-0" /> {errors.city}</p>}
             </div>
           </div>

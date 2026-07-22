@@ -16,6 +16,9 @@ const nearbyPlaceSchema = new mongoose.Schema({
   activities: { type: [String], default: [] },
   hiddenGem: { type: Boolean, default: false },
   curatedBy: { type: String, default: "" },
+  // Who added this spot — captured server-side at creation (can't be spoofed).
+  uploaderRole: { type: String, enum: ["", "admin", "local guide"], default: "" },
+  uploaderName: { type: String, default: "" },
   isApproved: { type: Boolean, default: true },
 });
 

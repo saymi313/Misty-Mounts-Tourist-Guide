@@ -28,6 +28,11 @@ export default function DashboardLayout({
 
   useEffect(() => {
     try { localStorage.setItem("mm-panel-theme", night ? "night" : "day"); } catch { /* ignore */ }
+    // Mirror onto <body> so portaled popups (modals, toasts, confirm dialogs)
+    // rendered outside this shell can theme with the panel. Cleared when the
+    // panel unmounts (e.g. navigating to the traveller app).
+    document.body.classList.toggle("mm-night", night);
+    return () => document.body.classList.remove("mm-night");
   }, [night]);
 
   return (

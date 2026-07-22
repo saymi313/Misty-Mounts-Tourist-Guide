@@ -6,6 +6,7 @@ const transportationController = require('../controllers/TransportationControlle
 const placesController = require('../controllers/placesController');
 const usersController = require('../controllers/usersController');
 const settingsController = require('../controllers/settingsController');
+const cityController = require('../controllers/cityController');
 const { authenticate, requireAdmin, requireRole } = require('../../middleware/auth');
 
 const adminOnly = [authenticate, requireAdmin];
@@ -14,6 +15,12 @@ const staffOnly = [authenticate, requireRole('admin', 'local guide')];
 // ── Platform settings (admin only) ────────────────────────────────────────────
 router.get('/settings', adminOnly, settingsController.getSettings);
 router.patch('/settings', adminOnly, settingsController.updateSettings);
+
+// ── Cities (reads public — dropdowns + traveller panel; writes admin-only) ────
+router.get('/cities', cityController.listCities);
+router.post('/cities', adminOnly, cityController.createCity);
+router.put('/cities/:id', adminOnly, cityController.updateCity);
+router.delete('/cities/:id', adminOnly, cityController.deleteCity);
 
 // ── Users & guides management (admin only) ────────────────────────────────────
 router.get('/users', adminOnly, usersController.listUsers);

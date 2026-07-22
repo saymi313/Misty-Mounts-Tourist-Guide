@@ -6,6 +6,8 @@ const feedbackSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
+    // When the review is about a local guide (vs a location/spot).
+    guideId: { type: mongoose.Schema.Types.ObjectId, ref: "User", default: null, index: true },
     rating: {
       type: Number,
       required: true,
