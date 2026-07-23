@@ -17,6 +17,7 @@ const publicUser = (u) => ({
   specialties: u.specialties || [],
   serviceAreas: u.serviceAreas || [],
   experience: u.experience || "",
+  hotelName: u.hotelName || "",
   savedSpots: u.savedSpots || [],
   memberSince: u.createdAt,
 });
@@ -38,7 +39,7 @@ exports.updateMe = async (req, res) => {
   try {
     const allowed = [
       "name", "email", "phone", "city", "bio", "interests", "avatar",
-      "languages", "specialties", "serviceAreas", "experience",
+      "languages", "specialties", "serviceAreas", "experience", "hotelName",
     ];
     const updates = {};
     for (const key of allowed) if (key in req.body) updates[key] = req.body[key];

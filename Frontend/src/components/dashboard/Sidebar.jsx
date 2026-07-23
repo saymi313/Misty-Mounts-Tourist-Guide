@@ -23,7 +23,7 @@ export default function Sidebar({ items = [], onLogout, footerCard = null }) {
 
       {/* Nav */}
       <nav className="relative mt-9 flex flex-1 flex-col gap-1.5">
-        {items.map(({ to, label, icon: Icon, end }) => (
+        {items.map(({ to, label, icon: Icon, end, badge }) => (
           <NavLink
             key={to}
             to={to}
@@ -36,8 +36,13 @@ export default function Sidebar({ items = [], onLogout, footerCard = null }) {
               }`
             }
           >
-            <Icon className="h-[18px] w-[18px]" />
-            {label}
+            <Icon className="h-[18px] w-[18px] shrink-0" />
+            <span className="flex-1 truncate">{label}</span>
+            {badge > 0 && (
+              <span className="flex h-5 min-w-[20px] items-center justify-center rounded-full bg-rose-500 px-1.5 text-[11px] font-bold text-white">
+                {badge > 99 ? "99+" : badge}
+              </span>
+            )}
           </NavLink>
         ))}
       </nav>

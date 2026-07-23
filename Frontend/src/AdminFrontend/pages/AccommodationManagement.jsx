@@ -1,12 +1,13 @@
 import React, { useState, useEffect } from "react";
-import { BedDouble, Banknote, Star, Plus, Pencil, Trash2, MapPin, UtensilsCrossed } from "lucide-react";
+import { BedDouble, Banknote, Star, Clock, Check, Plus, Pencil, Trash2, MapPin, UtensilsCrossed } from "lucide-react";
 import AdminLayout from "../AdminLayout";
-import { Card, SectionHead, StatCard, Btn, BtnGhost, Field, adminInputCls } from "../../components/dashboard/ui";
+import { Card, SectionHead, StatCard, StatusPill, Btn, BtnGhost, Field, adminInputCls } from "../../components/dashboard/ui";
 import Modal from "../../components/dashboard/Modal";
 import { required, number, min, max, validate, hasErrors } from "../../utils/validation";
 import { formatPKR } from "../../utils/currency";
-import { LIVE, listAccommodations, createAccommodation, updateAccommodation, deleteAccommodation } from "../../data/adminApi";
+import { LIVE, listAccommodations, createAccommodation, updateAccommodation, approveAccommodation, deleteAccommodation, getSettings, updateSettings } from "../../data/adminApi";
 import ImageUploadButton from "../../components/dashboard/ImageUploadButton";
+import useCities from "../../hooks/useCities";
 import { toast } from "../../utils/toast";
 import { confirmDialog } from "../../utils/confirm";
 
@@ -32,10 +33,41 @@ const AccommodationManagement = () => {
   const [editing, setEditing] = useState(null);
   const [form, setForm] = useState(emptyForm);
   const [errors, setErrors] = useState({});
+  const [autoApprove, setAutoApprove] = useState(false);
+  const cities = useCities();
+  const cityOptions = [...new Set([...cities.map((c) => c.name), form.city].filter(Boolean))];
 
   useEffect(() => {
-    if (LIVE) listAccommodations().then(setStays).catch(() => {});
+    if (!LIVE) return;
+    listAccommodations().then(setStays).catch(() => {});
+    getSettings().then((s) => setAutoApprove(!!s.autoApproveListings)).catch(() => {});
   }, []);
+
+  const handleApprove = async (item) => {
+    if (LIVE) {
+      try {
+        const updated = await approveAccommodation(item._id, true);
+        setStays((prev) => prev.map((s) => (s._id === item._id ? (updated || { ...s, isApproved: true }) : s)));
+      } catch { toast.error("Couldn't approve this listing. Please try again."); return; }
+    } else {
+      setStays((prev) => prev.map((s) => (s._id === item._id ? { ...s, isApproved: true } : s)));
+    }
+    toast.success(`"${item.name}" approved and now visible to travellers.`);
+  };
+
+  const toggleAutoApprove = async () => {
+    const next = !autoApprove;
+    setAutoApprove(next);
+    if (LIVE) {
+      try { await updateSettings({ autoApproveListings: next }); }
+      catch { setAutoApprove(!next); toast.error("Couldn't update auto-approval. Please try again."); return; }
+    }
+    toast.success(
+      next
+        ? "Auto-approval on — new hotel listings go live instantly."
+        : "Auto-approval off — new hotel listings wait for review."
+    );
+  };
 
   const update = (key, val) => {
     setForm((f) => ({ ...f, [key]: val }));
@@ -119,27 +151,44 @@ const AccommodationManagement = () => {
   };
 
   const total = stays.length;
+  const pending = stays.filter((a) => a.isApproved === false).length;
   const avgPrice = total ? Math.round(stays.reduce((s, a) => s + a.price, 0) / total) : 0;
-  const avgRating = total ? (stays.reduce((s, a) => s + a.rating, 0) / total).toFixed(1) : "0.0";
 
   return (
     <AdminLayout greeting="Accommodation" subtitle="Manage stays, cafés and restaurants">
       {/* Stats */}
       <div className="grid gap-4 sm:grid-cols-3">
         <StatCard icon={BedDouble} tone="emerald" label="Total stays & food" value={total} />
+        <StatCard icon={Clock} tone="apricot" label="Pending review" value={pending} />
         <StatCard icon={Banknote} tone="sky" label="Average price" value={formatPKR(avgPrice)} />
-        <StatCard icon={Star} tone="amber" label="Average rating" value={avgRating} />
       </div>
 
       {/* Card grid */}
       <div className="mt-6">
         <SectionHead
           title="All accommodation"
-          sub={`${total} listings`}
+          sub={`${total} listings${pending ? ` · ${pending} pending` : ""}`}
           action={
-            <Btn onClick={openAdd}>
-              <Plus className="h-4 w-4" /> Add stay
-            </Btn>
+            <div className="flex flex-wrap items-center gap-4">
+              <label
+                className="flex cursor-pointer select-none items-center gap-2.5"
+                title="When on, listings submitted by hotels are approved automatically."
+              >
+                <span className="text-sm font-medium text-slate-600">Auto-approve hotel listings</span>
+                <button
+                  type="button"
+                  role="switch"
+                  aria-checked={autoApprove}
+                  onClick={toggleAutoApprove}
+                  className={`relative h-6 w-11 shrink-0 rounded-full transition-colors ${autoApprove ? "bg-lime-400" : "bg-slate-200"}`}
+                >
+                  <span className={`absolute left-0.5 top-0.5 h-5 w-5 rounded-full bg-white shadow transition-transform ${autoApprove ? "translate-x-5" : ""}`} />
+                </button>
+              </label>
+              <Btn onClick={openAdd}>
+                <Plus className="h-4 w-4" /> Add stay
+              </Btn>
+            </div>
           }
         />
         <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
@@ -161,7 +210,10 @@ const AccommodationManagement = () => {
                 </span>
               </div>
               <div className="flex flex-1 flex-col p-5">
-                <h3 className="text-base font-bold text-slate-900">{item.name}</h3>
+                <div className="flex items-start justify-between gap-2">
+                  <h3 className="text-base font-bold text-slate-900">{item.name}</h3>
+                  <StatusPill status={item.isApproved === false ? "Pending" : "Approved"} />
+                </div>
                 <p className="mt-1 flex items-center gap-1 text-xs text-slate-400">
                   <MapPin className="h-3 w-3" /> {item.location}
                 </p>
@@ -171,6 +223,15 @@ const AccommodationManagement = () => {
                     <span className="text-xs text-slate-400"> / {item.type === "food" ? "avg" : "night"}</span>
                   </div>
                   <div className="flex items-center gap-2">
+                    {item.isApproved === false && (
+                      <button
+                        onClick={() => handleApprove(item)}
+                        title="Approve listing"
+                        className="flex h-8 items-center gap-1 rounded-lg bg-lime-400 px-2.5 text-xs font-semibold text-night-950 transition-colors hover:bg-lime-300"
+                      >
+                        <Check className="h-3.5 w-3.5" /> Approve
+                      </button>
+                    )}
                     <button
                       onClick={() => openEdit(item)}
                       title="Edit"
@@ -251,12 +312,20 @@ const AccommodationManagement = () => {
             <Field
               label="City"
               required
-              value={form.city}
-              onChange={(v) => update("city", v)}
-              placeholder="e.g. Hunza"
-              hint="The city this listing sits in."
+              hint={cityOptions.length ? "The city this listing sits in." : "Add cities in Settings first."}
               error={errors.city}
-            />
+            >
+              <select
+                value={form.city}
+                onChange={(e) => update("city", e.target.value)}
+                className={adminInputCls}
+              >
+                <option value="">Select a city</option>
+                {cityOptions.map((c) => (
+                  <option key={c} value={c}>{c}</option>
+                ))}
+              </select>
+            </Field>
           </div>
           <div className="grid gap-5 sm:grid-cols-2">
             <Field

@@ -3,7 +3,7 @@ import { useParams, Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import {
   Star, MapPin, ArrowLeft, MessageCircle, Send, Globe, Compass, Briefcase,
-  AlertCircle, CheckCircle2,
+  AlertCircle, CheckCircle2, CalendarDays, ArrowUpRight, Map as MapIcon,
 } from "lucide-react";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Home/Footer";
@@ -12,7 +12,7 @@ import ChatBox from "../components/Feedbacks/ChatBox";
 import { useAuth } from "../../context/AuthContext";
 import { getGuide, getGuideFeedbacks, submitGuideFeedback } from "../../data/guidesApi";
 import { LIVE } from "../../data/api";
-import { timeAgo } from "../../utils/datetime";
+import { timeAgo, formatDate } from "../../utils/datetime";
 
 const EASE = [0.16, 1, 0.3, 1];
 
@@ -132,15 +132,23 @@ const GuideDetail = () => {
               <div className="min-w-0">
                 <span className="inline-flex items-center gap-1 rounded-full bg-lime-400/15 px-2.5 py-1 text-xs font-bold text-lime-400">Local Guide</span>
                 <h1 className="mt-2 text-3xl font-extrabold tracking-tight text-white">{guide.name}</h1>
-                <p className="mt-1 flex items-center gap-1.5 text-sm text-white/60"><MapPin className="h-4 w-4 text-lime-400" /> {guide.city || "—"}</p>
+                {guide.username && <p className="text-sm text-white/40">@{guide.username}</p>}
+                <p className="mt-1 flex items-center gap-1.5 text-sm text-white/60"><MapPin className="h-4 w-4 text-lime-400" /> {guide.city || "Location not set"}</p>
                 <div className="mt-2 flex items-center gap-2">
                   <Stars value={guide.rating} />
                   <span className="text-sm font-bold text-white">{guide.rating ? guide.rating.toFixed(1) : "New"}</span>
                   <span className="text-sm text-white/40">· {guide.reviewCount} review{guide.reviewCount !== 1 ? "s" : ""}</span>
                 </div>
+                {guide.memberSince && (
+                  <p className="mt-1.5 flex items-center gap-1.5 text-xs text-white/40">
+                    <CalendarDays className="h-3.5 w-3.5" /> Guide since {formatDate(guide.memberSince, { month: "long", year: "numeric" })}
+                  </p>
+                )}
               </div>
             </div>
-            {guide.bio && <p className="mt-6 leading-relaxed text-white/70">{guide.bio}</p>}
+            <p className="mt-6 leading-relaxed text-white/70">
+              {guide.bio || `${firstName} is a local guide on Misty Mounts. Message them to start planning your trip.`}
+            </p>
             <div className="mt-6 grid gap-5 sm:grid-cols-2">
               <DetailRow icon={Briefcase} label="Experience" items={guide.experience} />
               <DetailRow icon={Globe} label="Languages" items={guide.languages} />
@@ -204,6 +212,35 @@ const GuideDetail = () => {
           </Tile>
         </motion.div>
       </div>
+
+      {/* Spots curated by this guide */}
+      {guide.curatedSpots?.length > 0 && (
+        <section className="mt-8">
+          <h2 className="text-2xl font-extrabold tracking-tight text-white">
+            Spots by {firstName} <span className="text-white/40">({guide.curatedSpots.length})</span>
+          </h2>
+          <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {guide.curatedSpots.map((s) => (
+              <Link key={s._id} to={`/city/${encodeURIComponent(s.city)}/spot/${s._id}`} className="group">
+                <Tile pad="p-0" className="overflow-hidden transition-colors hover:border-lime-400/40">
+                  <div className="relative h-36 w-full overflow-hidden">
+                    {s.picture ? (
+                      <img src={s.picture} alt={s.name} className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105" />
+                    ) : (
+                      <div className="flex h-full w-full items-center justify-center bg-night-700 text-white/25"><MapIcon className="h-8 w-8" /></div>
+                    )}
+                  </div>
+                  <div className="p-4">
+                    <h3 className="truncate text-sm font-bold text-white">{s.name}</h3>
+                    <p className="mt-0.5 flex items-center gap-1 text-xs text-white/50"><MapPin className="h-3 w-3" /> {s.location || s.city}</p>
+                    <span className="mt-2 inline-flex items-center gap-1 text-xs font-semibold text-lime-400">View spot <ArrowUpRight className="h-3.5 w-3.5" /></span>
+                  </div>
+                </Tile>
+              </Link>
+            ))}
+          </div>
+        </section>
+      )}
 
       {/* Chat */}
       {showChat && (

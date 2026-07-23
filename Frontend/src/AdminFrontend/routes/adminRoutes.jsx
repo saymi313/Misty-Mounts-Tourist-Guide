@@ -8,6 +8,8 @@ import TransportManagement from "../pages/TransportManagement";
 import PaymentsManagement from "../pages/PaymentManagement";
 import UserManagement from "../pages/UserManagement";
 import AdminSettings from "../pages/Settings";
+import Revenue from "../pages/Revenue";
+import Queries from "../pages/Queries";
 
 /**
  * Validate the admin session token — a real, unexpired admin JWT, not just any
@@ -39,6 +41,8 @@ const AdminRoutes = () => (
     <Route path="accommodation" element={<RequireAdmin><AccommodationManagement /></RequireAdmin>} />
     <Route path="transportation" element={<RequireAdmin><TransportManagement /></RequireAdmin>} />
     <Route path="payments" element={<RequireAdmin><PaymentsManagement /></RequireAdmin>} />
+    <Route path="revenue" element={<RequireAdmin><Revenue /></RequireAdmin>} />
+    <Route path="queries" element={<RequireAdmin><Queries /></RequireAdmin>} />
     <Route path="users" element={<RequireAdmin><UserManagement /></RequireAdmin>} />
     <Route path="settings" element={<RequireAdmin><AdminSettings /></RequireAdmin>} />
     {/* Unmatched admin paths → login */}

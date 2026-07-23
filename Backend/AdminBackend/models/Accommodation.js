@@ -4,6 +4,9 @@ const accommodationSchema = new mongoose.Schema({
   _id: { type: String, default: () => new mongoose.Types.ObjectId().toString() },
   name: { type: String, required: true },
   type: { type: String, enum: ["hotel", "food"], default: "hotel" },
+  // Owner (a 'hotel' user) — null means admin-created. Approval gates traveller visibility.
+  ownerId: { type: mongoose.Schema.Types.ObjectId, ref: "User", default: null, index: true },
+  isApproved: { type: Boolean, default: true },
   location: { type: String, default: "" },
   city: { type: String, default: "" },
   description: { type: String, default: "" },

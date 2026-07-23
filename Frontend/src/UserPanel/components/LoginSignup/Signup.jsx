@@ -158,9 +158,10 @@ const Signup = ({ onSwitchToLogin }) => {
             aria-invalid={!!errors.type}
             className={`${inputClass} cursor-pointer appearance-none pr-11 ${errors.type ? inputErrClass : ''}`}
           >
-            <option value="">Select traveller type</option>
+            <option value="">Select account type</option>
             <option value="user">Tourist</option>
             <option value="local guide">Local Guide</option>
+            <option value="hotel">Hotel</option>
           </select>
           <ChevronDown className="pointer-events-none absolute right-4 top-1/2 h-4 w-4 -translate-y-1/2 text-white/40" />
         </Field>

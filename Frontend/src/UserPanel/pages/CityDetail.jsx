@@ -91,8 +91,10 @@ const CityDetail = () => {
     );
   }
 
-  const nearby = hotelData.filter((h) => h.city === spotData?.city);
-  const shownHotels = (nearby.length ? nearby : hotelData).slice(0, 4);
+  // Only show approved listings to travellers (hotel-submitted ones await review).
+  const approved = hotelData.filter((h) => h.isApproved !== false);
+  const nearby = approved.filter((h) => h.city === spotData?.city);
+  const shownHotels = (nearby.length ? nearby : approved).slice(0, 4);
 
   const facts = [
     { icon: Mountain, label: 'Elevation', value: spotData?.elevation || '—' },

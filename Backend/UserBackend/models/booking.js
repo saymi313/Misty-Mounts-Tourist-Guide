@@ -22,6 +22,12 @@ const bookingSchema = new mongoose.Schema(
     email: { type: String, default: "" },
     phone: { type: String, default: "" },
     hasPromoCode: { type: Boolean, default: false },
+    // Manual payment: bank/wallet transfer + uploaded screenshot proof, verified by admin.
+    paymentProof: { type: String, default: "" },
+    paymentRef: { type: String, default: "" },
+    paymentAccountLabel: { type: String, default: "" },
+    senderName: { type: String, default: "" },
+    paymentStatus: { type: String, enum: ["Pending", "Approved", "Rejected"], default: "Pending" },
   },
   { timestamps: true }
 );

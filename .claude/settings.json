@@ -1,0 +1,12 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(curl -s -o /dev/null -w '%{http_code}' http://localhost:5000/api/health)",
+      "Bash(echo \"health:                              $\\(curl -s -o /dev/null -w '%{http_code}' http://localhost:5000/api/health\\)\")",
+      "Bash(curl -s -o /dev/null -w '%{http_code}' http://localhost:5000/api/hotel/accommodations)",
+      "Bash(echo \"GET  /api/hotel/accommodations \\(noauth\\): $\\(curl -s -o /dev/null -w '%{http_code}' http://localhost:5000/api/hotel/accommodations\\)  \\(401 = wired+gated\\)\")",
+      "Bash(curl -s -o /dev/null -w '%{http_code}' http://localhost:5000/api/hotel/bookings)",
+      "Bash(curl -s http://localhost:5000/api/user/guides/685d290286d49a93972fbe95)"
+    ]
+  }
+}

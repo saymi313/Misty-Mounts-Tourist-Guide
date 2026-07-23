@@ -10,6 +10,7 @@ import NaturalDisasterForm from '../components/NaturalDisasterForm';
 import Feedback from '../pages/Feedback';
 import Messages from '../pages/Messages';
 import GuideProfile from '../pages/GuideProfile';
+import GuideRevenue from '../pages/GuideRevenue';
 
 const LocalGuideRoutes = () => [
   <Route key="dashboard" index element={<GuideDashboard />} />,
@@ -21,6 +22,7 @@ const LocalGuideRoutes = () => [
   <Route key="edit-natural-disaster" path="edit-natural-disaster/:id" element={<NaturalDisasterForm />} />,
   <Route key="feedback" path="feedback" element={<Feedback />} />,
   <Route key="messages" path="messages" element={<Messages />} />,
+  <Route key="revenue" path="revenue" element={<GuideRevenue />} />,
   <Route key="profile" path="profile" element={<GuideProfile />} />,
 ];
 

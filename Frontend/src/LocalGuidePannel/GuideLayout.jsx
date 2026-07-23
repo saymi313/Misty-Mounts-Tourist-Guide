@@ -1,6 +1,6 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
-import { LayoutDashboard, Map, AlertTriangle, Star, MessageSquare, UserCircle } from "lucide-react";
+import { LayoutDashboard, Map, AlertTriangle, Star, MessageSquare, Banknote, UserCircle } from "lucide-react";
 import DashboardLayout from "../components/dashboard/DashboardLayout";
 import { PromoCard } from "../components/dashboard/ui";
 import { useAuth } from "../context/AuthContext";
@@ -13,6 +13,7 @@ const NAV = [
   { to: "/local-guide/natural-disasters", label: "Alerts", icon: AlertTriangle },
   { to: "/local-guide/feedback", label: "Reviews", icon: Star },
   { to: "/local-guide/messages", label: "Messages", icon: MessageSquare },
+  { to: "/local-guide/revenue", label: "Revenue", icon: Banknote },
   { to: "/local-guide/profile", label: "Profile", icon: UserCircle },
 ];
 

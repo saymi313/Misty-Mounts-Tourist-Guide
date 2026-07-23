@@ -20,6 +20,8 @@ const guideSpotRoutes = require("./LocalGuidePannel/routes/touristSpotRoutes");
 const userRoutes = require("./UserBackend/routes/userRoutes");
 const notificationRoutes = require("./UserBackend/routes/notificationRoutes");
 const uploadRoutes = require("./routes/uploadRoutes");
+const hotelRoutes = require("./routes/hotelRoutes");
+const queryRoutes = require("./UserBackend/routes/queryRoutes");
 
 const app = express();
 const server = http.createServer(app);
@@ -68,6 +70,8 @@ app.use("/api/feedback", feedbackRoutes);
 app.use("/api/payment", paymentRoutes);
 app.use("/api/notifications", notificationRoutes);
 app.use("/api/upload", uploadRoutes);
+app.use("/api/hotel", hotelRoutes);
+app.use("/api/queries", queryRoutes);
 app.use("/api/natural-disaster", naturalDisasterRoutes);
 
 // 404 for unmatched API routes

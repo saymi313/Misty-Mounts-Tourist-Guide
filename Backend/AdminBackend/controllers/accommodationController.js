@@ -10,6 +10,7 @@ const uniqueAccSlug = async (name) => {
   while (used.has(slug)) slug = `${base}-${i++}`;
   return slug;
 };
+exports.uniqueAccSlug = uniqueAccSlug;
 exports.getAccommodationById = async (req, res) => {
   const { id } = req.params;
   try {
@@ -63,6 +64,19 @@ exports.deleteAccommodation = async (req, res) => {
     res.json({ message: "Accommodation deleted successfully" });
   } catch (error) {
     res.status(500).json({ error: "Error deleting accommodation" });
+  }
+};
+
+// PATCH /admin/accommodations/:id/approve — admin approves (or unapproves) a listing.
+exports.approveAccommodation = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const isApproved = "isApproved" in req.body ? !!req.body.isApproved : true;
+    const accommodation = await Accommodation.findByIdAndUpdate(id, { isApproved }, { new: true });
+    if (!accommodation) return res.status(404).json({ error: "Accommodation not found" });
+    res.json({ message: "Approval updated", accommodation });
+  } catch (error) {
+    res.status(500).json({ error: "Error updating approval" });
   }
 };
 

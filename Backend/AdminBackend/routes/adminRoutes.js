@@ -7,10 +7,14 @@ const placesController = require('../controllers/placesController');
 const usersController = require('../controllers/usersController');
 const settingsController = require('../controllers/settingsController');
 const cityController = require('../controllers/cityController');
+const statsController = require('../controllers/statsController');
 const { authenticate, requireAdmin, requireRole } = require('../../middleware/auth');
 
 const adminOnly = [authenticate, requireAdmin];
 const staffOnly = [authenticate, requireRole('admin', 'local guide')];
+
+// ── Sidebar badge counts (admin only) ─────────────────────────────────────────
+router.get('/counts', adminOnly, statsController.getCounts);
 
 // ── Platform settings (admin only) ────────────────────────────────────────────
 router.get('/settings', adminOnly, settingsController.getSettings);
@@ -32,6 +36,7 @@ router.get('/accommodations', accommodationController.getAllAccommodations);
 router.get('/accommodations/:id', accommodationController.getAccommodationById);
 router.post('/accommodations', adminOnly, accommodationController.addAccommodation);
 router.put('/accommodations/:id', adminOnly, accommodationController.updateAccommodation);
+router.patch('/accommodations/:id/approve', adminOnly, accommodationController.approveAccommodation);
 router.delete('/accommodations/:id', adminOnly, accommodationController.deleteAccommodation);
 
 // ── Tourist spots ─────────────────────────────────────────────────────────────

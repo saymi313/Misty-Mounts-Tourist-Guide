@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import {
-  Users, Compass, ShieldCheck, Mail, Phone, MapPin, Heart, BadgeCheck,
+  Users, Compass, ShieldCheck, BedDouble, Mail, Phone, MapPin, Heart, BadgeCheck,
   Trash2, Eye, User as UserIcon,
 } from "lucide-react";
 import AdminLayout from "../AdminLayout";
@@ -14,7 +14,14 @@ const FILTERS = [
   { key: "all", label: "All" },
   { key: "user", label: "Travellers" },
   { key: "local guide", label: "Local Guides" },
+  { key: "hotel", label: "Hotels" },
 ];
+
+const TYPE_META = {
+  "local guide": { label: "Local Guide", cls: "bg-violet-50 text-violet-600" },
+  hotel: { label: "Hotel", cls: "bg-sky-50 text-sky-600" },
+  user: { label: "Traveller", cls: "bg-lime-50 text-lime-600" },
+};
 
 const Avatar = ({ user, className }) =>
   user.avatar ? (
@@ -25,15 +32,14 @@ const Avatar = ({ user, className }) =>
     </span>
   );
 
-const TypePill = ({ type }) => (
-  <span
-    className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-semibold ${
-      type === "local guide" ? "bg-violet-50 text-violet-600" : "bg-lime-50 text-lime-600"
-    }`}
-  >
-    {type === "local guide" ? "Local Guide" : "Traveller"}
-  </span>
-);
+const TypePill = ({ type }) => {
+  const meta = TYPE_META[type] || TYPE_META.user;
+  return (
+    <span className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-semibold ${meta.cls}`}>
+      {meta.label}
+    </span>
+  );
+};
 
 const Detail = ({ icon: Icon, label, value }) => (
   <div className="flex items-start gap-2.5 rounded-2xl border border-slate-100 p-3">
@@ -57,7 +63,8 @@ const UserManagement = () => {
 
   const travellers = users.filter((u) => u.type === "user").length;
   const guides = users.filter((u) => u.type === "local guide").length;
-  const counts = { all: users.length, user: travellers, "local guide": guides };
+  const hotels = users.filter((u) => u.type === "hotel").length;
+  const counts = { all: users.length, user: travellers, "local guide": guides, hotel: hotels };
   const shown = filter === "all" ? users : users.filter((u) => u.type === filter);
 
   const remove = async (u) => {
@@ -74,10 +81,11 @@ const UserManagement = () => {
   return (
     <AdminLayout greeting="Users & Guides" subtitle="Manage travellers and local guides on the platform">
       {/* Stats */}
-      <div className="grid gap-4 sm:grid-cols-3">
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <StatCard icon={Users} tone="emerald" label="Total accounts" value={users.length} />
         <StatCard icon={Compass} tone="sky" label="Travellers" value={travellers} />
         <StatCard icon={ShieldCheck} tone="violet" label="Local guides" value={guides} />
+        <StatCard icon={BedDouble} tone="apricot" label="Hotels" value={hotels} />
       </div>
 
       <Card className="mt-6">
@@ -169,7 +177,7 @@ const UserManagement = () => {
         onClose={() => setViewing(null)}
         icon={UserIcon}
         title={viewing?.name}
-        subtitle={viewing ? (viewing.type === "local guide" ? "Local guide profile" : "Traveller profile") : ""}
+        subtitle={viewing ? `${(TYPE_META[viewing.type] || TYPE_META.user).label} profile` : ""}
         footer={
           <>
             <BtnGhost onClick={() => setViewing(null)}>Close</BtnGhost>

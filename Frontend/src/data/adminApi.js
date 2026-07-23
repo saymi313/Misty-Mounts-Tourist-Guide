@@ -23,6 +23,8 @@ export const uploadImage = async (file, folder) => {
 export const listAccommodations = async () => (await api.get("/admin/accommodations")).data;
 export const createAccommodation = async (b) => (await api.post("/admin/accommodations", b)).data.accommodation;
 export const updateAccommodation = async (id, b) => (await api.put(`/admin/accommodations/${id}`, b)).data.accommodation;
+export const approveAccommodation = async (id, isApproved = true) =>
+  (await api.patch(`/admin/accommodations/${id}/approve`, { isApproved })).data.accommodation;
 export const deleteAccommodation = async (id) => (await api.delete(`/admin/accommodations/${id}`)).data;
 
 // ── Transportation ────────────────────────────────────────────────────────────
@@ -42,6 +44,9 @@ export const deletePlace = async (id) => (await api.delete(`/admin/places/${id}`
 // ── Platform settings (admin) ─────────────────────────────────────────────────
 export const getSettings = async () => (await api.get("/admin/settings")).data.settings;
 export const updateSettings = async (b) => (await api.patch("/admin/settings", b)).data.settings;
+
+// ── Admin sidebar badge counts ────────────────────────────────────────────────
+export const getAdminCounts = async () => (await api.get("/admin/counts")).data;
 
 // ── Cities (read public; write admin) ─────────────────────────────────────────
 export const listCities = async () => (await api.get("/admin/cities")).data.cities;

@@ -1,12 +1,14 @@
 import React, { useState, useEffect } from "react";
-import { Building2, Plus, Pencil, Trash2, MapPin, Image as ImageIcon } from "lucide-react";
+import { Building2, Plus, Pencil, Trash2, MapPin, Image as ImageIcon, Landmark, Percent } from "lucide-react";
 import AdminLayout from "../AdminLayout";
 import { Card, SectionHead, StatCard, Btn, BtnGhost, Field, adminInputCls } from "../../components/dashboard/ui";
 import Modal from "../../components/dashboard/Modal";
-import { LIVE, listCities, createCity, updateCity, deleteCity } from "../../data/adminApi";
+import { LIVE, listCities, createCity, updateCity, deleteCity, getSettings, updateSettings } from "../../data/adminApi";
 import ImageUploadButton from "../../components/dashboard/ImageUploadButton";
 import { toast } from "../../utils/toast";
 import { confirmDialog } from "../../utils/confirm";
+
+const emptyAccount = { label: "", bank: "", accountName: "", accountNumber: "", instructions: "" };
 
 const emptyForm = { name: "", tagline: "", photo: "" };
 const byName = (a, b) => a.name.localeCompare(b.name);
@@ -18,9 +20,39 @@ export default function AdminSettings() {
   const [form, setForm] = useState(emptyForm);
   const [errors, setErrors] = useState({});
 
+  // Revenue & payment settings
+  const [commission, setCommission] = useState(15);
+  const [threshold, setThreshold] = useState(5000);
+  const [accounts, setAccounts] = useState([]);
+  const [savingPay, setSavingPay] = useState(false);
+
   useEffect(() => {
-    if (LIVE) listCities().then(setCities).catch(() => {});
+    if (!LIVE) return;
+    listCities().then(setCities).catch(() => {});
+    getSettings().then((s) => {
+      setCommission(s.commissionPercent ?? 15);
+      setThreshold(s.minPayoutThreshold ?? 5000);
+      setAccounts(s.paymentAccounts || []);
+    }).catch(() => {});
   }, []);
+
+  const setAccount = (i, key, val) => setAccounts((prev) => prev.map((a, idx) => (idx === i ? { ...a, [key]: val } : a)));
+  const addAccount = () => setAccounts((prev) => [...prev, { ...emptyAccount }]);
+  const removeAccount = (i) => setAccounts((prev) => prev.filter((_, idx) => idx !== i));
+
+  const savePaymentSettings = async () => {
+    const cleaned = accounts.filter((a) => a.accountNumber?.trim() || a.label?.trim());
+    setSavingPay(true);
+    try {
+      if (LIVE) await updateSettings({ commissionPercent: Number(commission) || 0, minPayoutThreshold: Number(threshold) || 0, paymentAccounts: cleaned });
+      setAccounts(cleaned);
+      toast.success("Payment settings saved.");
+    } catch {
+      toast.error("Couldn't save payment settings. Please try again.");
+    } finally {
+      setSavingPay(false);
+    }
+  };
 
   const update = (k, v) => {
     setForm((f) => ({ ...f, [k]: v }));
@@ -76,8 +108,69 @@ export default function AdminSettings() {
   };
 
   return (
-    <AdminLayout greeting="Settings" subtitle="Manage the cities shown across the platform">
-      <div className="grid gap-4 sm:grid-cols-3">
+    <AdminLayout greeting="Settings" subtitle="Cities, commission and the accounts travellers pay into">
+      {/* Revenue & payment accounts */}
+      <Card>
+        <SectionHead
+          title="Revenue & payments"
+          sub="Your commission and the accounts shown to travellers at checkout."
+          action={<Btn onClick={savePaymentSettings} disabled={savingPay}>{savingPay ? "Saving…" : "Save payment settings"}</Btn>}
+        />
+        <div className="grid max-w-lg gap-5 sm:grid-cols-2">
+          <Field
+            label="Platform commission (%)"
+            type="number"
+            min="0"
+            max="100"
+            step="1"
+            value={commission}
+            onChange={(v) => setCommission(v)}
+            hint="Kept by the platform; the rest is a partner's earnings."
+          />
+          <Field
+            label="Minimum payout (PKR)"
+            type="number"
+            min="0"
+            step="500"
+            value={threshold}
+            onChange={(v) => setThreshold(v)}
+            hint="Partners can only request a payout at or above this balance."
+          />
+        </div>
+
+        <div className="mt-6 flex items-center justify-between">
+          <p className="flex items-center gap-2 text-sm font-semibold text-slate-700"><Landmark className="h-4 w-4 text-lime-600" /> Payment accounts</p>
+          <BtnGhost onClick={addAccount}><Plus className="h-4 w-4" /> Add account</BtnGhost>
+        </div>
+        {accounts.length === 0 ? (
+          <p className="mt-3 rounded-2xl border border-dashed border-slate-200 py-8 text-center text-sm text-slate-400">
+            No accounts yet. Add a bank or wallet account travellers can pay into.
+          </p>
+        ) : (
+          <div className="mt-3 space-y-4">
+            {accounts.map((a, i) => (
+              <div key={i} className="rounded-2xl border border-slate-100 p-4">
+                <div className="grid gap-3 sm:grid-cols-2">
+                  <Field label="Label" value={a.label} onChange={(v) => setAccount(i, "label", v)} placeholder="e.g. Meezan Bank" />
+                  <Field label="Bank / wallet" value={a.bank} onChange={(v) => setAccount(i, "bank", v)} placeholder="e.g. Bank / JazzCash / Easypaisa" />
+                  <Field label="Account name" value={a.accountName} onChange={(v) => setAccount(i, "accountName", v)} placeholder="Account holder name" />
+                  <Field label="Account number / IBAN" value={a.accountNumber} onChange={(v) => setAccount(i, "accountNumber", v)} placeholder="PK.. / 03xx.." />
+                </div>
+                <div className="mt-3">
+                  <Field label="Instructions" value={a.instructions} onChange={(v) => setAccount(i, "instructions", v)} placeholder="e.g. Add your booking name in the reference" />
+                </div>
+                <div className="mt-3 flex justify-end">
+                  <button onClick={() => removeAccount(i)} className="inline-flex items-center gap-1 text-xs font-semibold text-rose-500 transition-colors hover:text-rose-600">
+                    <Trash2 className="h-3.5 w-3.5" /> Remove
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </Card>
+
+      <div className="mt-6 grid gap-4 sm:grid-cols-3">
         <StatCard icon={Building2} tone="emerald" label="Cities" value={cities.length} />
         <StatCard icon={ImageIcon} tone="sky" label="With photos" value={cities.filter((c) => c.photo).length} />
         <StatCard icon={MapPin} tone="apricot" label="Missing photo" value={cities.filter((c) => !c.photo).length} />

@@ -2,6 +2,8 @@ import React, { useState } from 'react';
 import { Send, CheckCircle2, AlertCircle } from 'lucide-react';
 import { Tile, Eyebrow, Btn, inputCls } from '../bento/tiles';
 import { required, email as emailRule, minLen, validate, hasErrors } from '../../../utils/validation';
+import { createQuery } from '../../../data/queriesApi';
+import { LIVE } from '../../../data/api';
 
 const labelCls = 'block text-sm font-semibold text-white/70';
 const inputErr = '!border-rose-400/60 focus:!border-rose-400/60 focus:!ring-rose-400/15';
@@ -11,14 +13,17 @@ const ContactForm = () => {
   const [form, setForm] = useState({ name: '', email: '', message: '' });
   const [errors, setErrors] = useState({});
   const [sent, setSent] = useState(false);
+  const [error, setError] = useState('');
+  const [sending, setSending] = useState(false);
 
   const update = (key, val) => {
     setForm((f) => ({ ...f, [key]: val }));
     if (errors[key]) setErrors((e) => ({ ...e, [key]: undefined }));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
+    setError('');
     const found = validate(form, {
       name: [required('Please enter your name')],
       email: [required('Email is required'), emailRule()],
@@ -28,8 +33,16 @@ const ContactForm = () => {
       setErrors(found);
       return;
     }
-    setSent(true);
-    setForm({ name: '', email: '', message: '' });
+    setSending(true);
+    try {
+      if (LIVE) await createQuery(form);
+      setSent(true);
+      setForm({ name: '', email: '', message: '' });
+    } catch {
+      setError('Something went wrong sending your message. Please try again.');
+    } finally {
+      setSending(false);
+    }
   };
 
   return (
@@ -43,6 +56,11 @@ const ContactForm = () => {
         {sent && (
           <div className="flex items-center gap-2.5 rounded-2xl border border-lime-400/25 bg-lime-400/10 px-4 py-3 text-sm font-semibold text-lime-400">
             <CheckCircle2 className="h-4 w-4" /> Thanks! We'll be in touch shortly.
+          </div>
+        )}
+        {error && (
+          <div className="flex items-center gap-2.5 rounded-2xl border border-rose-400/25 bg-rose-400/10 px-4 py-3 text-sm font-semibold text-rose-300">
+            <AlertCircle className="h-4 w-4" /> {error}
           </div>
         )}
 
@@ -86,8 +104,8 @@ const ContactForm = () => {
           {errors.message && <p className={errNote}><AlertCircle className="h-3.5 w-3.5 shrink-0" /> {errors.message}</p>}
         </div>
 
-        <Btn type="submit" className="w-full">
-          Send message <Send className="h-4 w-4" />
+        <Btn type="submit" disabled={sending} className="w-full">
+          {sending ? 'Sending…' : (<>Send message <Send className="h-4 w-4" /></>)}
         </Btn>
       </form>
     </Tile>

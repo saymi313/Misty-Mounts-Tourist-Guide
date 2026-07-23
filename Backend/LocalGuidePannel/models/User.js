@@ -20,7 +20,7 @@ const userSchema = new mongoose.Schema(
     },
     type: {
       type: String,
-      enum: ['user', 'local guide'],
+      enum: ['user', 'local guide', 'hotel'],
       required: true,
     },
     // Profile fields (editable from the user Profile page)
@@ -35,6 +35,8 @@ const userSchema = new mongoose.Schema(
     specialties: { type: [String], default: [] },
     serviceAreas: { type: [String], default: [] },
     experience: { type: String, default: '' },
+    // Hotel-manager profile extra (only meaningful when type === 'hotel')
+    hotelName: { type: String, default: '' },
     // Per-user saved tourist-spot ids (Phase 4)
     savedSpots: { type: [String], default: [] },
     // Email OTP verification

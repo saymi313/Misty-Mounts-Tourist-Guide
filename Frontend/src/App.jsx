@@ -8,6 +8,7 @@ import PanelSelector from './PanelSelector';
 import ProtectedRoute from './components/ProtectedRoute';
 import ProtectedRoutesWrapper from './components/ProtectedRoutesWrapper';
 import LocalGuidePanel from './LocalGuidePannel/LocalGuidePanel';
+import HotelPanel from './HotelPannel/HotelPanel';
 import Toaster from './components/Toaster';
 import ConfirmDialog from './components/ConfirmDialog';
 import './App.css';
@@ -35,6 +36,13 @@ function App() {
           <Route path="/local-guide/*" element={
             <ProtectedRoute allowedUserTypes={['local guide']}>
               <LocalGuidePanel />
+            </ProtectedRoute>
+          } />
+
+          {/* Hotel manager panel — hotels only */}
+          <Route path="/hotel/*" element={
+            <ProtectedRoute allowedUserTypes={['hotel']}>
+              <HotelPanel />
             </ProtectedRoute>
           } />
           
