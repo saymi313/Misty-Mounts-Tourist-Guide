@@ -9,8 +9,10 @@ import Navbar from "../components/Navbar";
 import Footer from "../components/Home/Footer";
 import { Tile, Eyebrow, Btn, Chip } from "../components/bento/tiles";
 import { getBookings, saveBookings, fetchBookings, cancelBookingRemote } from "../../utils/bookingsStore";
+import { listMyTourBookings } from "../../data/toursApi";
 import { formatPKR } from "../../utils/currency";
 import { formatDate } from "../../utils/datetime";
+import { LIVE } from "../../data/api";
 
 const EASE = [0.16, 1, 0.3, 1];
 const FILTERS = ["All", "Upcoming", "Completed", "Cancelled"];
@@ -21,16 +23,39 @@ const statusStyle = {
   Cancelled: "bg-rose-500/15 text-rose-300",
 };
 
+// Normalize a tour booking into the same card shape as a stay booking.
+const normalizeTour = (t) => ({
+  _id: t._id,
+  kind: "tour",
+  ref: t.ref,
+  status: t.status || "Upcoming",
+  paymentStatus: t.paymentStatus || "Pending",
+  hotel: t.packageTitle,
+  city: t.city || "",
+  image: t.image || "",
+  amount: t.amount || 0,
+  checkIn: t.departureDate,
+  seats: t.seats || 1,
+  packageId: t.packageId,
+  bookedOn: t.createdAt,
+});
+
 const MyBookings = () => {
-  const [bookings, setBookings] = useState(getBookings);
+  const [stays, setStays] = useState(getBookings);
+  const [tours, setTours] = useState([]);
   const [filter, setFilter] = useState("All");
 
   useEffect(() => {
-    fetchBookings().then((b) => setBookings([...b]));
+    fetchBookings().then((b) => setStays([...b]));
+    if (LIVE) listMyTourBookings().then((t) => setTours((t || []).map(normalizeTour))).catch(() => {});
   }, []);
 
+  const bookings = [...stays, ...tours].sort(
+    (a, b) => new Date(b.bookedOn || b.checkIn || 0) - new Date(a.bookedOn || a.checkIn || 0)
+  );
+
   const cancel = (id) =>
-    setBookings((prev) => {
+    setStays((prev) => {
       const next = prev.map((b) => (b._id === id ? { ...b, status: "Cancelled" } : b));
       saveBookings(next);
       cancelBookingRemote(id);
@@ -126,20 +151,36 @@ const MyBookings = () => {
                             <Ticket className="h-3 w-3" /> {b.ref}
                           </span>
                         </div>
-                        <h3 className="mt-2 truncate text-lg font-extrabold text-white">{b.hotel}</h3>
+                        <h3 className="mt-2 truncate text-lg font-extrabold text-white">
+                          {b.hotel}
+                          {b.kind === "tour" && <span className="ml-2 rounded-full bg-violet-400/15 px-2 py-0.5 align-middle text-[0.6rem] font-bold uppercase tracking-wider text-violet-300">Tour</span>}
+                        </h3>
                         <p className="mt-0.5 flex items-center gap-1 text-sm text-white/60">
                           <MapPin className="h-3.5 w-3.5 text-lime-400" /> {b.city}
                         </p>
                         <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1.5 text-xs text-white/60">
                           <span className="inline-flex items-center gap-1.5">
-                            <Calendar className="h-3.5 w-3.5 text-lime-400" /> {formatDate(b.checkIn)}
+                            <Calendar className="h-3.5 w-3.5 text-lime-400" /> {b.checkIn ? formatDate(b.checkIn) : "—"}{b.kind === "tour" ? " · departure" : ""}
                           </span>
-                          <span className="inline-flex items-center gap-1.5">
-                            <Moon className="h-3.5 w-3.5 text-lime-400" /> {b.nights} night{b.nights > 1 ? "s" : ""}
-                          </span>
-                          <span className="inline-flex items-center gap-1.5">
-                            <Users className="h-3.5 w-3.5 text-lime-400" /> {b.guests} guest{b.guests > 1 ? "s" : ""}
-                          </span>
+                          {b.kind === "tour" ? (
+                            <span className="inline-flex items-center gap-1.5">
+                              <Users className="h-3.5 w-3.5 text-lime-400" /> {b.seats} seat{b.seats > 1 ? "s" : ""}
+                            </span>
+                          ) : (
+                            <>
+                              <span className="inline-flex items-center gap-1.5">
+                                <Moon className="h-3.5 w-3.5 text-lime-400" /> {b.nights} night{b.nights > 1 ? "s" : ""}
+                              </span>
+                              <span className="inline-flex items-center gap-1.5">
+                                <Users className="h-3.5 w-3.5 text-lime-400" /> {b.guests} guest{b.guests > 1 ? "s" : ""}
+                              </span>
+                            </>
+                          )}
+                          {b.kind === "tour" && b.paymentStatus && b.paymentStatus !== "Approved" && (
+                            <span className="inline-flex items-center gap-1.5 text-apricot-300">
+                              <Ticket className="h-3.5 w-3.5" /> Payment {b.paymentStatus.toLowerCase()}
+                            </span>
+                          )}
                         </div>
                       </div>
 
@@ -150,12 +191,12 @@ const MyBookings = () => {
                         </div>
                         <div className="flex items-center gap-2">
                           <Link
-                            to={b.accId ? `/accommodations/${b.accId}` : "/destinations"}
+                            to={b.kind === "tour" ? `/tours/${b.packageId}` : b.accId ? `/accommodations/${b.accId}` : "/destinations"}
                             className="inline-flex items-center gap-1.5 rounded-full border border-white/15 px-3.5 py-2 text-xs font-bold text-white transition-colors hover:border-lime-400 hover:text-lime-400"
                           >
-                            View stay <ArrowUpRight className="h-3.5 w-3.5" />
+                            {b.kind === "tour" ? "View tour" : "View stay"} <ArrowUpRight className="h-3.5 w-3.5" />
                           </Link>
-                          {b.status === "Upcoming" && (
+                          {b.kind !== "tour" && b.status === "Upcoming" && (
                             <button
                               onClick={() => cancel(b._id)}
                               className="inline-flex items-center gap-1.5 rounded-full border border-rose-500/30 px-3.5 py-2 text-xs font-bold text-rose-300 transition-colors hover:bg-rose-500/10"

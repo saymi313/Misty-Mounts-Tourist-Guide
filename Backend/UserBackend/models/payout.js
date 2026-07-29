@@ -7,7 +7,7 @@ const payoutSchema = new mongoose.Schema(
   {
     recipientId: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true, index: true },
     recipientName: { type: String, default: "" },
-    recipientType: { type: String, enum: ["hotel", "local guide"], required: true },
+    recipientType: { type: String, enum: ["hotel", "local guide", "travel agency"], required: true },
     amount: { type: Number, required: true, min: 0 },
     note: { type: String, default: "" },
     // Partner-initiated withdrawal request the admin verifies.

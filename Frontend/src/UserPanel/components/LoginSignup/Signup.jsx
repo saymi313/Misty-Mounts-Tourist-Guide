@@ -162,6 +162,7 @@ const Signup = ({ onSwitchToLogin }) => {
             <option value="user">Tourist</option>
             <option value="local guide">Local Guide</option>
             <option value="hotel">Hotel</option>
+            <option value="travel agency">Travel Agency</option>
           </select>
           <ChevronDown className="pointer-events-none absolute right-4 top-1/2 h-4 w-4 -translate-y-1/2 text-white/40" />
         </Field>

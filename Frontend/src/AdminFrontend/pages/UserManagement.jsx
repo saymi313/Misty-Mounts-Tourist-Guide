@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from "react";
 import {
   Users, Compass, ShieldCheck, BedDouble, Mail, Phone, MapPin, Heart, BadgeCheck,
-  Trash2, Eye, User as UserIcon,
+  Trash2, Eye, User as UserIcon, Check, Clock,
 } from "lucide-react";
 import AdminLayout from "../AdminLayout";
 import { Card, SectionHead, StatCard, Btn, BtnGhost } from "../../components/dashboard/ui";
 import Modal from "../../components/dashboard/Modal";
-import { LIVE, listUsers, deleteUser } from "../../data/adminApi";
+import { LIVE, listUsers, deleteUser, approveUser } from "../../data/adminApi";
 import { formatDate } from "../../utils/datetime";
 import { toast } from "../../utils/toast";
 
@@ -15,11 +15,13 @@ const FILTERS = [
   { key: "user", label: "Travellers" },
   { key: "local guide", label: "Local Guides" },
   { key: "hotel", label: "Hotels" },
+  { key: "travel agency", label: "Agencies" },
 ];
 
 const TYPE_META = {
   "local guide": { label: "Local Guide", cls: "bg-violet-50 text-violet-600" },
   hotel: { label: "Hotel", cls: "bg-sky-50 text-sky-600" },
+  "travel agency": { label: "Travel Agency", cls: "bg-apricot-50 text-apricot-600" },
   user: { label: "Traveller", cls: "bg-lime-50 text-lime-600" },
 };
 
@@ -64,8 +66,20 @@ const UserManagement = () => {
   const travellers = users.filter((u) => u.type === "user").length;
   const guides = users.filter((u) => u.type === "local guide").length;
   const hotels = users.filter((u) => u.type === "hotel").length;
-  const counts = { all: users.length, user: travellers, "local guide": guides, hotel: hotels };
+  const agencies = users.filter((u) => u.type === "travel agency").length;
+  const pendingAgencies = users.filter((u) => u.type === "travel agency" && u.isApproved === false).length;
+  const counts = { all: users.length, user: travellers, "local guide": guides, hotel: hotels, "travel agency": agencies };
   const shown = filter === "all" ? users : users.filter((u) => u.type === filter);
+
+  const approve = async (u) => {
+    if (LIVE) {
+      try { await approveUser(u._id, true); }
+      catch { toast.error("Couldn't approve this agency. Please try again."); return; }
+    }
+    setUsers((prev) => prev.map((x) => (x._id === u._id ? { ...x, isApproved: true } : x)));
+    if (viewing?._id === u._id) setViewing({ ...viewing, isApproved: true });
+    toast.success(`${u.agencyName || u.name} approved — their tours can now go live.`);
+  };
 
   const remove = async (u) => {
     if (LIVE) {
@@ -81,11 +95,12 @@ const UserManagement = () => {
   return (
     <AdminLayout greeting="Users & Guides" subtitle="Manage travellers and local guides on the platform">
       {/* Stats */}
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
         <StatCard icon={Users} tone="emerald" label="Total accounts" value={users.length} />
         <StatCard icon={Compass} tone="sky" label="Travellers" value={travellers} />
         <StatCard icon={ShieldCheck} tone="violet" label="Local guides" value={guides} />
         <StatCard icon={BedDouble} tone="apricot" label="Hotels" value={hotels} />
+        <StatCard icon={Compass} tone="emerald" label={pendingAgencies ? `Agencies · ${pendingAgencies} pending` : "Agencies"} value={agencies} />
       </div>
 
       <Card className="mt-6">
@@ -133,7 +148,11 @@ const UserManagement = () => {
                   <td className="px-3 py-3"><TypePill type={u.type} /></td>
                   <td className="px-3 py-3 text-sm text-slate-500">{u.city || "—"}</td>
                   <td className="px-3 py-3">
-                    {u.isVerified ? (
+                    {u.type === "travel agency" && u.isApproved === false ? (
+                      <span className="inline-flex items-center gap-1 text-xs font-semibold text-apricot-600">
+                        <Clock className="h-3.5 w-3.5" /> Pending review
+                      </span>
+                    ) : u.isVerified ? (
                       <span className="inline-flex items-center gap-1 text-xs font-semibold text-lime-600">
                         <BadgeCheck className="h-3.5 w-3.5" /> Verified
                       </span>
@@ -143,6 +162,15 @@ const UserManagement = () => {
                   </td>
                   <td className="px-3 py-3">
                     <div className="flex items-center justify-end gap-2">
+                      {u.type === "travel agency" && u.isApproved === false && (
+                        <button
+                          onClick={() => approve(u)}
+                          title="Approve agency"
+                          className="inline-flex items-center gap-1 rounded-lg bg-lime-400 px-2.5 py-1.5 text-xs font-bold text-night-950 transition-colors hover:bg-lime-300"
+                        >
+                          <Check className="h-3.5 w-3.5" /> Approve
+                        </button>
+                      )}
                       <button
                         onClick={() => setViewing(u)}
                         title="View profile"

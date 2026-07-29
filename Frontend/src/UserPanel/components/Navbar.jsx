@@ -15,6 +15,7 @@ const links = [
   { to: "/user", label: "Home" },
   { to: "/destinations", label: "Destinations" },
   { to: "/guides", label: "Local Guides" },
+  { to: "/tours", label: "Tours" },
   { to: "/feedback", label: "Feedback" },
   { to: "/about", label: "About" },
   { to: "/contact", label: "Contact" },

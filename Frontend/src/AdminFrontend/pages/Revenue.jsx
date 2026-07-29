@@ -6,12 +6,13 @@ import Modal from "../../components/dashboard/Modal";
 import { formatPKR } from "../../utils/currency";
 import { formatDate } from "../../utils/datetime";
 import { LIVE, getSettings, listUsers } from "../../data/adminApi";
-import { listPayments, verifyPayment, listPayouts, verifyPayout, creditGuide } from "../../data/revenueApi";
+import { listPayments, verifyPayment, listPayouts, verifyPayout, creditGuide, listTourPayments, verifyTourPayment } from "../../data/revenueApi";
 import { toast } from "../../utils/toast";
 import { confirmDialog } from "../../utils/confirm";
 
 export default function Revenue() {
   const [payments, setPayments] = useState([]);
+  const [tourPayments, setTourPayments] = useState([]);
   const [payouts, setPayouts] = useState([]);
   const [commission, setCommission] = useState(15);
   const [recipients, setRecipients] = useState([]);
@@ -24,6 +25,7 @@ export default function Revenue() {
 
   const load = () => {
     listPayments().then(setPayments).catch(() => {});
+    listTourPayments().then(setTourPayments).catch(() => {});
     listPayouts().then(setPayouts).catch(() => {});
   };
 
@@ -34,8 +36,11 @@ export default function Revenue() {
     listUsers().then((u) => setRecipients(u.filter((x) => x.type === "hotel" || x.type === "local guide"))).catch(() => {});
   }, []);
 
-  const collected = payments.filter((p) => p.paymentStatus === "Approved").reduce((s, p) => s + (p.amount || 0), 0);
+  const stayCollected = payments.filter((p) => p.paymentStatus === "Approved").reduce((s, p) => s + (p.amount || 0), 0);
+  const tourCollected = tourPayments.filter((p) => p.paymentStatus === "Approved").reduce((s, p) => s + (p.amount || 0), 0);
+  const collected = stayCollected + tourCollected;
   const pending = payments.filter((p) => p.paymentStatus === "Pending");
+  const tourPending = tourPayments.filter((p) => p.paymentStatus === "Pending");
   const statusOf = (p) => p.status || "Approved"; // legacy payouts had no status
   const paidOut = payouts.filter((p) => statusOf(p) === "Approved").reduce((s, p) => s + (p.amount || 0), 0);
   const pendingRequests = payouts.filter((p) => statusOf(p) === "Requested");
@@ -56,6 +61,25 @@ export default function Revenue() {
       toast.success(approved ? "Payout approved." : "Payout request rejected.");
     } catch {
       toast.error("Couldn't update this request. Please try again.");
+    }
+  };
+
+  const handleVerifyTour = async (payment, approved) => {
+    if (!approved) {
+      const ok = await confirmDialog({
+        title: "Reject this tour payment?",
+        body: `${payment.guest}'s booking (ref ${payment.ref}) will be cancelled and their seats released.`,
+        confirmLabel: "Reject",
+      });
+      if (!ok) return;
+    }
+    try {
+      const updated = await verifyTourPayment(payment._id, approved);
+      setTourPayments((prev) => prev.map((p) => (p._id === payment._id ? { ...p, paymentStatus: updated?.paymentStatus || (approved ? "Approved" : "Rejected"), status: updated?.status || p.status } : p)));
+      if (viewing?._id === payment._id) setViewing(null);
+      toast.success(approved ? "Tour payment approved — booking confirmed." : "Tour payment rejected.");
+    } catch {
+      toast.error("Couldn't update this payment. Please try again.");
     }
   };
 
@@ -102,7 +126,7 @@ export default function Revenue() {
       {/* Stats */}
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <StatCard icon={Banknote} tone="emerald" label="Collected" value={formatPKR(collected)} />
-        <StatCard icon={Clock} tone="apricot" label="Pending review" value={pending.length} />
+        <StatCard icon={Clock} tone="apricot" label="Pending review" value={pending.length + tourPending.length} />
         <StatCard icon={Send} tone="violet" label="Paid out" value={formatPKR(paidOut)} />
         <StatCard icon={TrendingUp} tone="sky" label="Net retained" value={formatPKR(retained)} />
       </div>
@@ -157,6 +181,62 @@ export default function Revenue() {
               ))}
               {payments.length === 0 && (
                 <tr><td colSpan={6} className="px-3 py-10 text-center text-sm text-slate-400">No payments yet.</td></tr>
+              )}
+            </tbody>
+          </table>
+        </div>
+      </Card>
+
+      {/* Tour payments */}
+      <Card className="mt-6">
+        <SectionHead
+          title="Tour payments"
+          sub={`${tourPayments.length} total · ${tourPending.length} awaiting verification`}
+        />
+        <div className="overflow-x-auto">
+          <table className="w-full min-w-[760px] border-collapse">
+            <thead>
+              <tr className="text-left text-xs font-semibold uppercase tracking-wide text-slate-400">
+                <th className="px-3 py-3">Traveller</th>
+                <th className="px-3 py-3">Package</th>
+                <th className="px-3 py-3">Seats</th>
+                <th className="px-3 py-3">Amount</th>
+                <th className="px-3 py-3">Payment</th>
+                <th className="px-3 py-3 text-right">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {tourPayments.map((p) => (
+                <tr key={p._id} className="border-t border-slate-100 transition-colors hover:bg-slate-50">
+                  <td className="px-3 py-3">
+                    <p className="text-sm font-semibold text-slate-900">{p.guest}</p>
+                    <p className="text-xs text-slate-400">Ref {p.ref}</p>
+                  </td>
+                  <td className="px-3 py-3 text-sm text-slate-600">{p.packageTitle}</td>
+                  <td className="px-3 py-3 text-sm text-slate-500">{p.seats}</td>
+                  <td className="px-3 py-3 text-sm font-semibold text-slate-900">{formatPKR(p.amount)}</td>
+                  <td className="px-3 py-3"><StatusPill status={p.paymentStatus} /></td>
+                  <td className="px-3 py-3">
+                    <div className="flex items-center justify-end gap-2">
+                      <button onClick={() => setViewing({ ...p, kind: "tour", hotel: p.packageTitle })} title="View proof & details" className="flex h-8 w-8 items-center justify-center rounded-lg text-lime-600 transition-colors hover:bg-lime-50">
+                        <Eye className="h-4 w-4" />
+                      </button>
+                      {p.paymentStatus === "Pending" && (
+                        <>
+                          <button onClick={() => handleVerifyTour(p, true)} title="Approve" className="flex h-8 items-center gap-1 rounded-lg bg-lime-400 px-2.5 text-xs font-semibold text-night-950 transition-colors hover:bg-lime-300">
+                            <Check className="h-3.5 w-3.5" /> Approve
+                          </button>
+                          <button onClick={() => handleVerifyTour(p, false)} title="Reject" className="flex h-8 w-8 items-center justify-center rounded-lg text-rose-500 transition-colors hover:bg-rose-50">
+                            <X className="h-4 w-4" />
+                          </button>
+                        </>
+                      )}
+                    </div>
+                  </td>
+                </tr>
+              ))}
+              {tourPayments.length === 0 && (
+                <tr><td colSpan={6} className="px-3 py-10 text-center text-sm text-slate-400">No tour payments yet.</td></tr>
               )}
             </tbody>
           </table>
@@ -231,8 +311,8 @@ export default function Revenue() {
         footer={
           viewing?.paymentStatus === "Pending" ? (
             <>
-              <BtnGhost onClick={() => handleVerify(viewing, false)}>Reject</BtnGhost>
-              <Btn onClick={() => handleVerify(viewing, true)}><Check className="h-4 w-4" /> Approve</Btn>
+              <BtnGhost onClick={() => (viewing.kind === "tour" ? handleVerifyTour(viewing, false) : handleVerify(viewing, false))}>Reject</BtnGhost>
+              <Btn onClick={() => (viewing.kind === "tour" ? handleVerifyTour(viewing, true) : handleVerify(viewing, true))}><Check className="h-4 w-4" /> Approve</Btn>
             </>
           ) : (
             <BtnGhost onClick={() => setViewing(null)}>Close</BtnGhost>
@@ -247,13 +327,13 @@ export default function Revenue() {
             </div>
             <div className="grid gap-3 sm:grid-cols-2">
               <Detail label="Guest" value={viewing.guest} />
-              <Detail label="Stay" value={viewing.hotel} />
+              <Detail label={viewing.kind === "tour" ? "Tour" : "Stay"} value={viewing.hotel} />
               <Detail label="Email" value={viewing.email || "—"} />
               <Detail label="Phone" value={viewing.phone || "—"} />
               <Detail label="Paid from (name)" value={viewing.senderName || "—"} />
               <Detail label="Paid to" value={viewing.paymentAccountLabel || "—"} />
               <Detail label="Transaction ID" value={viewing.paymentRef || "—"} />
-              <Detail label="Nights" value={String(viewing.nights ?? "—")} />
+              <Detail label={viewing.kind === "tour" ? "Seats" : "Nights"} value={String(viewing.kind === "tour" ? viewing.seats ?? "—" : viewing.nights ?? "—")} />
             </div>
             <div>
               <p className="mb-1.5 text-xs font-semibold uppercase tracking-wide text-slate-500">Payment screenshot</p>

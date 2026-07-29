@@ -39,6 +39,8 @@ const Login = () => {
     const home = landingFor(type);
     if (!from || from === "/" || from === "/user" || from === "/auth") return home;
     if (type === "local guide") return from.startsWith("/local-guide") ? from : home;
+    if (type === "hotel") return from.startsWith("/hotel") ? from : home;
+    if (type === "travel agency") return from.startsWith("/travel-agency") ? from : home;
     if (type === "admin") return from.startsWith("/admin") ? from : home;
     return from;
   };

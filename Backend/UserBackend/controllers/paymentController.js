@@ -2,6 +2,8 @@
 const Booking = require("../models/booking");
 const Payout = require("../models/payout");
 const Earning = require("../models/earning");
+const TourBooking = require("../models/tourBooking");
+const TourPackage = require("../models/tourPackage");
 const Accommodation = require("../../AdminBackend/models/Accommodation");
 const User = require("../../LocalGuidePannel/models/User");
 const Admin = require("../../AdminBackend/models/Admin");
@@ -195,6 +197,90 @@ exports.verifyPayment = async (req, res) => {
   }
 };
 
+// GET /api/payment/tour-payments  — all tour bookings (admin revenue table).
+exports.getAllTourPayments = async (req, res) => {
+  try {
+    const bookings = await TourBooking.find().sort({ createdAt: -1 });
+    const rows = bookings.map((b) => ({
+      _id: b._id,
+      guest: b.guestName || b.email,
+      email: b.email || "",
+      phone: b.phone || "",
+      packageTitle: b.packageTitle,
+      city: b.city,
+      departureDate: b.departureDate,
+      seats: b.seats,
+      amount: b.amount,
+      status: b.status,
+      paymentStatus: b.paymentStatus || "Pending",
+      paymentProof: b.paymentProof || "",
+      paymentRef: b.paymentRef || "",
+      paymentAccountLabel: b.paymentAccountLabel || "",
+      senderName: b.senderName || "",
+      ref: b.ref,
+      bookedOn: b.createdAt,
+    }));
+    res.json({ payments: rows });
+  } catch (err) {
+    console.error("getAllTourPayments error:", err.message);
+    res.status(500).json({ error: "Failed to fetch tour payments" });
+  }
+};
+
+// PATCH /api/payment/tour-payments/:id/verify  — admin approves/rejects a tour payment.
+exports.verifyTourPayment = async (req, res) => {
+  try {
+    const approved = !!req.body.approved;
+    const booking = await TourBooking.findById(req.params.id);
+    if (!booking) return res.status(404).json({ error: "Tour booking not found" });
+    const wasPending = booking.paymentStatus === "Pending";
+    booking.paymentStatus = approved ? "Approved" : "Rejected";
+    booking.status = approved ? "Upcoming" : "Cancelled";
+    await booking.save();
+
+    // On rejection, release the seats reserved at booking time.
+    if (!approved && wasPending) {
+      const pkg = await TourPackage.findById(booking.packageId);
+      const dep = pkg && pkg.departures.id(booking.departureId);
+      if (dep) {
+        dep.seatsBooked = Math.max(0, dep.seatsBooked - booking.seats);
+        await pkg.save();
+      }
+    }
+
+    createNotification(
+      booking.userId,
+      approved
+        ? {
+            type: "booking",
+            title: "Tour booking confirmed",
+            body: `Your payment for ${booking.packageTitle} (ref ${booking.ref}) is verified — you're booked.`,
+            link: "/bookings",
+          }
+        : {
+            type: "booking",
+            title: "Tour payment rejected",
+            body: `Your payment for ${booking.packageTitle} (ref ${booking.ref}) couldn't be verified. Please re-submit or contact support.`,
+            link: "/bookings",
+          }
+    );
+    // Notify the agency on approval.
+    if (approved && booking.agencyId) {
+      createNotification(booking.agencyId, {
+        type: "booking",
+        title: "New confirmed tour booking",
+        body: `${booking.guestName || "A traveller"} booked ${booking.seats} seat(s) on ${booking.packageTitle}.`,
+        link: "/travel-agency/bookings",
+      });
+    }
+
+    res.json({ booking });
+  } catch (err) {
+    console.error("verifyTourPayment error:", err.message);
+    res.status(500).json({ error: "Failed to verify tour payment" });
+  }
+};
+
 // PUT /api/payment/approve  — admin sets a booking's stay status (legacy).
 exports.updateBookingApproval = async (req, res) => {
   try {
@@ -233,6 +319,12 @@ const computeBalance = async (userId, type) => {
   } else if (type === "local guide") {
     const credits = await Earning.find({ guideId: userId });
     earnings = credits.reduce((s, e) => s + (e.amount || 0), 0);
+  } else if (type === "travel agency") {
+    const bookings = await TourBooking.find({ agencyId: userId });
+    const gross = bookings
+      .filter((b) => b.paymentStatus === "Approved" && b.status !== "Cancelled")
+      .reduce((s, b) => s + (b.amount || 0), 0);
+    earnings = Math.round(gross * (1 - commissionPercent / 100));
   }
   const withdrawals = await Payout.find({ recipientId: userId, status: { $ne: "Rejected" } });
   const withdrawn = withdrawals.reduce((s, p) => s + (p.amount || 0), 0);
@@ -252,8 +344,8 @@ exports.getBalance = async (req, res) => {
 // POST /api/payment/payouts/request  — partner initiates a withdrawal request.
 exports.requestPayout = async (req, res) => {
   try {
-    if (!["hotel", "local guide"].includes(req.user.type)) {
-      return res.status(403).json({ error: "Only hotels and guides can request payouts" });
+    if (!["hotel", "local guide", "travel agency"].includes(req.user.type)) {
+      return res.status(403).json({ error: "This account can't request payouts" });
     }
     const amount = Number(req.body.amount) || 0;
     const { available, minPayoutThreshold } = await computeBalance(req.user.id, req.user.type);
@@ -300,7 +392,12 @@ exports.verifyPayout = async (req, res) => {
       body: approved
         ? `Your payout of Rs ${payout.amount.toLocaleString()} has been approved and transferred.`
         : `Your payout request of Rs ${payout.amount.toLocaleString()} was rejected.`,
-      link: payout.recipientType === "hotel" ? "/hotel/revenue" : "/local-guide/revenue",
+      link:
+        payout.recipientType === "hotel"
+          ? "/hotel/revenue"
+          : payout.recipientType === "travel agency"
+          ? "/travel-agency/revenue"
+          : "/local-guide/revenue",
     });
     res.json({ payout });
   } catch (err) {

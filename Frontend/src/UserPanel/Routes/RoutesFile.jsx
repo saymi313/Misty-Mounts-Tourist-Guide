@@ -8,6 +8,8 @@ import About from '../pages/About';
 import Feedback from '../pages/Feedback';
 import Guides from '../pages/Guides';
 import GuideDetail from '../pages/GuideDetail';
+import Tours from '../pages/Tours';
+import TourDetail from '../pages/TourDetail';
 import Messages from '../pages/Messages';
 import Profile from '../pages/Profile';
 import SavedSpots from '../pages/SavedSpots';
@@ -26,6 +28,8 @@ const RoutesFile = () => {
       <Route path="/feedback" element={<Feedback />} />
       <Route path="/guides" element={<Guides />} />
       <Route path="/guides/:id" element={<GuideDetail />} />
+      <Route path="/tours" element={<Tours />} />
+      <Route path="/tours/:id" element={<TourDetail />} />
       <Route path="/messages" element={<Messages />} />
       <Route path="/profile" element={<Profile />} />
       <Route path="/saved" element={<SavedSpots />} />

@@ -21,6 +21,8 @@ const userRoutes = require("./UserBackend/routes/userRoutes");
 const notificationRoutes = require("./UserBackend/routes/notificationRoutes");
 const uploadRoutes = require("./routes/uploadRoutes");
 const hotelRoutes = require("./routes/hotelRoutes");
+const travelAgencyRoutes = require("./routes/travelAgencyRoutes");
+const tourRoutes = require("./routes/tourRoutes");
 const queryRoutes = require("./UserBackend/routes/queryRoutes");
 const messageRoutes = require("./UserBackend/routes/messageRoutes");
 
@@ -68,6 +70,8 @@ app.use("/api/payment", paymentRoutes);
 app.use("/api/notifications", notificationRoutes);
 app.use("/api/upload", uploadRoutes);
 app.use("/api/hotel", hotelRoutes);
+app.use("/api/agency", travelAgencyRoutes);
+app.use("/api/tours", tourRoutes);
 app.use("/api/queries", queryRoutes);
 app.use("/api/messages", messageRoutes);
 app.use("/api/natural-disaster", naturalDisasterRoutes);

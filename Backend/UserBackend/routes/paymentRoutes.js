@@ -4,7 +4,7 @@ const router = express.Router();
 const {
   createPayment, getMyBookings, cancelBooking, getAllPayments, updateBookingApproval,
   verifyPayment, getBalance, requestPayout, listPayouts, listMyPayouts, verifyPayout,
-  creditGuide, listEarnings, listMyEarnings,
+  creditGuide, listEarnings, listMyEarnings, getAllTourPayments, verifyTourPayment,
 } = require('../controllers/paymentController');
 const { getPublicPaymentInfo } = require('../../AdminBackend/controllers/settingsController');
 const { authenticate, requireAdmin } = require('../../middleware/auth');
@@ -25,6 +25,8 @@ router.get('/earnings/me', authenticate, listMyEarnings);
 
 // Admin
 router.get('/', authenticate, requireAdmin, getAllPayments);
+router.get('/tour-payments', authenticate, requireAdmin, getAllTourPayments);
+router.patch('/tour-payments/:id/verify', authenticate, requireAdmin, verifyTourPayment);
 router.put('/approve', authenticate, requireAdmin, updateBookingApproval);
 router.patch('/:id/verify', authenticate, requireAdmin, verifyPayment);
 router.get('/payouts', authenticate, requireAdmin, listPayouts);

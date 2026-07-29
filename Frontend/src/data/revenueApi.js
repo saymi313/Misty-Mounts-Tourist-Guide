@@ -8,6 +8,11 @@ export const listPayments = async () => (await api.get("/payment")).data.payment
 export const verifyPayment = async (id, approved) =>
   (await api.patch(`/payment/${id}/verify`, { approved })).data.booking;
 
+// Admin — tour-package payments verification.
+export const listTourPayments = async () => (await api.get("/payment/tour-payments")).data.payments;
+export const verifyTourPayment = async (id, approved) =>
+  (await api.patch(`/payment/tour-payments/${id}/verify`, { approved })).data.booking;
+
 // Admin — payout requests + guide earnings credits.
 export const listPayouts = async () => (await api.get("/payment/payouts")).data.payouts;
 export const verifyPayout = async (id, approved) =>

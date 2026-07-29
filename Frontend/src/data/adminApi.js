@@ -61,7 +61,15 @@ export const updatePaymentStatus = async (bookingId, status) =>
 
 // ── Users & guides (admin) ────────────────────────────────────────────────────
 export const listUsers = async () => (await api.get("/admin/users")).data.users;
+export const approveUser = async (id, isApproved = true) =>
+  (await api.patch(`/admin/users/${id}/approve`, { isApproved })).data.user;
 export const deleteUser = async (id) => (await api.delete(`/admin/users/${id}`)).data;
+
+// ── Tour packages (admin approval + moderation) ───────────────────────────────
+export const listAdminTours = async () => (await api.get("/admin/tours")).data.tours;
+export const approveTour = async (id, isApproved = true) =>
+  (await api.patch(`/admin/tours/${id}/approve`, { isApproved })).data.package;
+export const deleteTour = async (id) => (await api.delete(`/admin/tours/${id}`)).data;
 
 // ── Natural-disaster alerts ───────────────────────────────────────────────────
 export const listDisasters = async () => (await api.get("/natural-disaster/get-disaster")).data.data;

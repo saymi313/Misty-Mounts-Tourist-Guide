@@ -20,7 +20,7 @@ const userSchema = new mongoose.Schema(
     },
     type: {
       type: String,
-      enum: ['user', 'local guide', 'hotel'],
+      enum: ['user', 'local guide', 'hotel', 'travel agency'],
       required: true,
     },
     // Profile fields (editable from the user Profile page)
@@ -37,6 +37,11 @@ const userSchema = new mongoose.Schema(
     experience: { type: String, default: '' },
     // Hotel-manager profile extra (only meaningful when type === 'hotel')
     hotelName: { type: String, default: '' },
+    // Travel-agency profile extra (only meaningful when type === 'travel agency')
+    agencyName: { type: String, default: '' },
+    // Account-level admin approval. Only travel agencies start unapproved
+    // (set false on signup); every other role is approved by default.
+    isApproved: { type: Boolean, default: true },
     // Per-user saved tourist-spot ids (Phase 4)
     savedSpots: { type: [String], default: [] },
     // Email OTP verification

@@ -4,6 +4,8 @@ export const landingFor = (type) =>
     ? "/local-guide"
     : type === "hotel"
     ? "/hotel"
+    : type === "travel agency"
+    ? "/travel-agency"
     : type === "admin"
     ? "/admin/dashboard"
     : "/user";

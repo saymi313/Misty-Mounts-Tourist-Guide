@@ -8,6 +8,7 @@ const usersController = require('../controllers/usersController');
 const settingsController = require('../controllers/settingsController');
 const cityController = require('../controllers/cityController');
 const statsController = require('../controllers/statsController');
+const tourAdminController = require('../controllers/tourAdminController');
 const { authenticate, requireAdmin, requireRole } = require('../../middleware/auth');
 
 const adminOnly = [authenticate, requireAdmin];
@@ -29,7 +30,13 @@ router.delete('/cities/:id', adminOnly, cityController.deleteCity);
 // ── Users & guides management (admin only) ────────────────────────────────────
 router.get('/users', adminOnly, usersController.listUsers);
 router.get('/users/:id', adminOnly, usersController.getUser);
+router.patch('/users/:id/approve', adminOnly, usersController.approveUser);
 router.delete('/users/:id', adminOnly, usersController.deleteUser);
+
+// ── Tour packages (admin approval + moderation) ───────────────────────────────
+router.get('/tours', adminOnly, tourAdminController.listTours);
+router.patch('/tours/:id/approve', adminOnly, tourAdminController.approveTour);
+router.delete('/tours/:id', adminOnly, tourAdminController.deleteTour);
 
 // ── Accommodations (reads public, writes admin-only) ──────────────────────────
 router.get('/accommodations', accommodationController.getAllAccommodations);

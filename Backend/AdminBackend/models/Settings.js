@@ -10,6 +10,9 @@ const settingsSchema = new mongoose.Schema(
     // When true, hotel-manager listings are approved on creation instead of
     // waiting in the admin moderation queue.
     autoApproveListings: { type: Boolean, default: false },
+    // When true, travel-agency tour packages are approved on creation instead
+    // of waiting in the admin moderation queue.
+    autoApprovePackages: { type: Boolean, default: false },
     // Revenue: the platform's commission %, and the accounts travellers pay into.
     commissionPercent: { type: Number, default: 15, min: 0, max: 100 },
     // Minimum available balance a partner needs before requesting a payout.

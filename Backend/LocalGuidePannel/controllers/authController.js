@@ -13,6 +13,8 @@ const publicAuthUser = (u) => ({
   name: u.name || u.username,
   email: u.email,
   avatar: u.avatar || '',
+  agencyName: u.agencyName || '',
+  isApproved: u.isApproved !== false,
 });
 
 // Generate, store (hashed) and email a fresh OTP. Email failure is logged, not fatal.
@@ -46,7 +48,9 @@ const signup = async (req, res) => {
       return res.status(400).json({ message: 'User already exists' });
     }
 
-    const newUser = new User({ email, username, password, type, name: name || username, isVerified: false });
+    // Travel agencies must be vetted by an admin before their tours go public.
+    const isApproved = type !== 'travel agency';
+    const newUser = new User({ email, username, password, type, name: name || username, isVerified: false, isApproved });
     await newUser.save(); // hashes password via pre-save hook
     await setAndSendOtp(newUser);
 

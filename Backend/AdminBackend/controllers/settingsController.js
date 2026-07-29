@@ -3,6 +3,7 @@ const Settings = require("../models/Settings");
 const shape = (s) => ({
   autoApproveSpots: !!s.autoApproveSpots,
   autoApproveListings: !!s.autoApproveListings,
+  autoApprovePackages: !!s.autoApprovePackages,
   commissionPercent: s.commissionPercent ?? 15,
   minPayoutThreshold: s.minPayoutThreshold ?? 5000,
   paymentAccounts: s.paymentAccounts || [],
@@ -25,6 +26,7 @@ exports.updateSettings = async (req, res) => {
     const s = await Settings.getGlobal();
     if ("autoApproveSpots" in req.body) s.autoApproveSpots = !!req.body.autoApproveSpots;
     if ("autoApproveListings" in req.body) s.autoApproveListings = !!req.body.autoApproveListings;
+    if ("autoApprovePackages" in req.body) s.autoApprovePackages = !!req.body.autoApprovePackages;
     if ("commissionPercent" in req.body) {
       s.commissionPercent = Math.max(0, Math.min(100, Number(req.body.commissionPercent) || 0));
     }
@@ -55,6 +57,16 @@ exports.getAutoApproveListings = async () => {
   try {
     const s = await Settings.getGlobal();
     return !!s.autoApproveListings;
+  } catch {
+    return false;
+  }
+};
+
+// Helper for the travel-agency panel to read the packages auto-approve flag.
+exports.getAutoApprovePackages = async () => {
+  try {
+    const s = await Settings.getGlobal();
+    return !!s.autoApprovePackages;
   } catch {
     return false;
   }

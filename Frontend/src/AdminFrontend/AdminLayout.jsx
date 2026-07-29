@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { LayoutDashboard, Map, BedDouble, Bus, Wallet, Banknote, Users, MessageSquare, Settings } from "lucide-react";
+import { LayoutDashboard, Map, BedDouble, Bus, Wallet, Banknote, Users, MessageSquare, Settings, Package } from "lucide-react";
 import DashboardLayout from "../components/dashboard/DashboardLayout";
 import { img } from "../data/mockData";
 import { confirmDialog } from "../utils/confirm";
@@ -10,6 +10,7 @@ const NAV = [
   { to: "/admin/dashboard", label: "Dashboard", icon: LayoutDashboard, end: true },
   { to: "/admin/tourist-spots", label: "Tourist Spots", icon: Map },
   { to: "/admin/accommodation", label: "Accommodation", icon: BedDouble },
+  { to: "/admin/tours", label: "Tours", icon: Package },
   { to: "/admin/transportation", label: "Transport", icon: Bus },
   { to: "/admin/payments", label: "Payments", icon: Wallet },
   { to: "/admin/revenue", label: "Revenue", icon: Banknote },
@@ -23,8 +24,10 @@ const badgeFor = (to, c) => {
   switch (to) {
     case "/admin/tourist-spots": return c.pendingSpots || 0;
     case "/admin/accommodation": return c.pendingListings || 0;
+    case "/admin/tours": return c.pendingPackages || 0;
     case "/admin/revenue": return (c.pendingPayments || 0) + (c.pendingPayouts || 0);
     case "/admin/queries": return c.queries || 0;
+    case "/admin/users": return c.pendingAgencies || 0;
     default: return 0;
   }
 };
