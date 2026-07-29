@@ -8,6 +8,7 @@ import About from '../pages/About';
 import Feedback from '../pages/Feedback';
 import Guides from '../pages/Guides';
 import GuideDetail from '../pages/GuideDetail';
+import Messages from '../pages/Messages';
 import Profile from '../pages/Profile';
 import SavedSpots from '../pages/SavedSpots';
 import MyBookings from '../pages/MyBookings';
@@ -25,6 +26,7 @@ const RoutesFile = () => {
       <Route path="/feedback" element={<Feedback />} />
       <Route path="/guides" element={<Guides />} />
       <Route path="/guides/:id" element={<GuideDetail />} />
+      <Route path="/messages" element={<Messages />} />
       <Route path="/profile" element={<Profile />} />
       <Route path="/saved" element={<SavedSpots />} />
       <Route path="/bookings" element={<MyBookings />} />

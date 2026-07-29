@@ -7,6 +7,13 @@ const querySchema = new mongoose.Schema(
     email: { type: String, required: true },
     message: { type: String, required: true },
     isRead: { type: Boolean, default: false, index: true },
+    // Admin replies sent back to the sender's email (newest appended).
+    replies: [
+      {
+        message: { type: String, required: true },
+        sentAt: { type: Date, default: Date.now },
+      },
+    ],
   },
   { timestamps: true }
 );

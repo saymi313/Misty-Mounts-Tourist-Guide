@@ -34,6 +34,13 @@ const socket = LIVE
 
 export { socket };
 
+// Attach the JWT to the socket handshake (LIVE only) and connect. The server
+// authenticates every socket with this token, so it must be set before connect.
+const connectSocket = (token) => {
+  if (LIVE) socket.auth = { token: token || localStorage.getItem('token') };
+  if (!socket.connected) socket.connect();
+};
+
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -60,7 +67,7 @@ export const AuthProvider = ({ children }) => {
       if (token && stored) {
         try {
           setUser(JSON.parse(stored));
-          if (!socket.connected) socket.connect();
+          connectSocket(token);
           hydrateUserData();
         } catch {
           localStorage.removeItem('user');
@@ -75,7 +82,7 @@ export const AuthProvider = ({ children }) => {
     if (stored) {
       try {
         setUser(JSON.parse(stored));
-        if (!socket.connected) socket.connect();
+        connectSocket();
       } catch {
         localStorage.removeItem('user');
       }
@@ -91,7 +98,7 @@ export const AuthProvider = ({ children }) => {
         setUser(userData);
         localStorage.setItem('token', data.token);
         localStorage.setItem('user', JSON.stringify(userData));
-        if (!socket.connected) socket.connect();
+        connectSocket(data.token);
         hydrateUserData();
         return { success: true, user: userData };
       } catch (err) {
@@ -106,7 +113,7 @@ export const AuthProvider = ({ children }) => {
     setUser(userData);
     localStorage.setItem('token', 'mock-token');
     localStorage.setItem('user', JSON.stringify(userData));
-    if (!socket.connected) socket.connect();
+    connectSocket('mock-token');
     return { success: true, user: userData };
   };
 
@@ -116,7 +123,7 @@ export const AuthProvider = ({ children }) => {
     setUser(userData);
     localStorage.setItem('token', data.token);
     localStorage.setItem('user', JSON.stringify(userData));
-    if (!socket.connected) socket.connect();
+    connectSocket(data.token);
     hydrateUserData();
     return userData;
   };

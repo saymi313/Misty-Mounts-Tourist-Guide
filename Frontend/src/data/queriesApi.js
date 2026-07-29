@@ -5,4 +5,6 @@ export const createQuery = async (b) => (await api.post("/queries", b)).data;
 export const listQueries = async () => (await api.get("/queries")).data.queries;
 export const markQueryRead = async (id, isRead = true) =>
   (await api.patch(`/queries/${id}/read`, { isRead })).data.query;
+export const replyToQuery = async (id, message) =>
+  (await api.post(`/queries/${id}/reply`, { message })).data.query;
 export const deleteQuery = async (id) => (await api.delete(`/queries/${id}`)).data;

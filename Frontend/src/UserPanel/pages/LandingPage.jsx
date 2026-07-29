@@ -1,11 +1,11 @@
-import React from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { motion, useScroll, useTransform } from "framer-motion";
-import { useRef } from "react";
 import {
   ArrowUpRight, Star, MessageCircle, Compass, Send, Quote, MapPin,
 } from "lucide-react";
-import { allPlaces, feedbacks, img } from "../../data/mockData";
+import { allPlaces, feedbacks as mockFeedbacks, img } from "../../data/mockData";
+import { getFeedbacks } from "../../data/mockApi";
 import { useCountUp } from "../../components/dashboard/motion";
 import { Tile, PhotoTile, Eyebrow } from "../components/bento/tiles";
 import Navbar from "../components/Navbar";
@@ -47,7 +47,18 @@ const LandingPage = () => {
 
   const dest = ["skardu-deosai", "naran-saiful", "swat-mahodand", "fairy-meadows", "gilgit-naltar"].map(byId).filter(Boolean);
   const gems = ["skardu-cold-desert", "hunza-eagles-nest", "gilgit-naltar"].map(byId).filter(Boolean);
-  const reviews = feedbacks.slice(0, 3);
+
+  // Real traveller feedback from the backend; fall back to sample reviews only
+  // when none exist yet so the section is never empty.
+  const [reviews, setReviews] = useState(mockFeedbacks.slice(0, 3));
+  useEffect(() => {
+    getFeedbacks()
+      .then((res) => {
+        const real = (res?.feedbacks || []).filter((r) => !r.guideId);
+        if (real.length) setReviews(real.slice(0, 3));
+      })
+      .catch(() => {});
+  }, []);
 
   return (
     <div className="min-h-screen bg-night-950 text-white selection:bg-lime-400 selection:text-night-950">
@@ -70,7 +81,7 @@ const LandingPage = () => {
                 <Link to="/destinations" className="inline-flex items-center gap-2 rounded-full bg-lime-400 px-6 py-3 text-sm font-bold text-night-950 transition-transform hover:-translate-y-0.5">
                   Explore destinations <ArrowUpRight className="h-4 w-4" />
                 </Link>
-                <Link to="/feedback" className="inline-flex items-center gap-2 rounded-full border border-white/20 px-6 py-3 text-sm font-bold text-white transition-colors hover:border-lime-400 hover:text-lime-400">
+                <Link to="/guides" className="inline-flex items-center gap-2 rounded-full border border-white/20 px-6 py-3 text-sm font-bold text-white transition-colors hover:border-lime-400 hover:text-lime-400">
                   Meet the guides
                 </Link>
               </div>
@@ -103,7 +114,7 @@ const LandingPage = () => {
           <PhotoTile image={img("attabad", 600, 600)} title="Attabad Lake" meta="Hunza" to="/city/Hunza/spot/hunza-attabad" className="min-h-[150px]" />
 
           {/* Guide chat teaser — a live mini chat preview */}
-          <Link to="/feedback" className="group col-span-2 flex items-center gap-4 rounded-[1.4rem] border border-white/[0.07] bg-night-800 p-4 transition-colors hover:border-lime-400/40">
+          <Link to="/guides" className="group col-span-2 flex items-center gap-4 rounded-[1.4rem] border border-white/[0.07] bg-night-800 p-4 transition-colors hover:border-lime-400/40">
             <span className="relative shrink-0">
               <img src={img("guide-0", 120, 120)} alt="" className="h-14 w-14 rounded-2xl object-cover ring-2 ring-lime-400/30" />
               <span className="absolute -bottom-0.5 -right-0.5 h-3.5 w-3.5 rounded-full bg-lime-400 ring-2 ring-night-800" />
@@ -194,7 +205,7 @@ const LandingPage = () => {
 
           {/* Guide-connect banner */}
           <Link
-            to="/feedback"
+            to="/guides"
             className="group relative mt-3 flex flex-col gap-5 overflow-hidden rounded-[1.4rem] border border-white/[0.07] bg-night-800 p-6 transition-colors hover:border-lime-400/30 sm:flex-row sm:items-center sm:p-8"
           >
             <div className="pointer-events-none absolute -right-16 -top-20 h-56 w-56 rounded-full bg-lime-400/10 blur-3xl" />

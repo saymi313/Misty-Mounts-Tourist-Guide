@@ -2,24 +2,27 @@ import React, { useState, useEffect } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import {
-  Menu, X, ArrowUpRight, User, Heart, CalendarCheck, Bell, LogOut, ChevronRight,
+  Menu, X, ArrowUpRight, User, Heart, CalendarCheck, Bell, LogOut, ChevronRight, MessageSquare,
 } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
 import { confirmDialog } from "../../utils/confirm";
 import ProfileDropdown from "./ProfileDropdown";
 import NotificationSystem from "../../components/NotificationSystem";
+import { LIVE } from "../../data/api";
+import { getUnreadMessageCount } from "../../data/messagesApi";
 
 const links = [
   { to: "/user", label: "Home" },
   { to: "/destinations", label: "Destinations" },
   { to: "/guides", label: "Local Guides" },
-  { to: "/feedback", label: "Guides & Reviews" },
+  { to: "/feedback", label: "Feedback" },
   { to: "/about", label: "About" },
   { to: "/contact", label: "Contact" },
 ];
 
 const accountLinks = [
   { to: "/profile", label: "Profile", icon: User },
+  { to: "/messages", label: "Messages", icon: MessageSquare },
   { to: "/saved", label: "Saved spots", icon: Heart },
   { to: "/bookings", label: "My bookings", icon: CalendarCheck },
   { to: "/notifications", label: "Notifications", icon: Bell },
@@ -29,10 +32,25 @@ const EASE = [0.16, 1, 0.3, 1];
 
 /** Shared navbar — floating glassmorphic bar, lime accent, glass mobile drawer. */
 const Navbar = () => {
-  const { user, logout } = useAuth();
+  const { user, logout, socket } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [unreadMsgs, setUnreadMsgs] = useState(0);
+
+  // Live unread-message count for the Messages badge.
+  useEffect(() => {
+    if (!user || !LIVE) { setUnreadMsgs(0); return undefined; }
+    const load = () => getUnreadMessageCount().then(setUnreadMsgs).catch(() => {});
+    load();
+    const onNew = ({ message }) => { if (!message?.mine) load(); };
+    socket?.on("message:new", onNew);
+    window.addEventListener("mm:messages-read", load);
+    return () => {
+      socket?.off("message:new", onNew);
+      window.removeEventListener("mm:messages-read", load);
+    };
+  }, [user, socket, location.pathname]);
 
   useEffect(() => setMobileOpen(false), [location.pathname]);
   useEffect(() => {
@@ -96,6 +114,18 @@ const Navbar = () => {
             <div className="flex items-center gap-2">
               {user && (
                 <div className="hidden items-center gap-2 sm:flex">
+                  <Link
+                    to="/messages"
+                    aria-label="Messages"
+                    className="relative rounded-full p-2 text-white/70 transition-colors hover:bg-white/10 hover:text-white"
+                  >
+                    <MessageSquare className="h-5 w-5" />
+                    {unreadMsgs > 0 && (
+                      <span className="absolute -right-0.5 -top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-lime-400 px-1 text-[10px] font-bold text-night-950">
+                        {unreadMsgs > 9 ? "9+" : unreadMsgs}
+                      </span>
+                    )}
+                  </Link>
                   <NotificationSystem />
                   <ProfileDropdown />
                 </div>
@@ -202,7 +232,12 @@ const Navbar = () => {
                             isActive(to) ? "bg-lime-400/10 text-lime-400" : "text-white/75 hover:bg-white/5 hover:text-white"
                           }`}
                         >
-                          <Icon className="h-4 w-4 text-lime-400" /> {label}
+                          <Icon className="h-4 w-4 text-lime-400" /> <span className="flex-1">{label}</span>
+                          {to === "/messages" && unreadMsgs > 0 && (
+                            <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-lime-400 px-1.5 text-xs font-bold text-night-950">
+                              {unreadMsgs > 9 ? "9+" : unreadMsgs}
+                            </span>
+                          )}
                         </Link>
                       </li>
                     ))}

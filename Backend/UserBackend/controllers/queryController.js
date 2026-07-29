@@ -1,6 +1,7 @@
 const Query = require("../models/query");
 const Admin = require("../../AdminBackend/models/Admin");
 const { createNotification } = require("./notificationController");
+const { sendReplyEmail } = require("../../utils/mailer");
 
 // POST /api/queries — public: a traveller sends a contact message.
 exports.createQuery = async (req, res) => {
@@ -47,6 +48,32 @@ exports.markRead = async (req, res) => {
     res.json({ query });
   } catch (err) {
     res.status(500).json({ error: "Failed to update query" });
+  }
+};
+
+// POST /api/queries/:id/reply — admin emails a reply to the sender.
+exports.replyQuery = async (req, res) => {
+  try {
+    const message = (req.body.message || "").trim();
+    if (!message) return res.status(400).json({ error: "Reply message is required" });
+
+    const query = await Query.findById(req.params.id);
+    if (!query) return res.status(404).json({ error: "Query not found" });
+
+    try {
+      await sendReplyEmail(query.email, query.name, message, query.message);
+    } catch (mailErr) {
+      console.error("replyQuery mail error:", mailErr.message);
+      return res.status(502).json({ error: "Reply could not be emailed. Check mail settings." });
+    }
+
+    query.replies.push({ message });
+    query.isRead = true;
+    await query.save();
+    res.json({ query });
+  } catch (err) {
+    console.error("replyQuery error:", err.message);
+    res.status(500).json({ error: "Failed to send reply" });
   }
 };
 

@@ -8,7 +8,8 @@ import {
 import Navbar from "../components/Navbar";
 import Footer from "../components/Home/Footer";
 import { Tile, Eyebrow, Btn, inputCls } from "../components/bento/tiles";
-import ChatBox from "../components/Feedbacks/ChatBox";
+import ChatPanel from "../../components/chat/ChatPanel";
+import usePresence from "../../hooks/usePresence";
 import { useAuth } from "../../context/AuthContext";
 import { getGuide, getGuideFeedbacks, submitGuideFeedback } from "../../data/guidesApi";
 import { LIVE } from "../../data/api";
@@ -52,6 +53,7 @@ const Shell = ({ children }) => (
 const GuideDetail = () => {
   const { id } = useParams();
   const { user } = useAuth();
+  const online = usePresence();
   const [guide, setGuide] = useState(null);
   const [reviews, setReviews] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -156,9 +158,18 @@ const GuideDetail = () => {
               <DetailRow icon={MapPin} label="Areas covered" items={guide.serviceAreas} />
             </div>
             <div className="mt-7">
-              <Btn onClick={() => setShowChat((s) => !s)}>
-                <MessageCircle className="h-4 w-4" /> {showChat ? "Hide chat" : `Message ${firstName}`}
-              </Btn>
+              {user ? (
+                <Btn onClick={() => setShowChat((s) => !s)}>
+                  <MessageCircle className="h-4 w-4" /> {showChat ? "Hide chat" : `Message ${firstName}`}
+                </Btn>
+              ) : (
+                <Link
+                  to="/auth"
+                  className="inline-flex items-center justify-center gap-2 rounded-full bg-lime-400 px-5 py-2.5 text-sm font-semibold text-night-950 transition-all hover:-translate-y-0.5 hover:bg-lime-300"
+                >
+                  <MessageCircle className="h-4 w-4" /> Sign in to message {firstName}
+                </Link>
+              )}
             </div>
           </Tile>
         </motion.div>
@@ -243,9 +254,14 @@ const GuideDetail = () => {
       )}
 
       {/* Chat */}
-      {showChat && (
+      {showChat && user && (
         <div className="mt-4">
-          <ChatBox guide={guide} />
+          <ChatPanel
+            dark
+            partner={{ partnerId: id, name: guide.name, avatar: guide.avatar, city: guide.city, type: "local guide" }}
+            online={online.has(String(id))}
+            heightClass="h-[540px]"
+          />
         </div>
       )}
 

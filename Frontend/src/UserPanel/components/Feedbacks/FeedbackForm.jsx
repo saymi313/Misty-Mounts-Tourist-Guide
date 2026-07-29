@@ -1,13 +1,16 @@
 import React, { useState } from 'react';
+import { Link } from 'react-router-dom';
 import { submitFeedback } from '../../../data/mockApi';
 import { Star, Send, MapPin, CheckCircle2, AlertCircle, PenLine } from 'lucide-react';
 import { Tile, Eyebrow, Btn, inputCls } from '../bento/tiles';
 import { required, min, minLen, validate, hasErrors } from '../../../utils/validation';
+import { useAuth } from '../../../context/AuthContext';
 
 const inputErr = '!border-rose-400/60 focus:!border-rose-400/60 focus:!ring-rose-400/15';
 const errNote = 'mt-1.5 flex items-center gap-1 text-xs font-medium text-rose-400';
 
-const FeedbackForm = () => {
+const FeedbackForm = ({ onSubmitted }) => {
+  const { user } = useAuth();
   const [rating, setRating] = useState(0);
   const [hoveredRating, setHoveredRating] = useState(0);
   const [spotName, setSpotName] = useState('');
@@ -41,13 +44,18 @@ const FeedbackForm = () => {
     try {
       const response = await submitFeedback({ locationName: spotName, rating, message: feedback });
       if (response.status === 201) {
-        setSuccess('Thanks! Your review has been shared.');
+        setSuccess('Thanks! Your feedback has been shared.');
         setSpotName('');
         setFeedback('');
         setRating(0);
+        onSubmitted?.(response.data?.feedback);
       }
-    } catch {
-      setError('An error occurred while submitting your review. Please try again.');
+    } catch (err) {
+      setError(
+        err?.response?.status === 401
+          ? 'Please sign in to share your feedback.'
+          : 'An error occurred while submitting your feedback. Please try again.'
+      );
     } finally {
       setIsSubmitting(false);
     }
@@ -57,8 +65,15 @@ const FeedbackForm = () => {
     <Tile glow="lime" pad="p-6 sm:p-8" className="h-full">
       <Eyebrow><PenLine className="h-3.5 w-3.5" /> Share your trip</Eyebrow>
       <h2 className="mt-2 text-2xl font-extrabold tracking-tight text-white">
-        Write a <span className="text-lime-400">review</span>
+        Share your <span className="text-lime-400">feedback</span>
       </h2>
+
+      {!user && (
+        <div className="mt-5 flex flex-wrap items-center gap-2.5 rounded-2xl border border-white/10 bg-white/[0.04] px-4 py-3 text-sm text-white/70">
+          <AlertCircle className="h-4 w-4 shrink-0 text-lime-400" />
+          <span><Link to="/auth" className="font-semibold text-lime-400 hover:underline">Sign in</Link> to share your feedback.</span>
+        </div>
+      )}
 
       {error && (
         <div className="mt-5 flex items-center gap-2.5 rounded-2xl border border-rose-400/25 bg-rose-400/10 px-4 py-3 text-sm text-rose-300">
@@ -133,8 +148,8 @@ const FeedbackForm = () => {
           {errors.feedback && <p className={errNote}><AlertCircle className="h-3.5 w-3.5 shrink-0" /> {errors.feedback}</p>}
         </div>
 
-        <Btn type="submit" disabled={isSubmitting} className="w-full">
-          {isSubmitting ? 'Submitting…' : (<>Submit review <Send className="h-4 w-4" /></>)}
+        <Btn type="submit" disabled={isSubmitting || !user} className="w-full">
+          {isSubmitting ? 'Submitting…' : (<>Submit feedback <Send className="h-4 w-4" /></>)}
         </Btn>
       </form>
     </Tile>

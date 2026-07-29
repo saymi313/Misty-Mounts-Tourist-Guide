@@ -1,7 +1,7 @@
 const Feedback = require('../models/feedback');
 const User = require('../../LocalGuidePannel/models/User');
 
-// Add new feedback
+// Add new feedback (general spot/trip review by a signed-in traveller).
 exports.addFeedback = async (req, res) => {
   const { locationName, rating, message } = req.body;
 
@@ -10,10 +10,16 @@ exports.addFeedback = async (req, res) => {
   }
 
   try {
+    // Capture the reviewer's identity so the review can be shown with a name +
+    // avatar on the feedback page and the landing page.
+    const me = await User.findById(req.user.id).select('name username avatar');
     const newFeedback = new Feedback({
       locationName,
-      rating,
+      rating: Number(rating),
       message,
+      name: me?.name || me?.username || 'Traveller',
+      avatar: me?.avatar || '',
+      date: new Date().toISOString().slice(0, 10),
     });
 
     await newFeedback.save();
@@ -104,7 +110,7 @@ exports.addGuideFeedback = async (req, res) => {
 
 exports.getAllFeedbacks = async (req, res) => {
   try {
-    const feedbacks = await Feedback.find();
+    const feedbacks = await Feedback.find().sort({ createdAt: -1 });
 
     // Return empty array instead of 404 when no feedbacks exist
     res.status(200).json({
