@@ -1,0 +1,16 @@
+{
+  "name": "Misty Mounts — Northern Pakistan Travel",
+  "short_name": "Misty Mounts",
+  "description": "Discover Northern Pakistan — vetted local guides, stays and group tours, with safe escrow booking.",
+  "start_url": "/user",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#0a0f0d",
+  "theme_color": "#0a0f0d",
+  "icons": [
+    { "src": "/Logo.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "/Logo.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "/Logo.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}

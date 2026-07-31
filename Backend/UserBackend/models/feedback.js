@@ -21,6 +21,8 @@ const feedbackSchema = new mongoose.Schema(
     avatar: { type: String, default: "" },
     date: { type: String, default: "" },
     trip: { type: String, default: "" },
+    // Optional traveller-uploaded photo attached to the review.
+    photo: { type: String, default: "" },
   },
   { timestamps: true }
 );

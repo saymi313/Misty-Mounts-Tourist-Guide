@@ -3,8 +3,11 @@ import { Link, useLocation, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Menu, X, ArrowUpRight, User, Heart, CalendarCheck, Bell, LogOut, ChevronRight, MessageSquare,
+  Map as MapIcon, Route as RouteIcon, Languages, Bookmark,
 } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
+import { useI18n } from "../../context/I18nContext";
+import useTrip from "../../hooks/useTrip";
 import { confirmDialog } from "../../utils/confirm";
 import ProfileDropdown from "./ProfileDropdown";
 import NotificationSystem from "../../components/NotificationSystem";
@@ -12,21 +15,24 @@ import { LIVE } from "../../data/api";
 import { getUnreadMessageCount } from "../../data/messagesApi";
 
 const links = [
-  { to: "/user", label: "Home" },
-  { to: "/destinations", label: "Destinations" },
-  { to: "/guides", label: "Local Guides" },
-  { to: "/tours", label: "Tours" },
-  { to: "/feedback", label: "Feedback" },
-  { to: "/about", label: "About" },
-  { to: "/contact", label: "Contact" },
+  { to: "/user", key: "nav.home", label: "Home" },
+  { to: "/destinations", key: "nav.destinations", label: "Destinations" },
+  { to: "/guides", key: "nav.guides", label: "Local Guides" },
+  { to: "/tours", key: "nav.tours", label: "Tours" },
+  { to: "/map", key: "nav.map", label: "Map" },
+  { to: "/feedback", key: "nav.feedback", label: "Feedback" },
+  { to: "/about", key: "nav.about", label: "About" },
+  { to: "/contact", key: "nav.contact", label: "Contact" },
 ];
 
 const accountLinks = [
-  { to: "/profile", label: "Profile", icon: User },
-  { to: "/messages", label: "Messages", icon: MessageSquare },
-  { to: "/saved", label: "Saved spots", icon: Heart },
-  { to: "/bookings", label: "My bookings", icon: CalendarCheck },
-  { to: "/notifications", label: "Notifications", icon: Bell },
+  { to: "/profile", key: "acct.profile", label: "Profile", icon: User },
+  { to: "/messages", key: "acct.messages", label: "Messages", icon: MessageSquare },
+  { to: "/wishlist", key: "acct.wishlist", label: "Wishlist", icon: Heart },
+  { to: "/trip", key: "acct.trip", label: "My Trip", icon: RouteIcon },
+  { to: "/saved", key: "acct.saved", label: "Saved spots", icon: Bookmark },
+  { to: "/bookings", key: "acct.bookings", label: "My bookings", icon: CalendarCheck },
+  { to: "/notifications", key: "acct.notifications", label: "Notifications", icon: Bell },
 ];
 
 const EASE = [0.16, 1, 0.3, 1];
@@ -34,10 +40,13 @@ const EASE = [0.16, 1, 0.3, 1];
 /** Shared navbar — floating glassmorphic bar, lime accent, glass mobile drawer. */
 const Navbar = () => {
   const { user, logout, socket } = useAuth();
+  const { t, lang, setLang } = useI18n();
+  const { items: tripItems } = useTrip();
   const location = useLocation();
   const navigate = useNavigate();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [unreadMsgs, setUnreadMsgs] = useState(0);
+  const toggleLang = () => setLang(lang === "ur" ? "en" : "ur");
 
   // Live unread-message count for the Messages badge.
   useEffect(() => {
@@ -93,19 +102,20 @@ const Navbar = () => {
               </span>
             </Link>
 
-            {/* Desktop links */}
-            <ul className="hidden items-center gap-1 lg:flex">
+            {/* Desktop links — full row only where there's room (xl+); the
+                hamburger drawer covers everything below that so nothing overflows. */}
+            <ul className="hidden min-w-0 items-center gap-0.5 xl:flex">
               {links.map((l) => (
                 <li key={l.to}>
                   <Link
                     to={l.to}
-                    className={`rounded-full px-4 py-2 text-sm font-semibold transition-colors ${
+                    className={`whitespace-nowrap rounded-full px-3 py-2 text-[13px] font-semibold transition-colors ${
                       isActive(l.to)
                         ? "bg-white/10 text-lime-400"
                         : "text-white/70 hover:bg-white/5 hover:text-white"
                     }`}
                   >
-                    {l.label}
+                    {t(l.key, l.label)}
                   </Link>
                 </li>
               ))}
@@ -113,6 +123,29 @@ const Navbar = () => {
 
             {/* Actions */}
             <div className="flex items-center gap-2">
+              {/* Language toggle (always) */}
+              <button
+                onClick={toggleLang}
+                aria-label="Switch language"
+                title={lang === "ur" ? "Switch to English" : "اردو میں دیکھیں"}
+                className="hidden items-center gap-1 rounded-full p-2 text-white/70 transition-colors hover:bg-white/10 hover:text-white sm:inline-flex"
+              >
+                <Languages className="h-5 w-5" />
+                <span className="text-xs font-bold">{lang === "ur" ? "EN" : "اردو"}</span>
+              </button>
+              {/* Trip builder (works logged-out too) */}
+              <Link
+                to="/trip"
+                aria-label="My trip"
+                className="relative hidden rounded-full p-2 text-white/70 transition-colors hover:bg-white/10 hover:text-white sm:inline-flex"
+              >
+                <RouteIcon className="h-5 w-5" />
+                {tripItems.length > 0 && (
+                  <span className="absolute -right-0.5 -top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-lime-400 px-1 text-[10px] font-bold text-night-950">
+                    {tripItems.length > 9 ? "9+" : tripItems.length}
+                  </span>
+                )}
+              </Link>
               {user && (
                 <div className="hidden items-center gap-2 sm:flex">
                   <Link
@@ -134,7 +167,7 @@ const Navbar = () => {
 
               <button
                 onClick={() => setMobileOpen(true)}
-                className="rounded-full p-2 text-white transition-colors hover:bg-white/10 lg:hidden"
+                className="rounded-full p-2 text-white transition-colors hover:bg-white/10 xl:hidden"
                 aria-label="Open menu"
               >
                 <Menu className="h-6 w-6" />
@@ -147,7 +180,7 @@ const Navbar = () => {
       {/* Mobile glass drawer */}
       <AnimatePresence>
         {mobileOpen && (
-          <div className="fixed inset-0 z-[60] lg:hidden">
+          <div className="fixed inset-0 z-[60] xl:hidden">
             {/* Backdrop */}
             <motion.div
               initial={{ opacity: 0 }}
@@ -202,7 +235,12 @@ const Navbar = () => {
 
               {/* Primary nav */}
               <nav className="mt-6">
-                <p className="px-2 text-xs font-bold uppercase tracking-wider text-white/40">Explore</p>
+                <div className="flex items-center justify-between px-2">
+                  <p className="text-xs font-bold uppercase tracking-wider text-white/40">{t("nav.explore", "Explore")}</p>
+                  <button onClick={toggleLang} className="inline-flex items-center gap-1 rounded-full bg-white/5 px-2.5 py-1 text-xs font-bold text-white/70 transition-colors hover:text-lime-400">
+                    <Languages className="h-3.5 w-3.5" /> {lang === "ur" ? "English" : "اردو"}
+                  </button>
+                </div>
                 <ul className="mt-1.5 space-y-0.5">
                   {links.map((l) => (
                     <li key={l.to}>
@@ -212,7 +250,7 @@ const Navbar = () => {
                           isActive(l.to) ? "bg-lime-400/10 text-lime-400" : "text-white hover:bg-white/5"
                         }`}
                       >
-                        {l.label}
+                        {t(l.key, l.label)}
                         <ChevronRight className="h-4 w-4 opacity-40" />
                       </Link>
                     </li>
@@ -225,7 +263,7 @@ const Navbar = () => {
                 <nav className="mt-5 border-t border-white/8 pt-5">
                   <p className="px-2 text-xs font-bold uppercase tracking-wider text-white/40">Account</p>
                   <ul className="mt-1.5 space-y-0.5">
-                    {accountLinks.map(({ to, label, icon: Icon }) => (
+                    {accountLinks.map(({ to, key, label, icon: Icon }) => (
                       <li key={to}>
                         <Link
                           to={to}
@@ -233,10 +271,15 @@ const Navbar = () => {
                             isActive(to) ? "bg-lime-400/10 text-lime-400" : "text-white/75 hover:bg-white/5 hover:text-white"
                           }`}
                         >
-                          <Icon className="h-4 w-4 text-lime-400" /> <span className="flex-1">{label}</span>
+                          <Icon className="h-4 w-4 text-lime-400" /> <span className="flex-1">{t(key, label)}</span>
                           {to === "/messages" && unreadMsgs > 0 && (
                             <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-lime-400 px-1.5 text-xs font-bold text-night-950">
                               {unreadMsgs > 9 ? "9+" : unreadMsgs}
+                            </span>
+                          )}
+                          {to === "/trip" && tripItems.length > 0 && (
+                            <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-lime-400 px-1.5 text-xs font-bold text-night-950">
+                              {tripItems.length > 9 ? "9+" : tripItems.length}
                             </span>
                           )}
                         </Link>
@@ -252,14 +295,14 @@ const Navbar = () => {
                   to="/destinations"
                   className="flex w-full items-center justify-center gap-2 rounded-full bg-lime-400 px-6 py-3.5 text-sm font-bold text-night-950 transition-transform hover:-translate-y-0.5"
                 >
-                  Start exploring <ArrowUpRight className="h-4 w-4" />
+                  {t("cta.startExploring", "Start exploring")} <ArrowUpRight className="h-4 w-4" />
                 </Link>
                 {user && (
                   <button
                     onClick={handleLogout}
                     className="flex w-full items-center justify-center gap-2 rounded-full border border-rose-500/30 px-6 py-3 text-sm font-bold text-rose-300 transition-colors hover:bg-rose-500/10"
                   >
-                    <LogOut className="h-4 w-4" /> Sign out
+                    <LogOut className="h-4 w-4" /> {t("cta.signOut", "Sign out")}
                   </button>
                 )}
                 <p className="pt-1 text-center text-xs text-white/40">Hazara, Pakistan · Local guides on call</p>

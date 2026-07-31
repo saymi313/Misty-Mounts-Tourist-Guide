@@ -20,6 +20,7 @@ exports.addFeedback = async (req, res) => {
       name: me?.name || me?.username || 'Traveller',
       avatar: me?.avatar || '',
       date: new Date().toISOString().slice(0, 10),
+      photo: req.body.photo || '',
     });
 
     await newFeedback.save();
@@ -100,6 +101,7 @@ exports.addGuideFeedback = async (req, res) => {
       name: me?.name || me?.username || 'Traveller',
       avatar: me?.avatar || '',
       date: new Date().toISOString().slice(0, 10),
+      photo: req.body.photo || '',
     });
     res.status(201).json({ message: 'Feedback submitted successfully!', feedback });
   } catch (error) {

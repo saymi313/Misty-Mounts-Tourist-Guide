@@ -1,0 +1,48 @@
+/**
+ * Lightweight i18n dictionary (English / Urdu). Covers the traveller-facing
+ * navigation + common CTAs; extend keys incrementally to translate more surfaces.
+ */
+export const translations = {
+  en: {
+    "nav.home": "Home",
+    "nav.destinations": "Destinations",
+    "nav.guides": "Local Guides",
+    "nav.tours": "Tours",
+    "nav.map": "Map",
+    "nav.feedback": "Feedback",
+    "nav.about": "About",
+    "nav.contact": "Contact",
+    "nav.explore": "Explore",
+    "nav.account": "Account",
+    "acct.profile": "Profile",
+    "acct.messages": "Messages",
+    "acct.wishlist": "Wishlist",
+    "acct.trip": "My Trip",
+    "acct.saved": "Saved spots",
+    "acct.bookings": "My bookings",
+    "acct.notifications": "Notifications",
+    "cta.startExploring": "Start exploring",
+    "cta.signOut": "Sign out",
+  },
+  ur: {
+    "nav.home": "ہوم",
+    "nav.destinations": "مقامات",
+    "nav.guides": "مقامی گائیڈز",
+    "nav.tours": "ٹورز",
+    "nav.map": "نقشہ",
+    "nav.feedback": "رائے",
+    "nav.about": "تعارف",
+    "nav.contact": "رابطہ",
+    "nav.explore": "دریافت کریں",
+    "nav.account": "اکاؤنٹ",
+    "acct.profile": "پروفائل",
+    "acct.messages": "پیغامات",
+    "acct.wishlist": "پسندیدہ",
+    "acct.trip": "میرا سفر",
+    "acct.saved": "محفوظ مقامات",
+    "acct.bookings": "میری بکنگز",
+    "acct.notifications": "اطلاعات",
+    "cta.startExploring": "دریافت کریں",
+    "cta.signOut": "سائن آؤٹ",
+  },
+};

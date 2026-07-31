@@ -5,6 +5,8 @@ import { Search, MapPin, CalendarDays, Compass, ChevronLeft, ChevronRight, Arrow
 import Navbar from "../components/Navbar";
 import Footer from "../components/Home/Footer";
 import { Tile, Eyebrow, inputCls } from "../components/bento/tiles";
+import WishlistButton from "../../components/WishlistButton";
+import AddToTripButton from "../../components/AddToTripButton";
 import { listTours } from "../../data/toursApi";
 import { formatPKR } from "../../utils/currency";
 import { LIVE } from "../../data/api";
@@ -92,6 +94,10 @@ const Tours = () => {
                         <span className="absolute left-3 top-3 rounded-full bg-lime-400 px-2.5 py-1 text-[0.65rem] font-bold uppercase tracking-wider text-night-950">
                           {t.durationDays} day{t.durationDays !== 1 ? "s" : ""}
                         </span>
+                        <div className="absolute right-3 top-3 flex gap-1.5">
+                          <AddToTripButton compact item={{ type: "tour", id: t._id, title: t.title, image: t.coverImage, city: (t.cities || [])[0] || "", price: t.pricePerPerson, href: `/tours/${t._id}` }} />
+                          <WishlistButton floating item={{ type: "tour", id: t._id, title: t.title, image: t.coverImage, city: (t.cities || [])[0] || "", price: t.pricePerPerson, href: `/tours/${t._id}` }} />
+                        </div>
                       </div>
                       <div className="flex flex-1 flex-col p-5">
                         <h3 className="text-base font-extrabold text-white">{t.title}</h3>

@@ -145,6 +145,8 @@ export default {
         display: ['Poppins', 'ui-sans-serif', 'system-ui', 'sans-serif'],
         sans: ['Poppins', 'ui-sans-serif', 'system-ui', 'sans-serif'],
         accent: ['Poppins', 'ui-sans-serif', 'system-ui', 'sans-serif'],
+        // Futuristic display face — used for the hero headline.
+        future: ['Orbitron', 'Space Grotesk', 'ui-sans-serif', 'sans-serif'],
       },
       letterSpacing: {
         tightest: '-0.04em',

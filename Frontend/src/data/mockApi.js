@@ -21,9 +21,14 @@ import {
 
 const delay = (ms = 350) => new Promise((res) => setTimeout(res, ms));
 
-/** GET /api/admin/cities → string[] */
+/** GET /api/admin/cities → string[] (city names) */
 export async function getCities() {
-  if (LIVE) return (await api.get("/admin/cities")).data;
+  if (LIVE) {
+    const { data } = await api.get("/admin/cities");
+    // Endpoint returns { cities: [{ name, photo, tagline }] }; normalize to names.
+    const list = Array.isArray(data) ? data : data?.cities || [];
+    return list.map((c) => (typeof c === "string" ? c : c?.name)).filter(Boolean);
+  }
   await delay();
   return [...cities];
 }

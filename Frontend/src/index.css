@@ -57,6 +57,9 @@
   body {
     @apply bg-frost-50 text-abyss-900 font-sans antialiased dark:bg-abyss-950 dark:text-frost-100;
     letter-spacing: -0.01em;
+    /* Prevent stray horizontal scroll without breaking `position: sticky`
+       (overflow: clip, unlike hidden, does not create a scroll container). */
+    overflow-x: clip;
   }
 
   html.dark { color-scheme: dark; }

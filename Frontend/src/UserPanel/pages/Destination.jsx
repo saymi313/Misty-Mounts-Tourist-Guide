@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Search, Compass, SlidersHorizontal, RotateCcw } from 'lucide-react';
-import { getCities, getSpotsByCity } from '../../data/mockApi';
+import { getAllSpots } from '../../data/mockApi';
 import useCities from '../../hooks/useCities';
 import Navbar from '../components/Navbar';
 import CityCard from '../components/Destinations/CityCard';
@@ -42,8 +42,8 @@ const spanFor = (i, total) => {
 
 const Destination = () => {
   const [selectedCity, setSelectedCity] = useState('');
+  const [allSpots, setAllSpots] = useState([]);
   const [cities, setCities] = useState([]);
-  const [cityData, setCityData] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
 
@@ -78,35 +78,36 @@ const Destination = () => {
     setQuery('');
   };
 
+  // Load every region + its spots once; the chip list is derived from the
+  // cities that actually have spots (the admin City collection is only used to
+  // overlay photos/taglines).
   useEffect(() => {
     (async () => {
       try {
-        const data = await getCities();
-        setCities(data);
-        if (data.length > 0) setSelectedCity(data[0]);
+        const spots = await getAllSpots();
+        const list = Array.isArray(spots) ? spots : [];
+        setAllSpots(list);
+        const names = [...new Set(list.map((s) => s.city).filter(Boolean))];
+        setCities(names);
+        if (names.length) setSelectedCity((c) => c || names[0]);
       } catch {
         setError('Failed to load regions. Please try again later.');
+      } finally {
         setIsLoading(false);
       }
     })();
   }, []);
 
-  // Once cities load (mock + admin), make sure something is selected.
+  // Once cities load (spots + admin), make sure something is selected.
   useEffect(() => {
     if (!selectedCity && chipCities.length) setSelectedCity(chipCities[0]);
   }, [chipCities, selectedCity]);
 
-  useEffect(() => {
-    if (!selectedCity) return;
-    setIsLoading(true);
-    getSpotsByCity(selectedCity)
-      // Admin-added cities may have no demo spots yet — render the banner + an
-      // empty state rather than an error.
-      .then((data) => setCityData(data || { nearbyPlaces: [] }))
-      .catch(() => setCityData({ nearbyPlaces: [] }))
-      .finally(() => setIsLoading(false));
-  }, [selectedCity]);
-
+  // The selected region's spots come straight from the all-spots payload.
+  const cityData = useMemo(
+    () => allSpots.find((s) => s.city === selectedCity) || (selectedCity ? { nearbyPlaces: [] } : null),
+    [allSpots, selectedCity]
+  );
   const places = cityData?.nearbyPlaces || [];
 
   // Activities available in the current region.
@@ -151,7 +152,7 @@ const Destination = () => {
           className="relative overflow-hidden rounded-[1.8rem] border border-white/[0.07] bg-night-800"
         >
           <img
-            src={cityPhotos[selectedCity] || cityData?.heroImage || 'https://picsum.photos/seed/mm-region/1600/900'}
+            src={cityPhotos[selectedCity] || cityData?.heroImage || places[0]?.picture || 'https://picsum.photos/seed/mm-region/1600/900'}
             alt={selectedCity}
             className="absolute inset-0 h-full w-full object-cover"
           />

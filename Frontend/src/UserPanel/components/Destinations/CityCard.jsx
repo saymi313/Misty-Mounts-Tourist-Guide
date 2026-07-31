@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { MapPin, Heart } from "lucide-react";
 import { isSaved, toggleSaved, subscribeSaved } from "../../../utils/savedStore";
+import AddToTripButton from "../../../components/AddToTripButton";
 
 const EASE = [0.16, 1, 0.3, 1];
 const MotionLink = motion.create(Link);
@@ -58,15 +59,21 @@ const CityCard = ({
         </span>
       )}
 
-      <button
-        type="button"
-        onClick={onToggleSave}
-        aria-label={saved ? `Remove ${name} from saved` : `Save ${name}`}
-        title={saved ? "Saved — tap to remove" : "Save this spot"}
-        className="absolute right-3 top-3 flex h-9 w-9 items-center justify-center rounded-full bg-night-950/50 backdrop-blur transition-colors hover:bg-night-950/80"
-      >
-        <Heart className={`h-4 w-4 transition-colors ${saved ? "fill-lime-400 text-lime-400" : "text-white"}`} />
-      </button>
+      <div className="absolute right-3 top-3 flex gap-1.5">
+        <AddToTripButton
+          compact
+          item={{ type: "spot", id: spotId, title: name, image: picture, city, href: `/city/${encodeURIComponent(city)}/spot/${encodeURIComponent(spotId)}` }}
+        />
+        <button
+          type="button"
+          onClick={onToggleSave}
+          aria-label={saved ? `Remove ${name} from saved` : `Save ${name}`}
+          title={saved ? "Saved — tap to remove" : "Save this spot"}
+          className="flex h-9 w-9 items-center justify-center rounded-full bg-night-950/50 backdrop-blur transition-colors hover:bg-night-950/80"
+        >
+          <Heart className={`h-4 w-4 transition-colors ${saved ? "fill-lime-400 text-lime-400" : "text-white"}`} />
+        </button>
+      </div>
 
       <div className="absolute inset-x-0 bottom-0 p-4">
         {location && (

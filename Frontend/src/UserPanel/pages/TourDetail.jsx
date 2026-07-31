@@ -8,6 +8,8 @@ import {
 import Navbar from "../components/Navbar";
 import Footer from "../components/Home/Footer";
 import { Tile, Eyebrow, Btn, inputCls } from "../components/bento/tiles";
+import WishlistButton from "../../components/WishlistButton";
+import AddToTripButton from "../../components/AddToTripButton";
 import { useAuth } from "../../context/AuthContext";
 import { getTour, bookTour } from "../../data/toursApi";
 import { getPaymentAccounts } from "../../data/revenueApi";
@@ -142,6 +144,10 @@ export default function TourDetail() {
             <div className="flex h-full w-full items-center justify-center bg-night-700 text-white/25"><Compass className="h-12 w-12" /></div>
           )}
           <div className="absolute inset-0 bg-gradient-to-t from-night-950 via-night-950/40 to-transparent" />
+          <div className="absolute right-4 top-4 flex gap-2">
+            <AddToTripButton compact item={{ type: "tour", id: tour._id, title: tour.title, image: tour.coverImage, city: (tour.cities || [])[0] || "", price: tour.pricePerPerson, href: `/tours/${tour._id}` }} />
+            <WishlistButton floating item={{ type: "tour", id: tour._id, title: tour.title, image: tour.coverImage, city: (tour.cities || [])[0] || "", price: tour.pricePerPerson, href: `/tours/${tour._id}` }} />
+          </div>
           <div className="absolute inset-x-0 bottom-0 p-6 sm:p-8">
             <Eyebrow><Compass className="h-3.5 w-3.5" /> {tour.durationDays} day{tour.durationDays !== 1 ? "s" : ""} · group tour</Eyebrow>
             <h1 className="mt-2 text-3xl font-extrabold tracking-tight text-white sm:text-4xl">{tour.title}</h1>

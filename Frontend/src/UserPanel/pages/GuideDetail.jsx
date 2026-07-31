@@ -3,16 +3,18 @@ import { useParams, Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import {
   Star, MapPin, ArrowLeft, MessageCircle, Send, Globe, Compass, Briefcase,
-  AlertCircle, CheckCircle2, CalendarDays, ArrowUpRight, Map as MapIcon,
+  AlertCircle, CheckCircle2, CalendarDays, ArrowUpRight, Map as MapIcon, Upload, Loader2, X,
 } from "lucide-react";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Home/Footer";
 import { Tile, Eyebrow, Btn, inputCls } from "../components/bento/tiles";
 import ChatPanel from "../../components/chat/ChatPanel";
+import WishlistButton from "../../components/WishlistButton";
+import AddToTripButton from "../../components/AddToTripButton";
 import usePresence from "../../hooks/usePresence";
 import { useAuth } from "../../context/AuthContext";
 import { getGuide, getGuideFeedbacks, submitGuideFeedback } from "../../data/guidesApi";
-import { LIVE } from "../../data/api";
+import api, { LIVE } from "../../data/api";
 import { timeAgo, formatDate } from "../../utils/datetime";
 
 const EASE = [0.16, 1, 0.3, 1];
@@ -62,9 +64,27 @@ const GuideDetail = () => {
   const [rating, setRating] = useState(0);
   const [hover, setHover] = useState(0);
   const [message, setMessage] = useState("");
+  const [reviewPhoto, setReviewPhoto] = useState("");
+  const [photoUploading, setPhotoUploading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [formErr, setFormErr] = useState("");
   const [formOk, setFormOk] = useState("");
+
+  const handleReviewPhoto = async (e) => {
+    const file = e.target.files?.[0];
+    e.target.value = "";
+    if (!file) return;
+    if (!file.type.startsWith("image/")) { setFormErr("Choose an image file."); return; }
+    if (file.size > 5 * 1024 * 1024) { setFormErr("Image must be under 5 MB."); return; }
+    setPhotoUploading(true);
+    try {
+      const fd = new FormData();
+      fd.append("image", file);
+      const { data } = await api.post("/upload?folder=reviews", fd, { headers: { "Content-Type": "multipart/form-data" } });
+      setReviewPhoto(data.url);
+    } catch { setFormErr("Photo upload failed. Please try again."); }
+    finally { setPhotoUploading(false); }
+  };
 
   useEffect(() => {
     if (!LIVE) { setLoading(false); return; }
@@ -88,9 +108,9 @@ const GuideDetail = () => {
     if (message.trim().length < 10) { setFormErr("Review must be at least 10 characters."); return; }
     setSubmitting(true);
     try {
-      const fb = await submitGuideFeedback(id, { rating, message });
+      const fb = await submitGuideFeedback(id, { rating, message, photo: reviewPhoto });
       setReviews((prev) => [fb, ...prev]);
-      setRating(0); setMessage(""); setFormOk("Thanks! Your review has been shared.");
+      setRating(0); setMessage(""); setReviewPhoto(""); setFormOk("Thanks! Your review has been shared.");
       getGuide(id).then(setGuide).catch(() => {}); // refresh aggregate rating
     } catch (err) {
       setFormErr(err?.response?.data?.error || "Couldn't submit your review. Please try again.");
@@ -157,7 +177,7 @@ const GuideDetail = () => {
               <DetailRow icon={Compass} label="Specialties" items={guide.specialties} />
               <DetailRow icon={MapPin} label="Areas covered" items={guide.serviceAreas} />
             </div>
-            <div className="mt-7">
+            <div className="mt-7 flex flex-wrap items-center gap-3">
               {user ? (
                 <Btn onClick={() => setShowChat((s) => !s)}>
                   <MessageCircle className="h-4 w-4" /> {showChat ? "Hide chat" : `Message ${firstName}`}
@@ -170,6 +190,8 @@ const GuideDetail = () => {
                   <MessageCircle className="h-4 w-4" /> Sign in to message {firstName}
                 </Link>
               )}
+              <AddToTripButton item={{ type: "guide", id, title: guide.name, image: guide.avatar, city: guide.city, href: `/guides/${id}` }} className="!px-4 !py-2.5" />
+              <WishlistButton item={{ type: "guide", id, title: guide.name, image: guide.avatar, city: guide.city, href: `/guides/${id}` }} />
             </div>
           </Tile>
         </motion.div>
@@ -215,7 +237,21 @@ const GuideDetail = () => {
                   placeholder={`How was your experience with ${firstName}?`}
                   className={`${inputCls} resize-none`}
                 />
-                <Btn type="submit" disabled={submitting} className="w-full">
+                {/* Optional photo */}
+                <div className="flex items-center gap-3">
+                  <label className="inline-flex cursor-pointer items-center gap-2 rounded-xl border border-white/12 bg-night-800 px-4 py-2.5 text-sm font-semibold text-white/80 transition-colors hover:border-lime-400/40">
+                    {photoUploading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Upload className="h-4 w-4" />}
+                    {photoUploading ? "Uploading…" : reviewPhoto ? "Replace photo" : "Add a photo"}
+                    <input type="file" accept="image/*" onChange={handleReviewPhoto} className="hidden" />
+                  </label>
+                  {reviewPhoto && (
+                    <span className="relative">
+                      <img src={reviewPhoto} alt="Review" className="h-11 w-11 rounded-lg object-cover" />
+                      <button type="button" onClick={() => setReviewPhoto("")} className="absolute -right-1.5 -top-1.5 flex h-5 w-5 items-center justify-center rounded-full bg-rose-500 text-white"><X className="h-3 w-3" /></button>
+                    </span>
+                  )}
+                </div>
+                <Btn type="submit" disabled={submitting || photoUploading} className="w-full">
                   {submitting ? "Submitting…" : (<>Submit review <Send className="h-4 w-4" /></>)}
                 </Btn>
               </form>
@@ -295,6 +331,11 @@ const GuideDetail = () => {
                   </div>
                 </div>
                 <p className="mt-3 text-sm leading-relaxed text-white/70">{r.message}</p>
+                {r.photo && (
+                  <a href={r.photo} target="_blank" rel="noreferrer">
+                    <img src={r.photo} alt="Traveller photo" className="mt-3 h-40 w-full rounded-xl border border-white/[0.07] object-cover" />
+                  </a>
+                )}
               </Tile>
             ))}
           </div>

@@ -1,6 +1,8 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider } from './context/AuthContext';
 import { ThemeProvider } from './context/ThemeContext';
+import { I18nProvider } from './context/I18nContext';
+import ErrorBoundary from './components/ErrorBoundary';
 import Authentication from './UserPanel/pages/Authentication';
 import LandingPage from './UserPanel/pages/LandingPage';
 import AdminRoutes from './AdminFrontend/routes/adminRoutes';
@@ -16,7 +18,9 @@ import './App.css';
 
 function App() {
   return (
+    <ErrorBoundary>
     <ThemeProvider>
+    <I18nProvider>
     <AuthProvider>
       <Router>
         <Routes>
@@ -67,7 +71,9 @@ function App() {
       <Toaster />
       <ConfirmDialog />
     </AuthProvider>
+    </I18nProvider>
     </ThemeProvider>
+    </ErrorBoundary>
   );
 }
 

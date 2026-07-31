@@ -5,6 +5,7 @@ import { Search, Star, MapPin, Users, ChevronLeft, ChevronRight, ArrowRight } fr
 import Navbar from "../components/Navbar";
 import Footer from "../components/Home/Footer";
 import { Tile, Eyebrow, Chip, inputCls } from "../components/bento/tiles";
+import WishlistButton from "../../components/WishlistButton";
 import { listGuides } from "../../data/guidesApi";
 import { LIVE } from "../../data/api";
 
@@ -110,6 +111,7 @@ const Guides = () => {
               >
                 <Link to={`/guides/${g._id}`} className="group block h-full">
                   <Tile pad="p-5" className="flex h-full flex-col transition-colors hover:border-lime-400/40">
+                    <WishlistButton floating className="absolute right-3 top-3 z-10" item={{ type: "guide", id: g._id, title: g.name, image: g.avatar, city: g.city, href: `/guides/${g._id}` }} />
                     <div className="flex items-center gap-3.5">
                       {g.avatar ? (
                         <img src={g.avatar} alt={g.name} className="h-14 w-14 shrink-0 rounded-2xl object-cover ring-2 ring-lime-400/20" />
