@@ -1,19 +1,17 @@
 import React from 'react';
-import { Routes, Route } from 'react-router-dom';
-import ProtectedRoute from './ProtectedRoute';
 import RoutesFile from '../UserPanel/Routes/RoutesFile';
 import AiConcierge from './AiConcierge';
 
+/**
+ * Traveller panel shell. The panel is public — pages that require an account
+ * (profile, messages, payment, etc.) are individually gated inside RoutesFile.
+ */
 const ProtectedRoutesWrapper = () => {
   return (
-    <Routes>
-      <Route path="/*" element={
-        <ProtectedRoute allowedUserTypes={['user', 'local guide']}>
-          <RoutesFile />
-          <AiConcierge />
-        </ProtectedRoute>
-      } />
-    </Routes>
+    <>
+      <RoutesFile />
+      <AiConcierge />
+    </>
   );
 };
 

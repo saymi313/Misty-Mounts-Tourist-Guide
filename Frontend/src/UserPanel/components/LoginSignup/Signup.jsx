@@ -62,7 +62,8 @@ const Signup = ({ onSwitchToLogin }) => {
     setLoading(true);
     try {
       if (LIVE) {
-        const { data } = await api.post('/user/auth/signup', { email, username, password, type });
+        const ref = new URLSearchParams(window.location.search).get('ref') || '';
+        const { data } = await api.post('/user/auth/signup', { email, username, password, type, ref });
         if (data.needsVerification) {
           setVerifyEmail(email);
           return;

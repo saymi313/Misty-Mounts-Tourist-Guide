@@ -54,6 +54,7 @@ export const listCities = async () => (await api.get("/admin/cities")).data.citi
 export const createCity = async (b) => (await api.post("/admin/cities", b)).data.city;
 export const updateCity = async (id, b) => (await api.put(`/admin/cities/${id}`, b)).data.city;
 export const deleteCity = async (id) => (await api.delete(`/admin/cities/${id}`)).data;
+export const deleteSpotsByCity = async (name) => (await api.delete(`/admin/spots/city/${encodeURIComponent(name)}`)).data;
 
 // ── Payments / bookings (admin) ───────────────────────────────────────────────
 export const listPayments = async () => (await api.get("/payment")).data.payments;
@@ -64,6 +65,8 @@ export const updatePaymentStatus = async (bookingId, status) =>
 export const listUsers = async () => (await api.get("/admin/users")).data.users;
 export const approveUser = async (id, isApproved = true) =>
   (await api.patch(`/admin/users/${id}/approve`, { isApproved })).data.user;
+export const verifyUser = async (id, verified = true) =>
+  (await api.patch(`/admin/users/${id}/verify`, { verified })).data.user;
 export const deleteUser = async (id) => (await api.delete(`/admin/users/${id}`)).data;
 
 // ── Tour packages (admin approval + moderation) ───────────────────────────────

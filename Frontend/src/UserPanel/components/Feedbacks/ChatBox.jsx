@@ -110,7 +110,7 @@ const ChatBox = ({ guide }) => {
       <div className="flex items-center justify-between border-b border-white/[0.06] bg-night-800 px-5 py-4">
         <div className="flex items-center gap-3">
           {guide?.avatar ? (
-            <img src={guide.avatar} alt={guide.name} className="h-10 w-10 rounded-full object-cover" />
+            <img loading="lazy" decoding="async" src={guide.avatar} alt={guide.name} className="h-10 w-10 rounded-full object-cover" />
           ) : (
             <span className="flex h-10 w-10 items-center justify-center rounded-full bg-lime-400/15 text-lime-400">
               <Mountain className="h-5 w-5" />

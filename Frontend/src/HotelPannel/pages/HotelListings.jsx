@@ -122,7 +122,7 @@ export default function HotelListings() {
               <Card key={item._id} className="flex flex-col overflow-hidden !p-0">
                 <div className="relative h-40 w-full">
                   {item.picture ? (
-                    <img src={item.picture} alt={item.name} className="h-full w-full object-cover" />
+                    <img loading="lazy" decoding="async" src={item.picture} alt={item.name} className="h-full w-full object-cover" />
                   ) : (
                     <div className="flex h-full w-full items-center justify-center bg-slate-100 text-slate-400">
                       {item.type === "food" ? <UtensilsCrossed className="h-8 w-8" /> : <BedDouble className="h-8 w-8" />}
@@ -198,7 +198,7 @@ export default function HotelListings() {
               <ImageUploadButton folder="accommodations" onUploaded={(url) => update("picture", url)} />
             </div>
             <input value={form.picture} onChange={(e) => update("picture", e.target.value)} placeholder="https://…  or use Upload" className={adminInputCls} />
-            {form.picture && <img src={form.picture} alt="" className="mt-2 h-32 w-full rounded-xl object-cover" />}
+            {form.picture && <img loading="lazy" decoding="async" src={form.picture} alt="" className="mt-2 h-32 w-full rounded-xl object-cover" />}
           </div>
           <label className="flex items-center gap-2.5 text-sm font-medium text-slate-600">
             <input type="checkbox" checked={form.isAvailable} onChange={(e) => update("isAvailable", e.target.checked)} className="h-4 w-4 rounded border-slate-300 text-lime-500 accent-lime-500" />

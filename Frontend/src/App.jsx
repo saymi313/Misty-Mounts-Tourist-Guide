@@ -30,12 +30,9 @@ function App() {
           {/* Root redirect */}
           <Route path="/" element={<Navigate to="/user" replace />} />
           
-          {/* Protected user routes */}
-          <Route path="/user" element={
-            <ProtectedRoute allowedUserTypes={['user', 'local guide']}>
-              <LandingPage />
-            </ProtectedRoute>
-          } />
+          {/* Public landing — the whole traveller panel is browsable without login;
+              only account/transaction pages are gated (see RoutesFile). */}
+          <Route path="/user" element={<LandingPage />} />
           
           {/* Local Guide Panel — local guides only */}
           <Route path="/local-guide/*" element={

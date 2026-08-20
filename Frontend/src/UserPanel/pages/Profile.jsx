@@ -102,11 +102,19 @@ const Profile = () => {
 
   // Refresh the saved / bookings counts from the API when live.
   const [, forceTick] = useState(0);
+  const [referral, setReferral] = useState(null);
+  const [copied, setCopied] = useState(false);
   useEffect(() => {
     hydrateSaved();
     fetchBookings().then(() => forceTick((t) => t + 1));
+    if (LIVE) api.get("/user/me").then(({ data }) => setReferral(data.user)).catch(() => {});
     return subscribeSaved(() => forceTick((t) => t + 1));
   }, []);
+
+  const inviteLink = referral?.referralCode ? `${window.location.origin}/auth?ref=${referral.referralCode}` : "";
+  const copyInvite = async () => {
+    try { await navigator.clipboard.writeText(inviteLink); setCopied(true); setTimeout(() => setCopied(false), 2000); } catch { /* ignore */ }
+  };
 
   const update = (key, val) => {
     setForm((f) => ({ ...f, [key]: val }));
@@ -172,7 +180,7 @@ const Profile = () => {
               <div className="flex items-center gap-4">
                 <div className="relative shrink-0">
                   {avatar ? (
-                    <img src={avatar} alt={form.name || "You"} className="h-16 w-16 rounded-2xl object-cover" />
+                    <img loading="lazy" decoding="async" src={avatar} alt={form.name || "You"} className="h-16 w-16 rounded-2xl object-cover" />
                   ) : (
                     <span className="flex h-16 w-16 items-center justify-center rounded-2xl bg-lime-400 text-2xl font-extrabold text-night-950">
                       {initial}
@@ -257,6 +265,33 @@ const Profile = () => {
                 </button>
               </div>
             </Tile>
+
+            {/* Refer & earn */}
+            {referral?.referralCode && (
+              <Tile glow="lime" pad="p-6">
+                <Eyebrow>Refer &amp; earn</Eyebrow>
+                <h3 className="mt-2 text-lg font-extrabold text-white">Invite friends, earn credit</h3>
+                <p className="mt-1 text-sm text-white/60">Share your link. When a friend joins, you get PKR 500 in travel credit.</p>
+
+                <div className="mt-4 flex items-center gap-2 rounded-2xl border border-white/10 bg-night-900 p-1.5">
+                  <span className="min-w-0 flex-1 truncate px-2 text-sm text-white/70">{inviteLink}</span>
+                  <button onClick={copyInvite} className="shrink-0 rounded-xl bg-lime-400 px-3 py-2 text-xs font-bold text-night-950 transition-transform hover:-translate-y-0.5">
+                    {copied ? "Copied" : "Copy"}
+                  </button>
+                </div>
+
+                <div className="mt-4 grid grid-cols-2 gap-3">
+                  <div className="rounded-2xl bg-night-700/50 p-3 text-center">
+                    <p className="text-2xl font-extrabold text-lime-400">{referral.referralCount || 0}</p>
+                    <p className="text-[11px] text-white/50">Friends joined</p>
+                  </div>
+                  <div className="rounded-2xl bg-night-700/50 p-3 text-center">
+                    <p className="text-2xl font-extrabold text-lime-400">PKR {referral.referralCredits || 0}</p>
+                    <p className="text-[11px] text-white/50">Credit earned</p>
+                  </div>
+                </div>
+              </Tile>
+            )}
           </div>
 
           {/* Edit column */}

@@ -6,7 +6,7 @@ import {
 import AdminLayout from "../AdminLayout";
 import { Card, SectionHead, StatCard, Btn, BtnGhost } from "../../components/dashboard/ui";
 import Modal from "../../components/dashboard/Modal";
-import { LIVE, listUsers, deleteUser, approveUser } from "../../data/adminApi";
+import { LIVE, listUsers, deleteUser, approveUser, verifyUser } from "../../data/adminApi";
 import { formatDate } from "../../utils/datetime";
 import { toast } from "../../utils/toast";
 
@@ -27,7 +27,7 @@ const TYPE_META = {
 
 const Avatar = ({ user, className }) =>
   user.avatar ? (
-    <img src={user.avatar} alt={user.name} className={`${className} shrink-0 rounded-2xl object-cover`} />
+    <img loading="lazy" decoding="async" src={user.avatar} alt={user.name} className={`${className} shrink-0 rounded-2xl object-cover`} />
   ) : (
     <span className={`${className} flex shrink-0 items-center justify-center rounded-2xl bg-lime-400 font-bold text-night-950`}>
       {(user.name || "U").charAt(0).toUpperCase()}
@@ -79,6 +79,17 @@ const UserManagement = () => {
     setUsers((prev) => prev.map((x) => (x._id === u._id ? { ...x, isApproved: true } : x)));
     if (viewing?._id === u._id) setViewing({ ...viewing, isApproved: true });
     toast.success(`${u.agencyName || u.name} approved — their tours can now go live.`);
+  };
+
+  const verify = async (u, val) => {
+    if (LIVE) {
+      try { await verifyUser(u._id, val); }
+      catch { toast.error("Couldn't update verification. Please try again."); return; }
+    }
+    const status = val ? "verified" : "unverified";
+    setUsers((prev) => prev.map((x) => (x._id === u._id ? { ...x, verificationStatus: status } : x)));
+    if (viewing?._id === u._id) setViewing({ ...viewing, verificationStatus: status });
+    toast.success(val ? `${u.name} is now verified.` : `${u.name}'s verification was removed.`);
   };
 
   const remove = async (u) => {
@@ -148,17 +159,25 @@ const UserManagement = () => {
                   <td className="px-3 py-3"><TypePill type={u.type} /></td>
                   <td className="px-3 py-3 text-sm text-slate-500">{u.city || "—"}</td>
                   <td className="px-3 py-3">
-                    {u.type === "travel agency" && u.isApproved === false ? (
-                      <span className="inline-flex items-center gap-1 text-xs font-semibold text-apricot-600">
-                        <Clock className="h-3.5 w-3.5" /> Pending review
-                      </span>
-                    ) : u.isVerified ? (
-                      <span className="inline-flex items-center gap-1 text-xs font-semibold text-lime-600">
-                        <BadgeCheck className="h-3.5 w-3.5" /> Verified
-                      </span>
-                    ) : (
-                      <span className="text-xs text-slate-400">Unverified</span>
-                    )}
+                    <div className="space-y-1">
+                      {u.type === "travel agency" && u.isApproved === false ? (
+                        <span className="inline-flex items-center gap-1 text-xs font-semibold text-apricot-600">
+                          <Clock className="h-3.5 w-3.5" /> Pending review
+                        </span>
+                      ) : u.isVerified ? (
+                        <span className="inline-flex items-center gap-1 text-xs font-semibold text-lime-600">
+                          <BadgeCheck className="h-3.5 w-3.5" /> Email verified
+                        </span>
+                      ) : (
+                        <span className="text-xs text-slate-400">Unverified</span>
+                      )}
+                      {u.verificationStatus === "verified" && (
+                        <span className="flex items-center gap-1 text-[11px] font-semibold text-lime-600"><BadgeCheck className="h-3 w-3" /> ID verified</span>
+                      )}
+                      {u.verificationStatus === "pending" && (
+                        <span className="flex items-center gap-1 text-[11px] font-semibold text-amber-600"><Clock className="h-3 w-3" /> ID in review</span>
+                      )}
+                    </div>
                   </td>
                   <td className="px-3 py-3">
                     <div className="flex items-center justify-end gap-2">
@@ -169,6 +188,15 @@ const UserManagement = () => {
                           className="inline-flex items-center gap-1 rounded-lg bg-lime-400 px-2.5 py-1.5 text-xs font-bold text-night-950 transition-colors hover:bg-lime-300"
                         >
                           <Check className="h-3.5 w-3.5" /> Approve
+                        </button>
+                      )}
+                      {u.verificationStatus === "pending" && (
+                        <button
+                          onClick={() => verify(u, true)}
+                          title="Verify identity"
+                          className="inline-flex items-center gap-1 rounded-lg bg-lime-400 px-2.5 py-1.5 text-xs font-bold text-night-950 transition-colors hover:bg-lime-300"
+                        >
+                          <BadgeCheck className="h-3.5 w-3.5" /> Verify
                         </button>
                       )}
                       <button
@@ -244,6 +272,41 @@ const UserManagement = () => {
               <Detail icon={MapPin} label="City" value={viewing.city || "—"} />
               <Detail icon={Heart} label="Saved spots" value={String(viewing.savedSpots?.length || 0)} />
             </div>
+
+            {["local guide", "hotel", "travel agency"].includes(viewing.type) && (
+              <div className="rounded-2xl border border-slate-100 p-4">
+                <div className="flex items-center justify-between">
+                  <p className="text-xs font-semibold uppercase tracking-wide text-slate-400">Identity (KYC)</p>
+                  {viewing.verificationStatus === "verified" ? (
+                    <span className="inline-flex items-center gap-1 text-xs font-bold text-lime-600"><BadgeCheck className="h-3.5 w-3.5" /> Verified</span>
+                  ) : viewing.verificationStatus === "pending" ? (
+                    <span className="inline-flex items-center gap-1 text-xs font-bold text-amber-600"><Clock className="h-3.5 w-3.5" /> In review</span>
+                  ) : (
+                    <span className="text-xs text-slate-400">Not submitted</span>
+                  )}
+                </div>
+                {viewing.idDocument ? (
+                  <a href={viewing.idDocument} target="_blank" rel="noreferrer">
+                    <img loading="lazy" decoding="async" src={viewing.idDocument} alt="Submitted ID document" className="mt-3 max-h-56 w-full rounded-xl border border-slate-100 bg-slate-50 object-contain" />
+                  </a>
+                ) : (
+                  <p className="mt-2 text-sm text-slate-400">No ID document uploaded yet.</p>
+                )}
+                {viewing.idDocument && (
+                  <div className="mt-3 flex gap-2">
+                    {viewing.verificationStatus !== "verified" ? (
+                      <button onClick={() => verify(viewing, true)} className="inline-flex items-center gap-1 rounded-lg bg-lime-400 px-3 py-1.5 text-xs font-bold text-night-950 transition-colors hover:bg-lime-300">
+                        <BadgeCheck className="h-3.5 w-3.5" /> Verify identity
+                      </button>
+                    ) : (
+                      <button onClick={() => verify(viewing, false)} className="inline-flex items-center gap-1 rounded-lg border border-slate-200 px-3 py-1.5 text-xs font-bold text-slate-600 transition-colors hover:bg-slate-50">
+                        Remove verification
+                      </button>
+                    )}
+                  </div>
+                )}
+              </div>
+            )}
 
             {viewing.interests?.length > 0 && (
               <div>

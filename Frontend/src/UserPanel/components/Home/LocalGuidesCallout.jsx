@@ -24,7 +24,7 @@ const LocalGuidesCallout = () => {
             variants={fadeUp}
             className="relative min-h-[420px] overflow-hidden"
           >
-            <img src={img("guide-portrait", 900, 1100)} alt="A local guide in Hunza" className="h-full w-full object-cover" />
+            <img loading="lazy" decoding="async" src={img("guide-portrait", 900, 1100)} alt="A local guide in Hunza" className="h-full w-full object-cover" />
             <div className="absolute inset-0 bg-gradient-to-t from-abyss-950/50 to-transparent lg:bg-gradient-to-r lg:from-transparent lg:to-sand-100/30 dark:lg:to-abyss-900/40" />
 
             <motion.div

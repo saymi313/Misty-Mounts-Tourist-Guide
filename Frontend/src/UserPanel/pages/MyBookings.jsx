@@ -140,7 +140,7 @@ const MyBookings = () => {
               >
                 <Tile pad="p-0" className="overflow-hidden">
                   <div className="flex flex-col sm:flex-row">
-                    <img src={b.image} alt={b.hotel} className="h-40 w-full object-cover sm:h-auto sm:w-52" />
+                    <img loading="lazy" decoding="async" src={b.image} alt={b.hotel} className="h-40 w-full object-cover sm:h-auto sm:w-52" />
                     <div className="flex flex-1 flex-col gap-4 p-5 sm:flex-row sm:items-center sm:justify-between">
                       <div className="min-w-0">
                         <div className="flex items-center gap-2">

@@ -145,7 +145,7 @@ const MessagesPage = () => {
                     >
                       <div className="relative shrink-0">
                         {c.avatar ? (
-                          <img src={c.avatar} alt={c.name} className="h-11 w-11 rounded-2xl object-cover" />
+                          <img loading="lazy" decoding="async" src={c.avatar} alt={c.name} className="h-11 w-11 rounded-2xl object-cover" />
                         ) : (
                           <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-lime-400/20 font-bold text-lime-400">{(c.name || "?").charAt(0).toUpperCase()}</span>
                         )}

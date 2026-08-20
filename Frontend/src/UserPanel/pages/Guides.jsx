@@ -116,7 +116,7 @@ const Guides = () => {
                     <WishlistButton floating className="absolute right-3 top-3 z-10" item={{ type: "guide", id: g._id, title: g.name, image: g.avatar, city: g.city, href: `/guides/${g._id}` }} />
                     <div className="flex items-center gap-3.5">
                       {g.avatar ? (
-                        <img src={g.avatar} alt={g.name} className="h-14 w-14 shrink-0 rounded-2xl object-cover ring-2 ring-lime-400/20" />
+                        <img loading="lazy" decoding="async" src={g.avatar} alt={g.name} className="h-14 w-14 shrink-0 rounded-2xl object-cover ring-2 ring-lime-400/20" />
                       ) : (
                         <span className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-lime-400 text-xl font-extrabold text-night-950">
                           {(g.name || "G").charAt(0).toUpperCase()}
@@ -125,7 +125,7 @@ const Guides = () => {
                       <div className="min-w-0">
                         <h3 className="flex items-center gap-1.5 text-base font-extrabold text-white">
                           <span className="truncate">{g.name}</span>
-                          <BadgeCheck className="h-4 w-4 shrink-0 text-lime-400" title="Verified guide" />
+                          {g.verified && <BadgeCheck className="h-4 w-4 shrink-0 text-lime-400" title="Verified guide" />}
                         </h3>
                         <p className="mt-0.5 flex items-center gap-1 text-xs text-white/50"><MapPin className="h-3 w-3" /> {g.city || "—"}</p>
                         <div className="mt-1 flex items-center gap-1.5">

@@ -251,7 +251,7 @@ const PaymentForm = ({ subtotal = 0, fee = 0, hotelName, hotelImage, accId, city
                 </label>
                 {proof && <span className="inline-flex items-center gap-1 text-xs font-medium text-lime-400"><Check className="h-3.5 w-3.5" /> Attached</span>}
               </div>
-              {proof && <img src={proof} alt="Payment proof" className="mt-3 h-40 w-full rounded-xl border border-white/10 object-cover" />}
+              {proof && <img loading="lazy" decoding="async" src={proof} alt="Payment proof" className="mt-3 h-40 w-full rounded-xl border border-white/10 object-cover" />}
               {proofErr && <p className={errNote}><AlertCircle className="h-3.5 w-3.5 shrink-0" /> {proofErr}</p>}
             </div>
           </div>
@@ -284,7 +284,7 @@ const PaymentForm = ({ subtotal = 0, fee = 0, hotelName, hotelImage, accId, city
       {/* Summary */}
       <div className="h-fit lg:sticky lg:top-24">
         <Tile glow="green" pad="p-0" className="overflow-hidden">
-          {hotelImage && <img src={hotelImage} alt={hotelName} className="h-40 w-full object-cover" />}
+          {hotelImage && <img loading="lazy" decoding="async" src={hotelImage} alt={hotelName} className="h-40 w-full object-cover" />}
           <div className="p-6">
             <h3 className="text-lg font-extrabold tracking-tight text-white">{hotelName}</h3>
             <p className="mt-1 flex items-center gap-1 text-sm text-white/50">

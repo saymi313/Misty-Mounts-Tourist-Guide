@@ -105,7 +105,7 @@ const TripBuilder = () => {
                       <Tile key={`${it.type}:${it.id}`} pad="p-0" className="overflow-hidden">
                         <div className="flex items-center gap-4">
                           <Link to={it.href || "#"} className="h-20 w-24 shrink-0 overflow-hidden">
-                            {it.image ? <img src={it.image} alt={it.title} className="h-full w-full object-cover" /> : <div className="flex h-full w-full items-center justify-center bg-night-700 text-white/25"><Compass className="h-6 w-6" /></div>}
+                            {it.image ? <img loading="lazy" decoding="async" src={it.image} alt={it.title} className="h-full w-full object-cover" /> : <div className="flex h-full w-full items-center justify-center bg-night-700 text-white/25"><Compass className="h-6 w-6" /></div>}
                           </Link>
                           <div className="min-w-0 flex-1 py-2">
                             <span className="rounded-full bg-night-700 px-2 py-0.5 text-[0.6rem] font-bold uppercase tracking-wider text-white/60">{TYPE_LABEL[it.type] || it.type}</span>

@@ -23,10 +23,41 @@ export const CITY_COORDS = {
   Murree: [33.907, 73.3943],
   Muzaffarabad: [34.3700, 73.4711],
   Neelum: [34.5877, 73.9070],
+  Kumrat: [35.5300, 72.1000],
+  Rawalakot: [33.8578, 73.7604],
 };
 
 export const DEFAULT_CENTER = [35.4, 74.2];
 export const DEFAULT_ZOOM = 7;
+
+/**
+ * City → province/region. Powers the Destinations province filter. Extend this
+ * as the platform scales to the rest of Pakistan (Sindh, Balochistan, etc.).
+ */
+export const CITY_PROVINCE = {
+  Hunza: "Gilgit-Baltistan", Nagar: "Gilgit-Baltistan", Gilgit: "Gilgit-Baltistan",
+  Ghizer: "Gilgit-Baltistan", Skardu: "Gilgit-Baltistan", Astore: "Gilgit-Baltistan",
+  "Fairy Meadows": "Gilgit-Baltistan",
+  Naran: "Khyber Pakhtunkhwa", Kaghan: "Khyber Pakhtunkhwa", Mansehra: "Khyber Pakhtunkhwa",
+  Balakot: "Khyber Pakhtunkhwa", Abbottabad: "Khyber Pakhtunkhwa", Swat: "Khyber Pakhtunkhwa",
+  Kalam: "Khyber Pakhtunkhwa", Malam: "Khyber Pakhtunkhwa", Chitral: "Khyber Pakhtunkhwa",
+  Kumrat: "Khyber Pakhtunkhwa",
+  Murree: "Punjab",
+  Muzaffarabad: "Azad Jammu & Kashmir", Neelum: "Azad Jammu & Kashmir", Rawalakot: "Azad Jammu & Kashmir",
+};
+
+/** Display order for the province filter (only ones with cities are shown). */
+export const PROVINCE_ORDER = [
+  "Gilgit-Baltistan",
+  "Khyber Pakhtunkhwa",
+  "Azad Jammu & Kashmir",
+  "Punjab",
+  "Sindh",
+  "Balochistan",
+  "Other",
+];
+
+export const provinceOf = (city) => CITY_PROVINCE[city] || "Other";
 
 /** Resolve [lat,lng] for a spot (own coords) or its city. Data uses
  * latitude/longitude; some records also use lat/lng. Zeros are treated as

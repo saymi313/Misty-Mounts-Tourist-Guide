@@ -82,7 +82,7 @@ const PaymentManagement = () => {
                 <tr key={p._id} className="border-t border-slate-100 transition-colors hover:bg-slate-50">
                   <td className="px-3 py-3">
                     <div className="flex items-center gap-3">
-                      <img src={p.avatar} alt={p.guest} className="h-10 w-10 shrink-0 rounded-full object-cover" />
+                      <img loading="lazy" decoding="async" src={p.avatar} alt={p.guest} className="h-10 w-10 shrink-0 rounded-full object-cover" />
                       <div className="min-w-0">
                         <p className="truncate text-sm font-semibold text-slate-900">{p.guest}</p>
                         <p className="truncate text-xs text-slate-400">{p.city}</p>
@@ -146,7 +146,7 @@ const PaymentManagement = () => {
         {editing && (
           <div className="space-y-5">
             <div className="flex items-center gap-3.5 rounded-2xl border border-slate-100 bg-slate-50 p-4">
-              <img src={editing.avatar} alt={editing.guest} className="h-12 w-12 rounded-full object-cover" />
+              <img loading="lazy" decoding="async" src={editing.avatar} alt={editing.guest} className="h-12 w-12 rounded-full object-cover" />
               <div className="min-w-0">
                 <p className="text-sm font-semibold text-slate-900">{editing.guest}</p>
                 <p className="truncate text-xs text-slate-400">

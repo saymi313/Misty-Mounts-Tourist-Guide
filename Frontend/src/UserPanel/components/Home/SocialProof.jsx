@@ -69,14 +69,14 @@ const SocialProof = () => {
             variants={fadeUp}
             className="relative overflow-hidden rounded-[2rem] ring-1 ring-abyss-900/10 dark:ring-frost-50/10"
           >
-            <img src={picFor(featured)} alt={featured.locationName} className="h-[22rem] w-full object-cover sm:h-[26rem]" />
+            <img loading="lazy" decoding="async" src={picFor(featured)} alt={featured.locationName} className="h-[22rem] w-full object-cover sm:h-[26rem]" />
             <div className="absolute inset-0 bg-gradient-to-t from-abyss-950 via-abyss-950/30 to-transparent" />
             <figcaption className="absolute inset-x-0 bottom-0 p-6 sm:p-9">
               <blockquote className="font-accent text-2xl font-medium leading-snug text-frost-50 sm:text-[2rem]">
                 "{featured.message}"
               </blockquote>
               <div className="mt-5 flex items-center gap-3">
-                <img src={featured.avatar} alt={featured.name} className="h-11 w-11 rounded-full object-cover ring-2 ring-glacier-400/30" />
+                <img loading="lazy" decoding="async" src={featured.avatar} alt={featured.name} className="h-11 w-11 rounded-full object-cover ring-2 ring-glacier-400/30" />
                 <div>
                   <p className="text-sm font-semibold text-frost-50">{featured.name}</p>
                   <p className="text-xs text-glacier-300">{featured.locationName} · {featured.trip}</p>
@@ -94,7 +94,7 @@ const SocialProof = () => {
           >
             {list.map((r) => (
               <motion.div key={r._id} variants={fadeUp} className="flex gap-4 py-5">
-                <img src={picFor(r)} alt={r.locationName} className="h-16 w-16 shrink-0 rounded-xl object-cover sm:h-20 sm:w-20" />
+                <img loading="lazy" decoding="async" src={picFor(r)} alt={r.locationName} className="h-16 w-16 shrink-0 rounded-xl object-cover sm:h-20 sm:w-20" />
                 <div className="min-w-0">
                   <p className="text-[15px] leading-relaxed text-frost-700 line-clamp-2 dark:text-frost-200">"{r.message}"</p>
                   <p className="mt-1.5 text-xs text-frost-500 dark:text-frost-400">

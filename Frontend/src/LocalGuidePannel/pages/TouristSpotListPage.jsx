@@ -76,7 +76,7 @@ export default function TouristSpotListPage() {
                   className="group overflow-hidden rounded-3xl border border-slate-100 bg-white transition-shadow hover:shadow-md"
                 >
                   <div className="relative h-40 w-full overflow-hidden">
-                    <img
+                    <img loading="lazy" decoding="async"
                       src={spot.picture}
                       alt={spot.name}
                       className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-105"

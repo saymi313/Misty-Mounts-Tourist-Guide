@@ -40,7 +40,7 @@ export const PhotoTile = ({ image, to = "/destinations", title, meta, badge, cla
     {...reveal(delay)}
     className={`group relative block overflow-hidden rounded-[1.4rem] border border-white/[0.07] ${className}`}
   >
-    <img src={image} alt={title} className="absolute inset-0 h-full w-full object-cover transition-transform duration-[800ms] ease-out group-hover:scale-[1.07]" />
+    <img loading="lazy" decoding="async" src={image} alt={title} className="absolute inset-0 h-full w-full object-cover transition-transform duration-[800ms] ease-out group-hover:scale-[1.07]" />
     <div className="absolute inset-0 bg-gradient-to-t from-night-950 via-night-950/25 to-transparent" />
     {badge && (
       <span className="absolute left-3 top-3 rounded-full bg-lime-400 px-2.5 py-1 text-[0.65rem] font-bold uppercase tracking-wider text-night-950">

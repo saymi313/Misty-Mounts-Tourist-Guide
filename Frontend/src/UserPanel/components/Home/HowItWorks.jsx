@@ -72,7 +72,7 @@ const HowItWorks = () => {
                 className={flip ? "lg:order-1" : ""}
               >
                 <div className="group relative overflow-hidden rounded-[2rem] ring-1 ring-abyss-900/10 dark:ring-frost-50/10">
-                  <img
+                  <img loading="lazy" decoding="async"
                     src={step.image}
                     alt={step.caption}
                     className={`w-full object-cover transition-transform duration-[900ms] ease-editorial group-hover:scale-[1.04] ${

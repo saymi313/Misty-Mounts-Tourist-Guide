@@ -17,7 +17,7 @@ export default function Sidebar({ items = [], onLogout, footerCard = null }) {
 
       {/* Brand */}
       <div className="relative flex items-center gap-2.5 px-2">
-        <img src="/Logo.png" alt="Misty Mounts" className="h-9 w-9 rounded-xl object-cover" />
+        <img loading="lazy" decoding="async" src="/Logo.png" alt="Misty Mounts" className="h-9 w-9 rounded-xl object-cover" />
         <span className="font-display text-lg font-bold tracking-tight text-slate-900">Misty Mounts</span>
       </div>
 

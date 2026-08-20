@@ -25,7 +25,7 @@ const HeroSection = ({ hotel = {} }) => {
         transition={{ duration: 0.7, ease: EASE }}
         className="relative overflow-hidden rounded-[1.4rem] border border-white/[0.07]"
       >
-        <img src={picture} alt={name} className="h-[46vh] min-h-[320px] w-full object-cover" />
+        <img loading="lazy" decoding="async" src={picture} alt={name} className="h-[46vh] min-h-[320px] w-full object-cover" />
         <div className="absolute inset-0 bg-gradient-to-t from-night-950 via-night-950/40 to-transparent" />
 
         <div className="absolute inset-x-0 bottom-0 p-6 sm:p-8">

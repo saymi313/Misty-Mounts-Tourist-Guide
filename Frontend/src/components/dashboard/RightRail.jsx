@@ -9,7 +9,7 @@ export default function RightRail({ user, schedule = [], calendar }) {
     <div className="space-y-6 py-6">
       {/* Profile chip */}
       <div className="flex items-center gap-3">
-        <img
+        <img loading="lazy" decoding="async"
           src={user?.avatar || img("admin-avatar", 120, 120)}
           alt={user?.name}
           className="h-11 w-11 rounded-full object-cover ring-2 ring-lime-400"
@@ -36,7 +36,7 @@ export default function RightRail({ user, schedule = [], calendar }) {
         <div className="space-y-3">
           {schedule.map((s) => (
             <div key={s._id} className="flex items-center gap-3 rounded-2xl bg-white p-3 shadow-sm">
-              <img src={s.image} alt={s.title} className="h-14 w-14 shrink-0 rounded-xl object-cover" />
+              <img loading="lazy" decoding="async" src={s.image} alt={s.title} className="h-14 w-14 shrink-0 rounded-xl object-cover" />
               <div className="min-w-0 flex-1">
                 <p className="truncate text-sm font-bold text-slate-900">{s.title}</p>
                 <p className="mt-0.5 flex items-center gap-1 text-xs text-slate-400">
@@ -45,7 +45,7 @@ export default function RightRail({ user, schedule = [], calendar }) {
                 <div className="mt-1.5 flex items-center">
                   <div className="flex -space-x-2">
                     {[0, 1].map((i) => (
-                      <img
+                      <img loading="lazy" decoding="async"
                         key={i}
                         src={img(`sched-${s._id}-${i}`, 60, 60)}
                         alt=""

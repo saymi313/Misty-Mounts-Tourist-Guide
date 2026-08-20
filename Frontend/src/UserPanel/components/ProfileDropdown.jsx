@@ -42,7 +42,7 @@ const ProfileDropdown = () => {
         className="flex items-center gap-2 rounded-full border border-white/12 bg-night-800 py-1.5 pl-1.5 pr-3 transition-colors duration-200 hover:border-lime-400/50"
       >
         {user?.avatar ? (
-          <img src={user.avatar} alt="" className="h-8 w-8 rounded-full object-cover" />
+          <img loading="lazy" decoding="async" src={user.avatar} alt="" className="h-8 w-8 rounded-full object-cover" />
         ) : (
           <span className="flex h-8 w-8 items-center justify-center rounded-full bg-lime-400 text-sm font-bold text-night-950">
             {initial}
@@ -58,7 +58,7 @@ const ProfileDropdown = () => {
         <div className="absolute right-0 z-50 mt-2 w-60 overflow-hidden rounded-2xl border border-white/10 bg-night-800 shadow-2xl">
           <div className="flex items-center gap-3 border-b border-white/8 bg-night-900 px-4 py-3.5">
             {user?.avatar ? (
-              <img src={user.avatar} alt="" className="h-10 w-10 rounded-full object-cover" />
+              <img loading="lazy" decoding="async" src={user.avatar} alt="" className="h-10 w-10 rounded-full object-cover" />
             ) : (
               <span className="flex h-10 w-10 items-center justify-center rounded-full bg-lime-400 font-bold text-night-950">
                 {initial}

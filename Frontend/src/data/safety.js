@@ -6,7 +6,7 @@
 
 // Nationwide emergency numbers (dialable via tel: links).
 export const EMERGENCY_NUMBERS = [
-  { label: "Rescue 1122", number: "1122", desc: "Ambulance · fire · rescue", tone: "rose" },
+  { label: "Rescue 1122", number: "1122", desc: "Ambulance, fire & rescue", tone: "rose" },
   { label: "Police", number: "15", desc: "Police emergency", tone: "sky" },
   { label: "Edhi Ambulance", number: "115", desc: "Ambulance & welfare", tone: "lime" },
   { label: "Motorway Police", number: "130", desc: "Highways & motorways", tone: "amber" },

@@ -213,7 +213,7 @@ const TouristSpotManagement = () => {
                   <td className="px-3 py-3">
                     <div className="flex items-center gap-3">
                       {spot.picture ? (
-                        <img src={spot.picture} alt={spot.name} className="h-11 w-11 shrink-0 rounded-xl object-cover" />
+                        <img loading="lazy" decoding="async" src={spot.picture} alt={spot.name} className="h-11 w-11 shrink-0 rounded-xl object-cover" />
                       ) : (
                         <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-lime-50 text-lime-600">
                           <MapIcon className="h-5 w-5" />
@@ -343,7 +343,7 @@ const TouristSpotManagement = () => {
               placeholder="https://…  or use Upload"
               className={adminInputCls}
             />
-            {form.picture && <img src={form.picture} alt="" className="mt-2 h-32 w-full rounded-xl object-cover" />}
+            {form.picture && <img loading="lazy" decoding="async" src={form.picture} alt="" className="mt-2 h-32 w-full rounded-xl object-cover" />}
           </div>
           <Field
             label="Moderation status"

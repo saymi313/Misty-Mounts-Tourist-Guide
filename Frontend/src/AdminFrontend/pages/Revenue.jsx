@@ -339,7 +339,7 @@ export default function Revenue() {
               <p className="mb-1.5 text-xs font-semibold uppercase tracking-wide text-slate-500">Payment screenshot</p>
               {viewing.paymentProof ? (
                 <a href={viewing.paymentProof} target="_blank" rel="noreferrer">
-                  <img src={viewing.paymentProof} alt="Payment proof" className="max-h-80 w-full rounded-xl border border-slate-200 object-contain" />
+                  <img loading="lazy" decoding="async" src={viewing.paymentProof} alt="Payment proof" className="max-h-80 w-full rounded-xl border border-slate-200 object-contain" />
                 </a>
               ) : (
                 <p className="rounded-xl border border-dashed border-slate-200 p-4 text-center text-sm text-slate-400">No screenshot attached.</p>

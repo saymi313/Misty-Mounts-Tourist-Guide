@@ -82,7 +82,7 @@ const AdminDashboard = () => {
 
             {/* Explore card — real photography, no blob */}
             <div className="relative flex flex-col overflow-hidden rounded-[1.75rem] text-white">
-              <img src={img("skardu-hero", 700, 900)} alt="" className="absolute inset-0 h-full w-full object-cover" />
+              <img loading="lazy" decoding="async" src={img("skardu-hero", 700, 900)} alt="" className="absolute inset-0 h-full w-full object-cover" />
               <div className="absolute inset-0 bg-gradient-to-t from-lime-950 via-lime-950/70 to-lime-900/30" />
               <Contour className="pointer-events-none absolute inset-x-0 top-0 h-40 w-full text-white" opacity={0.14} />
               <div className="relative mt-auto p-6">

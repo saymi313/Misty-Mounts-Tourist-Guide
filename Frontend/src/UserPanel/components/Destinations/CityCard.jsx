@@ -46,7 +46,7 @@ const CityCard = ({
       transition={{ duration: 0.6, delay, ease: EASE }}
       className={`group relative block overflow-hidden rounded-[1.4rem] border border-white/[0.07] bg-night-800 ${className}`}
     >
-      <img
+      <img loading="lazy" decoding="async"
         src={picture}
         alt={name}
         className="absolute inset-0 h-full w-full object-cover transition-transform duration-[800ms] ease-out group-hover:scale-[1.07]"

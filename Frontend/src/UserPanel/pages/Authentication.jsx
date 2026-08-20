@@ -6,7 +6,7 @@ import { img } from '../../data/mockData';
 
 const Wordmark = ({ className = '' }) => (
   <div className={`flex items-center gap-2.5 ${className}`}>
-    <img src="/Logo.png" alt="Misty Mounts" className="h-9 w-9 rounded-xl object-cover" />
+    <img loading="lazy" decoding="async" src="/Logo.png" alt="Misty Mounts" className="h-9 w-9 rounded-xl object-cover" />
     <span className="text-xl font-extrabold tracking-tight text-white">
       Misty<span className="text-lime-400">Mounts</span>
     </span>
@@ -20,7 +20,7 @@ const Authentication = () => {
     <div className="min-h-screen w-full bg-night-950 text-white lg:grid lg:grid-cols-[1.05fr_1fr]">
       {/* ── Left: editorial photography panel ─────────────────────────── */}
       <aside className="relative hidden overflow-hidden lg:block">
-        <img
+        <img loading="lazy" decoding="async"
           src={img('auth-hunza', 1400, 1800)}
           alt="Mist over the peaks of Hazara"
           className="absolute inset-0 h-full w-full object-cover animate-slow-zoom"

@@ -196,7 +196,7 @@ const AccommodationManagement = () => {
             <Card key={item._id} className="flex flex-col overflow-hidden !p-0">
               <div className="relative h-40 w-full">
                 {item.picture ? (
-                  <img src={item.picture} alt={item.name} className="h-full w-full object-cover" />
+                  <img loading="lazy" decoding="async" src={item.picture} alt={item.name} className="h-full w-full object-cover" />
                 ) : (
                   <div className="flex h-full w-full items-center justify-center bg-lime-50 text-lime-600">
                     <BedDouble className="h-8 w-8" />
@@ -366,7 +366,7 @@ const AccommodationManagement = () => {
               placeholder="https://…  or use Upload"
               className={adminInputCls}
             />
-            {form.picture && <img src={form.picture} alt="" className="mt-2 h-28 w-full rounded-xl object-cover" />}
+            {form.picture && <img loading="lazy" decoding="async" src={form.picture} alt="" className="mt-2 h-28 w-full rounded-xl object-cover" />}
           </div>
         </div>
       </Modal>

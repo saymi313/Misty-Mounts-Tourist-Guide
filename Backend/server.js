@@ -4,6 +4,7 @@ const http = require("http");
 const path = require("path");
 const jwt = require("jsonwebtoken");
 const helmet = require("helmet");
+const compression = require("compression");
 const rateLimit = require("express-rate-limit");
 const mongoSanitize = require("express-mongo-sanitize");
 const { Server } = require("socket.io");
@@ -56,6 +57,11 @@ app.set("io", io);
 // separate frontend origin to load /uploads images cross-origin.
 app.use(helmet({ crossOriginResourcePolicy: { policy: "cross-origin" } }));
 app.disable("x-powered-by");
+
+// Gzip every compressible response (JSON API payloads, etc.). Big win on the
+// weak/slow connections common in remote northern-Pakistan travel areas —
+// typical API bodies shrink 60–80% on the wire.
+app.use(compression());
 
 app.use(cors({
   origin: CLIENT_URL, // Allow frontend requests

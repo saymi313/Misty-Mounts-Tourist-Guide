@@ -20,6 +20,8 @@ export default function GuideProfile() {
     languages: "", specialties: "", serviceAreas: "",
   });
   const [avatar, setAvatar] = useState("");
+  const [idDocument, setIdDocument] = useState("");
+  const [verStatus, setVerStatus] = useState("unverified");
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(true);
 
@@ -41,6 +43,8 @@ export default function GuideProfile() {
             serviceAreas: (u.serviceAreas || []).join(", "),
           });
           setAvatar(u.avatar || "");
+          setIdDocument(u.idDocument || "");
+          setVerStatus(u.verificationStatus || "unverified");
         } else {
           setForm((f) => ({ ...f, name: user?.name || "", email: user?.email || "" }));
           setAvatar(user?.avatar || "");
@@ -58,6 +62,19 @@ export default function GuideProfile() {
   };
 
   const onAvatar = (url) => { setAvatar(url); updateUser({ avatar: url }); toast.success("Photo updated."); };
+
+  const onIdUpload = (url) => {
+    setIdDocument(url);
+    setVerStatus("pending");
+    updateUser({ idDocument: url });
+    toast.success("ID submitted. An admin will review it shortly.");
+  };
+
+  const VER = {
+    verified: { cls: "bg-lime-50 text-lime-700", label: "Verified" },
+    pending: { cls: "bg-amber-50 text-amber-700", label: "In review" },
+    unverified: { cls: "bg-slate-100 text-slate-500", label: "Not verified" },
+  }[verStatus] || { cls: "bg-slate-100 text-slate-500", label: "Not verified" };
 
   const handleSave = (e) => {
     e.preventDefault();
@@ -96,7 +113,7 @@ export default function GuideProfile() {
         <Card className="h-fit">
           <div className="flex items-center gap-4">
             {avatar ? (
-              <img src={avatar} alt={form.name} className="h-16 w-16 shrink-0 rounded-2xl object-cover" />
+              <img loading="lazy" decoding="async" src={avatar} alt={form.name} className="h-16 w-16 shrink-0 rounded-2xl object-cover" />
             ) : (
               <span className="flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl bg-lime-400 text-2xl font-extrabold text-night-950">{initial}</span>
             )}
@@ -110,6 +127,25 @@ export default function GuideProfile() {
           </div>
           <div className="mt-4">
             <ImageUploadButton folder="avatars" label={avatar ? "Change photo" : "Upload photo"} onUploaded={onAvatar} />
+          </div>
+
+          {/* Identity verification (KYC) */}
+          <div className="mt-5 rounded-2xl border border-slate-100 p-4">
+            <div className="flex items-center justify-between gap-2">
+              <p className="flex items-center gap-1.5 text-sm font-bold text-slate-900"><ShieldCheck className="h-4 w-4 text-lime-600" /> Identity</p>
+              <span className={`rounded-full px-2.5 py-1 text-[11px] font-bold ${VER.cls}`}>{VER.label}</span>
+            </div>
+            <p className="mt-1.5 text-xs text-slate-400">
+              {verStatus === "verified"
+                ? "Your identity is verified. A Verified badge shows on your public profile."
+                : "Upload a government ID (CNIC or passport). Verified guides earn a trust badge travellers look for."}
+            </p>
+            {idDocument && <img loading="lazy" decoding="async" src={idDocument} alt="Submitted ID" className="mt-3 h-28 w-full rounded-xl border border-slate-100 object-cover" />}
+            {verStatus !== "verified" && (
+              <div className="mt-3">
+                <ImageUploadButton folder="kyc" label={idDocument ? "Replace ID" : "Upload ID"} onUploaded={onIdUpload} />
+              </div>
+            )}
           </div>
           <div className="mt-5 grid grid-cols-2 gap-2">
             <div className="rounded-2xl border border-slate-100 p-3 text-center">

@@ -155,7 +155,7 @@ export default function AgencyPackages() {
               <Card key={p._id} className="flex flex-col overflow-hidden !p-0">
                 <div className="relative h-40 w-full">
                   {p.coverImage ? (
-                    <img src={p.coverImage} alt={p.title} className="h-full w-full object-cover" />
+                    <img loading="lazy" decoding="async" src={p.coverImage} alt={p.title} className="h-full w-full object-cover" />
                   ) : (
                     <div className="flex h-full w-full items-center justify-center bg-slate-100 text-slate-400"><Package className="h-8 w-8" /></div>
                   )}
@@ -207,7 +207,7 @@ export default function AgencyPackages() {
               <ImageUploadButton folder="tours" onUploaded={(url) => update("coverImage", url)} />
             </div>
             <input value={form.coverImage} onChange={(e) => update("coverImage", e.target.value)} placeholder="https://…  or use Upload" className={adminInputCls} />
-            {form.coverImage && <img src={form.coverImage} alt="" className="mt-2 h-32 w-full rounded-xl object-cover" />}
+            {form.coverImage && <img loading="lazy" decoding="async" src={form.coverImage} alt="" className="mt-2 h-32 w-full rounded-xl object-cover" />}
           </div>
 
           {/* Cities */}

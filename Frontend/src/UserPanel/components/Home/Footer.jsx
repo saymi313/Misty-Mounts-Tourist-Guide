@@ -39,7 +39,7 @@ const Footer = () => {
         <div className="grid gap-12 lg:grid-cols-[1.3fr_2fr]">
           <div>
             <Link to="/user" className="inline-block">
-              <img
+              <img loading="lazy" decoding="async"
                 src="/main logo.png"
                 alt="Misty Mounts — explore more, discover hidden"
                 className="h-16 w-auto object-contain"

@@ -18,7 +18,7 @@ const Card = ({ place, className = "", tall = false }) => (
       to={`/city/${encodeURIComponent(place.city)}/spot/${place._id}`}
       className="group relative block h-full overflow-hidden rounded-[1.75rem] ring-1 ring-abyss-900/10 dark:ring-frost-50/10"
     >
-      <img
+      <img loading="lazy" decoding="async"
         src={place.picture}
         alt={place.name}
         className={`w-full object-cover transition-transform duration-[900ms] ease-editorial group-hover:scale-[1.06] ${

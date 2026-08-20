@@ -12,10 +12,12 @@ import WishlistButton from "../../components/WishlistButton";
 import AddToTripButton from "../../components/AddToTripButton";
 import WeatherWidget from "../../components/WeatherWidget";
 import Seo from "../../components/Seo";
+import MistyGuarantee from "../../components/MistyGuarantee";
 import { CITY_COORDS } from "../../data/geo";
 import { useAuth } from "../../context/AuthContext";
 import { getTour, bookTour } from "../../data/toursApi";
 import { getPaymentAccounts } from "../../data/revenueApi";
+import { getPayConfig, startCheckout } from "../../data/paymentApi";
 import { formatPKR } from "../../utils/currency";
 import { formatDate } from "../../utils/datetime";
 import { required, email as emailRule, phone as phoneRule, validate, hasErrors } from "../../utils/validation";
@@ -52,12 +54,14 @@ export default function TourDetail() {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
   const [done, setDone] = useState(null);
+  const [payCfg, setPayCfg] = useState({ enabled: false });
 
   useEffect(() => {
     if (!LIVE) { setLoading(false); return; }
     let alive = true;
     getTour(id).then((t) => { if (alive) setTour(t); }).catch(() => {}).finally(() => { if (alive) setLoading(false); });
     getPaymentAccounts().then((a) => { setAccounts(a || []); if (a?.length) setAccount(a[0].label || a[0].accountNumber); }).catch(() => {});
+    getPayConfig().then((c) => { if (alive) setPayCfg(c); }).catch(() => {});
     return () => { alive = false; };
   }, [id]);
 
@@ -120,6 +124,26 @@ export default function TourDetail() {
     } finally { setSubmitting(false); }
   };
 
+  // Gateway checkout: create the booking, then redirect to hosted payment.
+  const payOnline = async () => {
+    const found = validate(form, {
+      guestName: [required("Your name is required")],
+      email: [required("Email is required"), emailRule()],
+      phone: [required("Phone is required"), phoneRule()],
+    });
+    if (hasErrors(found)) { setErrors(found); return; }
+    setError("");
+    setSubmitting(true);
+    try {
+      const res = await bookTour({ packageId: tour._id, departureId, seats: n, guestName: form.guestName, email: form.email, phone: form.phone });
+      const { url } = await startCheckout("tour", res.bookingId);
+      window.location.href = url; // leaves the app for the gateway
+    } catch (e2) {
+      setError(e2?.response?.data?.error || "Couldn't start payment. Please try again.");
+      setSubmitting(false);
+    }
+  };
+
   if (loading) return <Shell><Tile className="py-16 text-center"><p className="text-white/60">Loading tour…</p></Tile></Shell>;
   if (!tour) {
     return (
@@ -142,7 +166,7 @@ export default function TourDetail() {
       <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }} className="mt-5 overflow-hidden rounded-[1.6rem] border border-white/[0.07]">
         <div className="relative h-64 w-full sm:h-80">
           {tour.coverImage ? (
-            <img src={tour.coverImage} alt={tour.title} className="h-full w-full object-cover" />
+            <img loading="lazy" decoding="async" src={tour.coverImage} alt={tour.title} className="h-full w-full object-cover" />
           ) : (
             <div className="flex h-full w-full items-center justify-center bg-night-700 text-white/25"><Compass className="h-12 w-12" /></div>
           )}
@@ -323,7 +347,8 @@ export default function TourDetail() {
                       {errors.email && <p className={errNote}><AlertCircle className="h-3.5 w-3.5" /> {errors.email}</p>}
                     </div>
 
-                    {/* Payment */}
+                    {/* Payment (manual proof) — used only when online checkout is off */}
+                    {!payCfg.enabled && (
                     <div className="rounded-2xl border border-white/[0.08] bg-night-900 p-4">
                       <h4 className="flex items-center gap-2 text-sm font-extrabold text-white"><Landmark className="h-4 w-4 text-lime-400" /> Pay {formatPKR(total)} &amp; attach proof</h4>
                       {accounts.length === 0 ? (
@@ -364,24 +389,37 @@ export default function TourDetail() {
                           {uploading ? "Uploading…" : proof ? "Replace screenshot" : "Upload screenshot"}
                           <input type="file" accept="image/*" onChange={handleProof} className="hidden" />
                         </label>
-                        {proof && <img src={proof} alt="Payment proof" className="mt-2 h-28 w-full rounded-xl border border-white/10 object-cover" />}
+                        {proof && <img loading="lazy" decoding="async" src={proof} alt="Payment proof" className="mt-2 h-28 w-full rounded-xl border border-white/10 object-cover" />}
                         {proofErr && <p className={errNote}><AlertCircle className="h-3.5 w-3.5" /> {proofErr}</p>}
                       </div>
                     </div>
+                    )}
 
                     <div className="flex items-center justify-between border-t border-white/10 pt-3 text-lg font-extrabold text-white">
                       <span>Total</span><span className="text-lime-400">{formatPKR(total)}</span>
                     </div>
                     {error && <p className="text-sm font-medium text-rose-400">{error}</p>}
-                    <Btn type="submit" disabled={submitting || uploading} className="w-full">
-                      {submitting ? "Submitting…" : (<><ShieldCheck className="h-4 w-4" /> Submit booking</>)}
-                    </Btn>
-                    <p className="flex items-center justify-center gap-1.5 text-xs text-white/50"><ShieldCheck className="h-3.5 w-3.5 text-lime-400" /> Confirmed once the admin verifies your payment.</p>
+                    {payCfg.enabled ? (
+                      <>
+                        <Btn type="button" onClick={payOnline} disabled={submitting} className="w-full">
+                          {submitting ? "Redirecting…" : (<><ShieldCheck className="h-4 w-4" /> Pay {formatPKR(total)} securely</>)}
+                        </Btn>
+                        <p className="flex items-center justify-center gap-1.5 text-xs text-white/50"><ShieldCheck className="h-3.5 w-3.5 text-lime-400" /> Secure checkout. You'll be redirected to pay, then brought back.</p>
+                      </>
+                    ) : (
+                      <>
+                        <Btn type="submit" disabled={submitting || uploading} className="w-full">
+                          {submitting ? "Submitting…" : (<><ShieldCheck className="h-4 w-4" /> Submit booking</>)}
+                        </Btn>
+                        <p className="flex items-center justify-center gap-1.5 text-xs text-white/50"><ShieldCheck className="h-3.5 w-3.5 text-lime-400" /> Confirmed once the admin verifies your payment.</p>
+                      </>
+                    )}
                   </>
                 )}
               </form>
             )}
           </Tile>
+          <MistyGuarantee className="mt-4" />
         </div>
       </div>
     </Shell>

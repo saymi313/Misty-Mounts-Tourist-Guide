@@ -86,7 +86,7 @@ const Tours = () => {
                     <Tile pad="p-0" className="flex h-full flex-col overflow-hidden transition-colors hover:border-lime-400/40">
                       <div className="relative h-44 w-full overflow-hidden">
                         {t.coverImage ? (
-                          <img src={t.coverImage} alt={t.title} className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105" />
+                          <img loading="lazy" decoding="async" src={t.coverImage} alt={t.title} className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105" />
                         ) : (
                           <div className="flex h-full w-full items-center justify-center bg-night-700 text-white/25"><Compass className="h-8 w-8" /></div>
                         )}

@@ -78,7 +78,7 @@ const SavedSpots = () => {
                   onClick={() => navigate(`/city/${encodeURIComponent(p.city)}/spot/${encodeURIComponent(p._id)}`)}
                   className="group relative block min-h-[260px] cursor-pointer overflow-hidden rounded-[1.4rem] border border-white/[0.07] bg-night-800"
                 >
-                  <img
+                  <img loading="lazy" decoding="async"
                     src={p.picture}
                     alt={p.name}
                     className="absolute inset-0 h-full w-full object-cover transition-transform duration-[800ms] ease-out group-hover:scale-[1.07]"

@@ -111,7 +111,7 @@ export const StatCard = ({
 /** Large image destination card with overlay (featured row). */
 export const DestinationCard = ({ image, title, location, rating, onClick, className = "" }) => (
   <button onClick={onClick} className={`group relative block overflow-hidden rounded-[1.5rem] text-left shadow-sm ${className}`}>
-    <img src={image} alt={title} className="h-56 w-full object-cover transition-transform duration-700 group-hover:scale-105" />
+    <img loading="lazy" decoding="async" src={image} alt={title} className="h-56 w-full object-cover transition-transform duration-700 group-hover:scale-105" />
     <div className="absolute inset-0 bg-gradient-to-t from-slate-900/85 via-slate-900/10 to-transparent" />
     <div className="absolute inset-x-0 bottom-0 flex items-end justify-between p-4">
       <div>
@@ -138,7 +138,7 @@ export const DestinationCard = ({ image, title, location, rating, onClick, class
  */
 export const ListRow = ({ image, title, location, rating, right, hoverMeta, onClick }) => (
   <button onClick={onClick} className="group flex w-full items-center gap-4 rounded-2xl px-2 py-2.5 text-left transition-colors hover:bg-lime-50/60">
-    {image && <img src={image} alt={title} className="h-12 w-12 shrink-0 rounded-xl object-cover" />}
+    {image && <img loading="lazy" decoding="async" src={image} alt={title} className="h-12 w-12 shrink-0 rounded-xl object-cover" />}
     <div className="min-w-0 flex-1">
       <p className="truncate text-sm font-semibold text-slate-900">{title}</p>
       {location && (
@@ -201,7 +201,7 @@ export const BtnGhost = ({ children, className = "", ...props }) => (
  */
 export const PromoCard = ({ title, body, cta, image, onClick }) => (
   <div className="relative overflow-hidden rounded-3xl p-5 text-white">
-    <img src={image} alt="" className="absolute inset-0 h-full w-full object-cover" />
+    <img loading="lazy" decoding="async" src={image} alt="" className="absolute inset-0 h-full w-full object-cover" />
     <div className="absolute inset-0 bg-gradient-to-t from-lime-950/90 via-lime-900/60 to-lime-800/30" />
     <Contour className="pointer-events-none absolute inset-0 h-full w-full text-white" opacity={0.12} />
     <div className="relative">

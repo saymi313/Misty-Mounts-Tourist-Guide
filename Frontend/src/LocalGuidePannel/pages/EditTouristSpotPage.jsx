@@ -211,7 +211,7 @@ export default function EditTouristSpotPage() {
 
           {form.picture ? (
             <div className="mt-4 overflow-hidden rounded-2xl border border-slate-100">
-              <img src={form.picture} alt="Preview" className="h-44 w-full object-cover" />
+              <img loading="lazy" decoding="async" src={form.picture} alt="Preview" className="h-44 w-full object-cover" />
             </div>
           ) : (
             <div className="mt-4 flex h-44 w-full flex-col items-center justify-center gap-2 rounded-2xl border border-dashed border-slate-200 text-slate-300">

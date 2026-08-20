@@ -13,7 +13,7 @@ const HiddenGemsSpotlight = () => {
   return (
     <section className="relative overflow-hidden bg-frost-100 py-[var(--space-section)] text-abyss-900 dark:bg-abyss-900 dark:text-frost-100">
       <div className="pointer-events-none absolute inset-0 opacity-[0.05] dark:opacity-[0.07]">
-        <img src={img("gems-texture", 1600, 900)} alt="" className="h-full w-full object-cover" />
+        <img loading="lazy" decoding="async" src={img("gems-texture", 1600, 900)} alt="" className="h-full w-full object-cover" />
       </div>
       <div className="pointer-events-none absolute -left-40 bottom-0 h-[30rem] w-[30rem] rounded-full bg-glacier-500/10 blur-[120px]" />
 
@@ -46,7 +46,7 @@ const HiddenGemsSpotlight = () => {
             <motion.div key={gem._id} variants={fadeUp} className={i === 1 ? "md:mt-14" : i === 2 ? "md:mt-6" : ""}>
               <Link to={`/city/${encodeURIComponent(gem.city)}/spot/${gem._id}`} className="group block">
                 <div className="relative overflow-hidden rounded-[1.75rem] ring-1 ring-abyss-900/10 dark:ring-frost-50/10">
-                  <img
+                  <img loading="lazy" decoding="async"
                     src={gem.picture}
                     alt={gem.name}
                     className="h-80 w-full object-cover transition-transform duration-[900ms] ease-editorial group-hover:scale-[1.06]"
@@ -61,7 +61,7 @@ const HiddenGemsSpotlight = () => {
                 </div>
 
                 <div className="mt-5 flex items-start gap-3">
-                  <img src={img(`guide-${i}`, 96, 96)} alt="" className="h-10 w-10 rounded-full object-cover ring-2 ring-glacier-400/25" />
+                  <img loading="lazy" decoding="async" src={img(`guide-${i}`, 96, 96)} alt="" className="h-10 w-10 rounded-full object-cover ring-2 ring-glacier-400/25" />
                   <div>
                     <h3 className="font-display text-xl font-semibold text-abyss-900 transition-colors group-hover:text-glacier-600 dark:text-frost-50 dark:group-hover:text-glacier-300">
                       {gem.name}

@@ -17,7 +17,7 @@ const OwnerCard = ({ name, role, bio, image, linkedin, location, delay = 0 }) =>
       {/* Portrait */}
       <div className="relative aspect-[4/5] w-full overflow-hidden">
         {image && !broken ? (
-          <img
+          <img loading="lazy" decoding="async"
             src={image}
             alt={name}
             onError={() => setBroken(true)}

@@ -175,7 +175,7 @@ export default function ChatPanel({
       <div className={`flex shrink-0 items-center gap-3 border-b p-4 ${t.header}`}>
         <div className="relative shrink-0">
           {partner?.avatar ? (
-            <img src={partner.avatar} alt={partner.name} className="h-11 w-11 rounded-2xl object-cover" />
+            <img loading="lazy" decoding="async" src={partner.avatar} alt={partner.name} className="h-11 w-11 rounded-2xl object-cover" />
           ) : (
             <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-lime-400/20 text-lime-500 font-bold">{initial}</span>
           )}

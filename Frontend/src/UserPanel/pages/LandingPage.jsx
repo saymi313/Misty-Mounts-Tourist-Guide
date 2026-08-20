@@ -15,6 +15,7 @@ import { Eyebrow } from "../components/bento/tiles";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Home/Footer";
 import AiConcierge from "../../components/AiConcierge";
+import WaitlistForm from "../../components/WaitlistForm";
 
 const EASE = [0.16, 1, 0.3, 1];
 const byId = (id) => allPlaces.find((p) => p._id === id);
@@ -485,7 +486,7 @@ const Trail = ({ items }) => {
               to={`/city/${encodeURIComponent(p.city)}/spot/${p._id}`}
               className="group relative h-[62vh] w-[80vw] shrink-0 overflow-hidden rounded-[1.6rem] border border-white/[0.07] sm:w-[46vw] lg:w-[34vw] xl:w-[440px]"
             >
-              <img src={p.picture} alt={p.name} className="absolute inset-0 h-full w-full object-cover transition-transform duration-700 group-hover:scale-105" />
+              <img loading="lazy" decoding="async" src={p.picture} alt={p.name} className="absolute inset-0 h-full w-full object-cover transition-transform duration-700 group-hover:scale-105" />
               <div className="absolute inset-0 bg-gradient-to-t from-night-950 via-night-950/25 to-transparent" />
               {p.hiddenGem && <span className="absolute left-5 top-5 rounded-full bg-lime-400 px-2.5 py-1 text-[0.6rem] font-bold uppercase tracking-wider text-night-950">Hidden gem</span>}
               <div className="absolute inset-x-0 bottom-0 p-6">
@@ -561,7 +562,7 @@ const Reviews = ({ reviews }) => (
             </div>
             <p className="mt-4 flex-1 text-[15px] font-medium leading-relaxed text-white/85 line-clamp-4">“{r.message}”</p>
             <div className="mt-5 flex items-center gap-2.5 border-t border-white/[0.06] pt-4">
-              {r.avatar ? <img src={r.avatar} alt={r.name} className="h-10 w-10 rounded-full object-cover" /> : <span className="flex h-10 w-10 items-center justify-center rounded-full bg-lime-400/15 text-sm font-extrabold text-lime-400">{(r.name || "?").charAt(0)}</span>}
+              {r.avatar ? <img loading="lazy" decoding="async" src={r.avatar} alt={r.name} className="h-10 w-10 rounded-full object-cover" /> : <span className="flex h-10 w-10 items-center justify-center rounded-full bg-lime-400/15 text-sm font-extrabold text-lime-400">{(r.name || "?").charAt(0)}</span>}
               <div className="min-w-0">
                 <p className="truncate text-sm font-bold text-white">{r.name || "Traveller"}</p>
                 <p className="truncate text-xs text-white/50">{r.locationName || "Northern Pakistan"}</p>
@@ -702,6 +703,17 @@ const LandingPage = () => {
         <StatsBand />
         <Reviews reviews={reviews} />
         <FinalCTA />
+
+        {/* Waitlist / deals capture */}
+        <section className="mx-auto max-w-2xl px-4 text-center">
+          <h2 className="text-[clamp(1.6rem,4vw,2.5rem)] font-extrabold tracking-tight text-white">
+            Be first to the <span className="text-lime-400">next valley.</span>
+          </h2>
+          <p className="mx-auto mt-3 max-w-md text-white/60">
+            Get new destinations, seasonal deals and early access to guided tours across Pakistan.
+          </p>
+          <WaitlistForm source="landing" className="mx-auto mt-6 max-w-md" />
+        </section>
       </main>
       <Footer />
       <AiConcierge />

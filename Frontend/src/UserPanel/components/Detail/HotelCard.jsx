@@ -14,7 +14,7 @@ const HotelCard = ({ hotel }) => {
       className="group flex flex-col overflow-hidden rounded-[1.4rem] border border-white/[0.07] bg-night-800 text-left transition-all duration-300 ease-editorial hover:-translate-y-1 hover:border-lime-400/40"
     >
       <div className="relative overflow-hidden">
-        <img
+        <img loading="lazy" decoding="async"
           src={hotel.picture}
           alt={hotel.name}
           className="h-44 w-full object-cover transition-transform duration-700 ease-editorial group-hover:scale-105"

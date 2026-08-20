@@ -162,6 +162,7 @@ npm run dev      # http://localhost:5173
 | `EMAIL_HOST` · `EMAIL_PORT` · `EMAIL_SECURE` · `EMAIL_USER` · `EMAIL_PASS` · `SENDER_EMAIL` | SMTP (OTP + query replies) |
 | `GEMINI_API_KEY` | *(optional)* Google Gemini **free-tier** key for the AI concierge & review summaries — get one free at aistudio.google.com. Without it, both fall back to a keyword responder. |
 | `VAPID_PUBLIC_KEY` · `VAPID_PRIVATE_KEY` · `VAPID_SUBJECT` | *(optional)* Web-Push keys — generate with `npx web-push generate-vapid-keys`. Without them, push is disabled (in-app notifications still work). |
+| `PAYMENT_PROVIDER` · `PAYMENT_API_KEY` · `PAYMENT_WEBHOOK_SECRET` · `PAYMENT_CREATE_URL` · `PAYMENT_CHECKOUT_URL` | *(optional)* Online-payment gateway (e.g. Safepay/PayFast) sandbox credentials. Without them, checkout uses the manual proof-upload flow; with them, tours use hosted escrow checkout. |
 
 **`Frontend/.env`**
 
@@ -282,7 +283,8 @@ JWT‑authenticated sockets power **1:1 traveller ↔ guide messaging** (`messag
 - [x] Semantic "vibe" search — in‑browser embeddings (transformers.js), keyless
 - [x] AI review summaries · admin analytics dashboard · verified‑booking review tags
 - [x] Web‑push notifications (VAPID) + route code‑splitting
-- [ ] Real payment gateway (Stripe / Razorpay)
+- [x] Real payments + escrow (gateway-agnostic Safepay/PayFast scaffolding — add sandbox keys to enable)
+- [x] Guide KYC verification · referral program · email waitlist · founder metrics dashboard
 
 ---
 

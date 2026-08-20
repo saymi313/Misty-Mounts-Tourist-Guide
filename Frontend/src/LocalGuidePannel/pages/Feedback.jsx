@@ -51,7 +51,7 @@ const Feedback = () => {
         <div className="divide-y divide-slate-100">
           {feedbacks.map((f) => (
             <article key={f._id} className="flex gap-4 py-5 first:pt-0 last:pb-0">
-              <img
+              <img loading="lazy" decoding="async"
                 src={f.avatar}
                 alt={f.name}
                 className="h-12 w-12 shrink-0 rounded-2xl object-cover"

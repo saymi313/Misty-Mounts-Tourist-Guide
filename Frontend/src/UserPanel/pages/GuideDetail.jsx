@@ -166,7 +166,7 @@ const GuideDetail = () => {
           <Tile glow="lime" pad="p-6 sm:p-8">
             <div className="flex flex-col gap-5 sm:flex-row sm:items-center">
               {guide.avatar ? (
-                <img src={guide.avatar} alt={guide.name} className="h-24 w-24 shrink-0 rounded-3xl object-cover ring-2 ring-lime-400/25" />
+                <img loading="lazy" decoding="async" src={guide.avatar} alt={guide.name} className="h-24 w-24 shrink-0 rounded-3xl object-cover ring-2 ring-lime-400/25" />
               ) : (
                 <span className="flex h-24 w-24 shrink-0 items-center justify-center rounded-3xl bg-lime-400 text-4xl font-extrabold text-night-950">
                   {(guide.name || "G").charAt(0).toUpperCase()}
@@ -175,7 +175,7 @@ const GuideDetail = () => {
               <div className="min-w-0">
                 <span className="inline-flex flex-wrap items-center gap-2">
                   <span className="inline-flex items-center gap-1 rounded-full bg-lime-400/15 px-2.5 py-1 text-xs font-bold text-lime-400">Local Guide</span>
-                  <VerifiedBadge label="Verified guide" />
+                  {guide.verified && <VerifiedBadge label="Verified guide" />}
                 </span>
                 <h1 className="mt-2 text-3xl font-extrabold tracking-tight text-white">{guide.name}</h1>
                 {guide.username && <p className="text-sm text-white/40">@{guide.username}</p>}
@@ -270,7 +270,7 @@ const GuideDetail = () => {
                   </label>
                   {reviewPhoto && (
                     <span className="relative">
-                      <img src={reviewPhoto} alt="Review" className="h-11 w-11 rounded-lg object-cover" />
+                      <img loading="lazy" decoding="async" src={reviewPhoto} alt="Review" className="h-11 w-11 rounded-lg object-cover" />
                       <button type="button" onClick={() => setReviewPhoto("")} className="absolute -right-1.5 -top-1.5 flex h-5 w-5 items-center justify-center rounded-full bg-rose-500 text-white"><X className="h-3 w-3" /></button>
                     </span>
                   )}
@@ -296,7 +296,7 @@ const GuideDetail = () => {
                 <Tile pad="p-0" className="overflow-hidden transition-colors hover:border-lime-400/40">
                   <div className="relative h-36 w-full overflow-hidden">
                     {s.picture ? (
-                      <img src={s.picture} alt={s.name} className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105" />
+                      <img loading="lazy" decoding="async" src={s.picture} alt={s.name} className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105" />
                     ) : (
                       <div className="flex h-full w-full items-center justify-center bg-night-700 text-white/25"><MapIcon className="h-8 w-8" /></div>
                     )}
@@ -341,7 +341,7 @@ const GuideDetail = () => {
               <Tile key={r._id} pad="p-5">
                 <div className="flex items-center gap-3">
                   {r.avatar ? (
-                    <img src={r.avatar} alt={r.name} className="h-10 w-10 rounded-full object-cover" />
+                    <img loading="lazy" decoding="async" src={r.avatar} alt={r.name} className="h-10 w-10 rounded-full object-cover" />
                   ) : (
                     <span className="flex h-10 w-10 items-center justify-center rounded-full bg-night-700 font-bold text-white/70">
                       {(r.name || "T").charAt(0).toUpperCase()}
@@ -358,7 +358,7 @@ const GuideDetail = () => {
                 <p className="mt-3 text-sm leading-relaxed text-white/70">{r.message}</p>
                 {r.photo && (
                   <a href={r.photo} target="_blank" rel="noreferrer">
-                    <img src={r.photo} alt="Traveller photo" className="mt-3 h-40 w-full rounded-xl border border-white/[0.07] object-cover" />
+                    <img loading="lazy" decoding="async" src={r.photo} alt="Traveller photo" className="mt-3 h-40 w-full rounded-xl border border-white/[0.07] object-cover" />
                   </a>
                 )}
               </Tile>

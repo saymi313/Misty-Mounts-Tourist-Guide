@@ -1,9 +1,15 @@
 import React, { Suspense, lazy } from "react";
 import { Route, Routes } from "react-router-dom";
+import ProtectedRoute from "../../components/ProtectedRoute";
+
+// Pages that require a signed-in account. Visiting them logged out redirects to
+// /auth (which returns the visitor here after they sign in).
+const Auth = (el) => <ProtectedRoute allowedUserTypes={["user", "local guide"]}>{el}</ProtectedRoute>;
 
 // Lazy-load every page so each becomes its own chunk — the initial bundle stays
 // small and pages load on demand.
 const Destination = lazy(() => import('../pages/Destination'));
+const CitySpots = lazy(() => import('../pages/CitySpots'));
 const CityDetail = lazy(() => import('../pages/CityDetail'));
 const Hotel = lazy(() => import('../pages/Hotel'));
 const Payment = lazy(() => import('../pages/Payment'));
@@ -37,11 +43,11 @@ const RoutesFile = () => {
     <Suspense fallback={<PageLoader />}>
       <Routes>
         <Route path="/destinations" element={<Destination />} />
+        <Route path="/destinations/:city" element={<CitySpots />} />
         <Route path="/about" element={<About />} />
         <Route path="/contact" element={<Contact />} />
         <Route path="/city/:city/spot/:spotId" element={<CityDetail />} />
         <Route path="/accommodations/:id" element={<Hotel />} />
-        <Route path="/payment" element={<Payment />} />
         <Route path="/feedback" element={<Feedback />} />
         <Route path="/guides" element={<Guides />} />
         <Route path="/guides/:id" element={<GuideDetail />} />
@@ -53,11 +59,14 @@ const RoutesFile = () => {
         <Route path="/trip" element={<TripBuilder />} />
         <Route path="/plan" element={<TripPlanner />} />
         <Route path="/discover" element={<Discover />} />
-        <Route path="/messages" element={<Messages />} />
-        <Route path="/profile" element={<Profile />} />
-        <Route path="/saved" element={<SavedSpots />} />
-        <Route path="/bookings" element={<MyBookings />} />
-        <Route path="/notifications" element={<Notifications />} />
+
+        {/* Account & transaction pages — require sign-in */}
+        <Route path="/payment" element={Auth(<Payment />)} />
+        <Route path="/messages" element={Auth(<Messages />)} />
+        <Route path="/profile" element={Auth(<Profile />)} />
+        <Route path="/saved" element={Auth(<SavedSpots />)} />
+        <Route path="/bookings" element={Auth(<MyBookings />)} />
+        <Route path="/notifications" element={Auth(<Notifications />)} />
       </Routes>
     </Suspense>
   );

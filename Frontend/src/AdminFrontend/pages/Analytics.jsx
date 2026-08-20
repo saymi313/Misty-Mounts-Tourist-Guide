@@ -95,6 +95,47 @@ const HBars = ({ rows, color = "#65a30d", suffix = "" }) => {
   );
 };
 
+// Monthly sign-ups — demand (travellers) vs supply (providers), same axis.
+const SignupsChart = ({ rows }) => {
+  const W = 640, H = 220, padX = 34, padTop = 18, padBottom = 30;
+  const chartH = H - padTop - padBottom;
+  const max = Math.max(1, ...rows.map((r) => r.travellers + r.providers));
+  const step = (W - padX * 2) / rows.length;
+  const bw = Math.min(40, step * 0.5);
+  return (
+    <div className="overflow-x-auto">
+      <svg viewBox={`0 0 ${W} ${H}`} className="h-auto w-full min-w-[520px]" role="img" aria-label="Monthly sign-ups">
+        {[0, 0.5, 1].map((tk) => (
+          <g key={tk}>
+            <line x1={padX} x2={W - padX} y1={padTop + chartH * tk} y2={padTop + chartH * tk} stroke="#eef2f0" strokeWidth="1" />
+            <text x={padX - 6} y={padTop + chartH * tk + 3} textAnchor="end" fontSize="9" fill="#94a3b8">{Math.round(max * (1 - tk))}</text>
+          </g>
+        ))}
+        {rows.map((r, i) => {
+          const cx = padX + step * i + step / 2;
+          const x = cx - bw / 2;
+          const tH = (r.travellers / max) * chartH;
+          const pH = (r.providers / max) * chartH;
+          const gap = r.travellers > 0 && r.providers > 0 ? 2 : 0;
+          const tY = padTop + chartH - tH;
+          const pY = tY - gap - pH;
+          return (
+            <g key={r.label}>
+              {r.travellers > 0 && <rect x={x} y={tY} width={bw} height={tH} rx="3" fill="#65a30d"><title>{r.label} · Travellers: {r.travellers}</title></rect>}
+              {r.providers > 0 && <rect x={x} y={pY} width={bw} height={pH} rx="3" fill="#2563eb"><title>{r.label} · Providers: {r.providers}</title></rect>}
+              <text x={cx} y={H - 12} textAnchor="middle" fontSize="11" fill="#64748b">{r.label}</text>
+            </g>
+          );
+        })}
+      </svg>
+      <div className="mt-2 flex items-center gap-4 pl-8 text-xs font-semibold text-slate-500">
+        <span className="flex items-center gap-1.5"><span className="h-2.5 w-2.5 rounded-sm" style={{ background: "#65a30d" }} /> Travellers</span>
+        <span className="flex items-center gap-1.5"><span className="h-2.5 w-2.5 rounded-sm" style={{ background: "#2563eb" }} /> Providers</span>
+      </div>
+    </div>
+  );
+};
+
 const Analytics = () => {
   const [data, setData] = useState(null);
   const [err, setErr] = useState(false);
@@ -117,6 +158,17 @@ const Analytics = () => {
   const status = data?.bookingsByStatus || {};
   const spark = series.map((s) => s.revenue);
 
+  const kpis = data?.kpis || {};
+  const signups = data?.signups || [];
+  const KPI = [
+    { label: "GMV (approved)", value: formatPKR(kpis.gmv || 0) },
+    { label: "Take rate", value: `${kpis.takeRatePct || 0}%` },
+    { label: "Net revenue", value: formatPKR(kpis.netRevenue || 0) },
+    { label: "Avg order value", value: formatPKR(kpis.aov || 0) },
+    { label: "Repeat rate", value: `${kpis.repeatRate || 0}%`, sub: `${kpis.repeatCustomers || 0} of ${kpis.customers || 0} customers` },
+    { label: "Waitlist", value: String(kpis.waitlist || 0), sub: "email signups" },
+  ];
+
   return (
     <AdminLayout greeting="Analytics" subtitle="Bookings, revenue & growth at a glance">
       <Stagger className="space-y-6">
@@ -134,12 +186,38 @@ const Analytics = () => {
           </div>
         </Reveal>
 
+        {/* Marketplace KPIs */}
+        <Reveal>
+          <Card>
+            <SectionHead title="Marketplace KPIs" sub="The metrics investors ask for." />
+            <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-6">
+              {KPI.map((k) => (
+                <div key={k.label} className="rounded-2xl border border-slate-100 p-4">
+                  <p className="text-xs font-semibold uppercase tracking-wide text-slate-400">{k.label}</p>
+                  <p className="mt-1 text-xl font-extrabold text-slate-900">{k.value}</p>
+                  {k.sub && <p className="mt-0.5 text-[11px] text-slate-400">{k.sub}</p>}
+                </div>
+              ))}
+            </div>
+          </Card>
+        </Reveal>
+
         {/* Revenue trend */}
         <Reveal>
           <Card>
             <SectionHead title="Revenue — last 6 months" sub="Approved bookings, hotels vs tours" />
             <div className="mt-4">
               {series.some((s) => s.revenue > 0) ? <RevenueChart series={series} /> : <p className="py-10 text-center text-sm text-slate-400">No approved revenue in this window yet.</p>}
+            </div>
+          </Card>
+        </Reveal>
+
+        {/* Sign-ups (supply + demand growth) */}
+        <Reveal>
+          <Card>
+            <SectionHead title="New sign-ups — last 6 months" sub="Demand (travellers) vs supply (providers)" />
+            <div className="mt-4">
+              {signups.some((s) => s.travellers + s.providers > 0) ? <SignupsChart rows={signups} /> : <p className="py-10 text-center text-sm text-slate-400">No sign-ups in this window yet.</p>}
             </div>
           </Card>
         </Reveal>

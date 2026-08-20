@@ -3,14 +3,16 @@ import { Building2, Plus, Pencil, Trash2, MapPin, Image as ImageIcon, Landmark, 
 import AdminLayout from "../AdminLayout";
 import { Card, SectionHead, StatCard, Btn, BtnGhost, Field, adminInputCls } from "../../components/dashboard/ui";
 import Modal from "../../components/dashboard/Modal";
-import { LIVE, listCities, createCity, updateCity, deleteCity, getSettings, updateSettings } from "../../data/adminApi";
+import { LIVE, listCities, createCity, updateCity, deleteCity, deleteSpotsByCity, getSettings, updateSettings } from "../../data/adminApi";
 import ImageUploadButton from "../../components/dashboard/ImageUploadButton";
 import { toast } from "../../utils/toast";
 import { confirmDialog } from "../../utils/confirm";
+import { PROVINCE_ORDER } from "../../data/geo";
 
 const emptyAccount = { label: "", bank: "", accountName: "", accountNumber: "", instructions: "" };
+const PROVINCES = PROVINCE_ORDER.filter((p) => p !== "Other");
 
-const emptyForm = { name: "", tagline: "", photo: "" };
+const emptyForm = { name: "", province: "", tagline: "", photo: "" };
 const byName = (a, b) => a.name.localeCompare(b.name);
 
 export default function AdminSettings() {
@@ -61,7 +63,7 @@ export default function AdminSettings() {
   const openAdd = () => { setEditing(null); setForm(emptyForm); setErrors({}); setModalOpen(true); };
   const openEdit = (c) => {
     setEditing(c);
-    setForm({ name: c.name, tagline: c.tagline || "", photo: c.photo || "" });
+    setForm({ name: c.name, province: c.province || "", tagline: c.tagline || "", photo: c.photo || "" });
     setErrors({});
     setModalOpen(true);
   };
@@ -69,13 +71,15 @@ export default function AdminSettings() {
   const handleDelete = async (city) => {
     const ok = await confirmDialog({
       title: "Delete city?",
-      body: `"${city.name}" will be removed from the dropdown and traveller panel. Spots already tagged to it keep their city name.`,
+      body: `"${city.name}" and all of its tourist spots will be removed from the destinations page. This cannot be undone.`,
       confirmLabel: "Delete",
     });
     if (!ok) return;
     if (LIVE) {
-      try { await deleteCity(city._id); }
-      catch { toast.error("Couldn't delete this city. Please try again."); return; }
+      try {
+        await deleteCity(city._id);
+        await deleteSpotsByCity(city.name).catch(() => {}); // cascade: drop its spots too
+      } catch { toast.error("Couldn't delete this city. Please try again."); return; }
     }
     setCities((prev) => prev.filter((c) => c._id !== city._id));
     toast.success(`"${city.name}" deleted.`);
@@ -84,7 +88,7 @@ export default function AdminSettings() {
   const handleSave = async (e) => {
     e.preventDefault();
     if (!form.name.trim()) { setErrors({ name: "City name is required" }); return; }
-    const payload = { name: form.name.trim(), tagline: form.tagline, photo: form.photo };
+    const payload = { name: form.name.trim(), province: form.province, tagline: form.tagline, photo: form.photo };
     if (LIVE) {
       try {
         if (editing) {
@@ -178,8 +182,8 @@ export default function AdminSettings() {
 
       <Card className="mt-6">
         <SectionHead
-          title="Cities"
-          sub="These feed the city dropdown when adding spots, and their photos appear in the traveller app."
+          title="Cities & destinations"
+          sub="These are the destinations shown on the traveller Destinations page. Add or remove a city here, set its province, then add its spots under Tourist Spots."
           action={<Btn onClick={openAdd}><Plus className="h-4 w-4" /> Add city</Btn>}
         />
         {cities.length === 0 ? (
@@ -192,7 +196,7 @@ export default function AdminSettings() {
               <Card key={city._id} className="flex flex-col overflow-hidden !p-0">
                 <div className="relative h-36 w-full">
                   {city.photo ? (
-                    <img src={city.photo} alt={city.name} className="h-full w-full object-cover" />
+                    <img loading="lazy" decoding="async" src={city.photo} alt={city.name} className="h-full w-full object-cover" />
                   ) : (
                     <div className="flex h-full w-full items-center justify-center bg-slate-100 text-slate-400">
                       <ImageIcon className="h-7 w-7" />
@@ -200,7 +204,10 @@ export default function AdminSettings() {
                   )}
                 </div>
                 <div className="flex flex-1 flex-col p-4">
-                  <h3 className="text-base font-bold text-slate-900">{city.name}</h3>
+                  <div className="flex items-center justify-between gap-2">
+                    <h3 className="text-base font-bold text-slate-900">{city.name}</h3>
+                    {city.province && <span className="shrink-0 rounded-full bg-lime-50 px-2 py-0.5 text-[10px] font-bold text-lime-700">{city.province}</span>}
+                  </div>
                   {city.tagline && <p className="mt-0.5 line-clamp-2 text-xs text-slate-400">{city.tagline}</p>}
                   <div className="mt-3 flex items-center justify-end gap-2">
                     <button onClick={() => openEdit(city)} title="Edit city" className="flex h-8 w-8 items-center justify-center rounded-lg text-lime-600 transition-colors hover:bg-lime-50">
@@ -242,6 +249,14 @@ export default function AdminSettings() {
             hint="Shown in the spot dropdown and the traveller app."
             error={errors.name}
           />
+          <div>
+            <span className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-slate-500">Province</span>
+            <select value={form.province} onChange={(e) => update("province", e.target.value)} className={adminInputCls}>
+              <option value="">Select a province</option>
+              {PROVINCES.map((p) => <option key={p} value={p}>{p}</option>)}
+            </select>
+            <p className="mt-1 text-xs text-slate-400">Groups the city under a province filter on the destinations page.</p>
+          </div>
           <Field
             label="Tagline"
             value={form.tagline}
@@ -260,7 +275,7 @@ export default function AdminSettings() {
               placeholder="https://…  or use Upload"
               className={adminInputCls}
             />
-            {form.photo && <img src={form.photo} alt="" className="mt-2 h-32 w-full rounded-xl object-cover" />}
+            {form.photo && <img loading="lazy" decoding="async" src={form.photo} alt="" className="mt-2 h-32 w-full rounded-xl object-cover" />}
           </div>
         </div>
       </Modal>

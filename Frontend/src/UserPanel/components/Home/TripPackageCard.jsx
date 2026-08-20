@@ -23,7 +23,7 @@ const TripPackageCard = ({ name, locationName, rating, message, avatar, trip, ve
 
       <figcaption className="mt-6 flex items-center gap-3 border-t border-white/[0.07] pt-4">
         {avatar ? (
-          <img src={avatar} alt={name} className="h-10 w-10 rounded-full object-cover" />
+          <img loading="lazy" decoding="async" src={avatar} alt={name} className="h-10 w-10 rounded-full object-cover" />
         ) : (
           <span className="flex h-10 w-10 items-center justify-center rounded-full bg-lime-400/15 text-sm font-extrabold text-lime-400">
             {(name || "?").charAt(0)}

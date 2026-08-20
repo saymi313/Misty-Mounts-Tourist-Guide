@@ -79,7 +79,7 @@ export default function HotelProfile() {
         <Card className="h-fit">
           <div className="flex items-center gap-4">
             {avatar ? (
-              <img src={avatar} alt={form.hotelName} className="h-16 w-16 shrink-0 rounded-2xl object-cover" />
+              <img loading="lazy" decoding="async" src={avatar} alt={form.hotelName} className="h-16 w-16 shrink-0 rounded-2xl object-cover" />
             ) : (
               <span className="flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl bg-lime-400 text-2xl font-extrabold text-night-950">{initial}</span>
             )}

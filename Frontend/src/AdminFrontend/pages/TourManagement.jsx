@@ -92,7 +92,7 @@ export default function TourManagement() {
               return (
                 <div key={t._id} className={`flex items-start gap-4 rounded-2xl border p-4 ${t.isApproved === false ? "border-apricot-200 bg-apricot-50/40" : "border-slate-100"}`}>
                   <div className="h-16 w-24 shrink-0 overflow-hidden rounded-xl bg-slate-100">
-                    {t.coverImage ? <img src={t.coverImage} alt={t.title} className="h-full w-full object-cover" /> : <div className="flex h-full w-full items-center justify-center text-slate-300"><Package className="h-6 w-6" /></div>}
+                    {t.coverImage ? <img loading="lazy" decoding="async" src={t.coverImage} alt={t.title} className="h-full w-full object-cover" /> : <div className="flex h-full w-full items-center justify-center text-slate-300"><Package className="h-6 w-6" /></div>}
                   </div>
                   <div className="min-w-0 flex-1">
                     <div className="flex flex-wrap items-center gap-2">

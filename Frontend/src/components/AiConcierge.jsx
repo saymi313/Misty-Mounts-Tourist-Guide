@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
-import { Sparkles, X, Send, Loader2, Bot } from "lucide-react";
+import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
+import { X, Send, Loader2, Bot } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import api from "../data/api";
 
@@ -43,6 +44,7 @@ const AiConcierge = () => {
   const [input, setInput] = useState("");
   const [busy, setBusy] = useState(false);
   const scrollRef = useRef(null);
+  const reduce = useReducedMotion();
 
   useEffect(() => {
     if (open && scrollRef.current) scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
@@ -70,19 +72,53 @@ const AiConcierge = () => {
   return (
     <>
       {/* Launcher */}
-      {!open && (
-        <button
-          onClick={() => setOpen(true)}
-          aria-label="Ask Misty — AI concierge"
-          className="fixed bottom-5 right-5 z-[60] flex items-center gap-2 rounded-full bg-lime-400 px-4 py-3 font-extrabold text-night-950 shadow-[0_12px_32px_-8px_rgba(163,230,53,0.6)] transition-transform hover:-translate-y-0.5"
-        >
-          <Sparkles className="h-5 w-5" /> Ask Misty
-        </button>
-      )}
+      <AnimatePresence>
+        {!open && (
+          <motion.button
+            key="launcher"
+            onClick={() => setOpen(true)}
+            aria-label="Ask Misty — AI concierge"
+            initial={{ opacity: 0, scale: 0.6, y: 20 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.6, y: 10 }}
+            transition={{ type: "spring", stiffness: 380, damping: 24 }}
+            whileHover={{ y: -3 }}
+            whileTap={{ scale: 0.95 }}
+            className="fixed bottom-5 right-5 z-[60] flex items-center gap-2 rounded-full bg-lime-400 px-4 py-3 font-extrabold text-night-950 shadow-[0_12px_32px_-8px_rgba(163,230,53,0.6)]"
+          >
+            {/* attention pulse */}
+            {!reduce && (
+              <motion.span
+                className="pointer-events-none absolute inset-0 rounded-full bg-lime-400"
+                initial={{ opacity: 0.45, scale: 1 }}
+                animate={{ opacity: 0, scale: 1.35 }}
+                transition={{ duration: 2, repeat: Infinity, ease: "easeOut" }}
+              />
+            )}
+            <motion.span
+              className="relative"
+              animate={reduce ? {} : { rotate: [0, -14, 12, -8, 0] }}
+              transition={{ duration: 1.4, repeat: Infinity, repeatDelay: 3.5, ease: "easeInOut" }}
+            >
+              <Bot className="h-5 w-5" />
+            </motion.span>
+            <span className="relative">Ask Misty</span>
+          </motion.button>
+        )}
+      </AnimatePresence>
 
       {/* Panel */}
-      {open && (
-        <div className="fixed bottom-5 right-5 z-[60] flex h-[min(70vh,560px)] w-[min(92vw,380px)] flex-col overflow-hidden rounded-3xl border border-white/10 bg-night-900 shadow-2xl">
+      <AnimatePresence>
+        {open && (
+          <motion.div
+            key="panel"
+            initial={{ opacity: 0, scale: 0.85, y: 28 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.88, y: 20 }}
+            transition={{ type: "spring", stiffness: 320, damping: 26 }}
+            style={{ transformOrigin: "bottom right" }}
+            className="fixed bottom-5 right-5 z-[60] flex h-[min(70vh,560px)] w-[min(92vw,380px)] flex-col overflow-hidden rounded-3xl border border-white/10 bg-night-900 shadow-2xl"
+          >
           {/* Header */}
           <div className="flex items-center justify-between border-b border-white/10 bg-night-800 px-4 py-3">
             <div className="flex items-center gap-2">
@@ -153,8 +189,9 @@ const AiConcierge = () => {
               <Send className="h-4 w-4" />
             </button>
           </form>
-        </div>
-      )}
+          </motion.div>
+        )}
+      </AnimatePresence>
     </>
   );
 };

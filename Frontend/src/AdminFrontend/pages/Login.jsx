@@ -58,11 +58,11 @@ const Login = () => {
     <div className="min-h-screen bg-[#f3f6f4] lg:grid lg:grid-cols-2">
       {/* Left: brand photo panel */}
       <div className="relative hidden overflow-hidden lg:block">
-        <img src={img("admin-hero", 1200, 1600)} alt="" className="absolute inset-0 h-full w-full object-cover" />
+        <img loading="lazy" decoding="async" src={img("admin-hero", 1200, 1600)} alt="" className="absolute inset-0 h-full w-full object-cover" />
         <div className="absolute inset-0 bg-gradient-to-t from-slate-900 via-slate-900/40 to-transparent" />
         <div className="relative flex h-full flex-col justify-between p-12 text-white">
           <div className="flex items-center gap-2.5">
-            <img src="/Logo.png" alt="Misty Mounts" className="h-9 w-9 rounded-xl object-cover" />
+            <img loading="lazy" decoding="async" src="/Logo.png" alt="Misty Mounts" className="h-9 w-9 rounded-xl object-cover" />
             <span className="text-lg font-bold">Misty Mounts</span>
           </div>
           <div>
@@ -81,7 +81,7 @@ const Login = () => {
       <div className="flex min-h-screen items-center justify-center px-6 py-12">
         <div className="w-full max-w-sm">
           <div className="mb-8 flex items-center gap-2.5 lg:hidden">
-            <img src="/Logo.png" alt="Misty Mounts" className="h-9 w-9 rounded-xl object-cover" />
+            <img loading="lazy" decoding="async" src="/Logo.png" alt="Misty Mounts" className="h-9 w-9 rounded-xl object-cover" />
             <span className="text-lg font-bold text-slate-900">Misty Mounts</span>
           </div>
 

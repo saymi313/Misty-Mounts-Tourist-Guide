@@ -59,7 +59,7 @@ const Wishlist = () => {
                 <Tile pad="p-0" className="flex h-full flex-col overflow-hidden">
                   <Link to={it.href || "#"} className="group relative block h-36 w-full overflow-hidden">
                     {it.image ? (
-                      <img src={it.image} alt={it.title} className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105" />
+                      <img loading="lazy" decoding="async" src={it.image} alt={it.title} className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105" />
                     ) : (
                       <div className="flex h-full w-full items-center justify-center bg-night-700 text-white/25"><Compass className="h-8 w-8" /></div>
                     )}
