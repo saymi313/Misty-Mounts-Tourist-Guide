@@ -8,6 +8,7 @@ import {
 import Navbar from "../components/Navbar";
 import Footer from "../components/Home/Footer";
 import { Tile, Eyebrow, Btn, Chip } from "../components/bento/tiles";
+import PushToggle from "../../components/PushToggle";
 import {
   getNotifications, subscribeNotifications, fetchNotifications,
   markRead as nMarkRead, markAllRead as nMarkAll, removeNotification as nRemove,
@@ -68,14 +69,17 @@ const Notifications = () => {
               {unread > 0 ? `You have ${unread} unread update${unread > 1 ? "s" : ""}.` : "You're all caught up."}
             </p>
           </div>
-          {unread > 0 && (
-            <button
-              onClick={markAll}
-              className="inline-flex items-center gap-1.5 rounded-full border border-white/15 px-4 py-2.5 text-sm font-bold text-white transition-colors hover:border-lime-400 hover:text-lime-400"
-            >
-              <CheckCheck className="h-4 w-4" /> Mark all read
-            </button>
-          )}
+          <div className="flex flex-wrap items-center gap-2">
+            <PushToggle />
+            {unread > 0 && (
+              <button
+                onClick={markAll}
+                className="inline-flex items-center gap-1.5 rounded-full border border-white/15 px-4 py-2.5 text-sm font-bold text-white transition-colors hover:border-lime-400 hover:text-lime-400"
+              >
+                <CheckCheck className="h-4 w-4" /> Mark all read
+              </button>
+            )}
+          </div>
         </motion.div>
 
         {/* Filters */}

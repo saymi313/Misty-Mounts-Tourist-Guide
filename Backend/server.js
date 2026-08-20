@@ -27,6 +27,7 @@ const queryRoutes = require("./UserBackend/routes/queryRoutes");
 const messageRoutes = require("./UserBackend/routes/messageRoutes");
 const translateRoutes = require("./routes/translateRoutes");
 const aiRoutes = require("./routes/aiRoutes");
+const pushRoutes = require("./routes/pushRoutes");
 
 const app = express();
 const server = http.createServer(app);
@@ -78,6 +79,7 @@ app.use("/api/queries", queryRoutes);
 app.use("/api/messages", messageRoutes);
 app.use("/api/translate", translateRoutes);
 app.use("/api/ai", aiRoutes);
+app.use("/api/push", pushRoutes);
 app.use("/api/natural-disaster", naturalDisasterRoutes);
 
 // 404 for unmatched API routes

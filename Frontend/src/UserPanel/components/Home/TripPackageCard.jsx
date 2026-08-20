@@ -1,14 +1,20 @@
 import React from "react";
-import { Quote, MapPin } from "lucide-react";
+import { Quote, MapPin, BadgeCheck } from "lucide-react";
 import { Tile, Stars } from "../bento/tiles";
 
 /** Night review tile for the reviews bento — quote, lime stars, avatar, name, location. */
-const TripPackageCard = ({ name, locationName, rating, message, avatar, trip, delay = 0, glow, className = "" }) => (
+const TripPackageCard = ({ name, locationName, rating, message, avatar, trip, verifiedBooking, delay = 0, glow, className = "" }) => (
   <Tile delay={delay} glow={glow} pad="p-6" className={`h-full ${className}`}>
     <figure className="flex h-full flex-col">
       <div className="flex items-center justify-between">
         <Stars value={rating} />
-        <Quote className="h-6 w-6 text-lime-400/30" />
+        {verifiedBooking ? (
+          <span className="inline-flex items-center gap-1 rounded-full bg-lime-400/15 px-2 py-0.5 text-[10px] font-bold text-lime-400" title="This traveller booked through Misty Mounts">
+            <BadgeCheck className="h-3 w-3" /> Verified booking
+          </span>
+        ) : (
+          <Quote className="h-6 w-6 text-lime-400/30" />
+        )}
       </div>
 
       <blockquote className="mt-4 flex-1 text-[15px] leading-relaxed text-white/70">

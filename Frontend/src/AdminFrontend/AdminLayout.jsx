@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { LayoutDashboard, Map, BedDouble, Bus, Wallet, Banknote, Users, MessageSquare, Settings, Package } from "lucide-react";
+import { LayoutDashboard, Map, BedDouble, Bus, Wallet, Banknote, Users, MessageSquare, Settings, Package, BarChart3 } from "lucide-react";
 import DashboardLayout from "../components/dashboard/DashboardLayout";
 import { img } from "../data/mockData";
 import { confirmDialog } from "../utils/confirm";
@@ -8,6 +8,7 @@ import { LIVE, getAdminCounts } from "../data/adminApi";
 
 const NAV = [
   { to: "/admin/dashboard", label: "Dashboard", icon: LayoutDashboard, end: true },
+  { to: "/admin/analytics", label: "Analytics", icon: BarChart3 },
   { to: "/admin/tourist-spots", label: "Tourist Spots", icon: Map },
   { to: "/admin/accommodation", label: "Accommodation", icon: BedDouble },
   { to: "/admin/tours", label: "Tours", icon: Package },

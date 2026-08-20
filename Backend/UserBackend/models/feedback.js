@@ -8,6 +8,12 @@ const feedbackSchema = new mongoose.Schema(
     },
     // When the review is about a local guide (vs a location/spot).
     guideId: { type: mongoose.Schema.Types.ObjectId, ref: "User", default: null, index: true },
+    // The reviewer, plus the booked subject (if any) used to verify the review.
+    userId: { type: mongoose.Schema.Types.ObjectId, ref: "User", default: null, index: true },
+    accId: { type: String, default: "" },
+    packageId: { type: String, default: "" },
+    // True when the reviewer has an approved booking for this subject.
+    verifiedBooking: { type: Boolean, default: false },
     rating: {
       type: Number,
       required: true,

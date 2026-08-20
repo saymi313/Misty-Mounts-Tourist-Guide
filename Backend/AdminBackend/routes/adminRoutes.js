@@ -16,6 +16,7 @@ const staffOnly = [authenticate, requireRole('admin', 'local guide')];
 
 // ── Sidebar badge counts (admin only) ─────────────────────────────────────────
 router.get('/counts', adminOnly, statsController.getCounts);
+router.get('/analytics', adminOnly, statsController.getAnalytics);
 
 // ── Platform settings (admin only) ────────────────────────────────────────────
 router.get('/settings', adminOnly, settingsController.getSettings);

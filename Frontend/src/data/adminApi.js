@@ -47,6 +47,7 @@ export const updateSettings = async (b) => (await api.patch("/admin/settings", b
 
 // ── Admin sidebar badge counts ────────────────────────────────────────────────
 export const getAdminCounts = async () => (await api.get("/admin/counts")).data;
+export const getAdminAnalytics = async () => (await api.get("/admin/analytics")).data;
 
 // ── Cities (read public; write admin) ─────────────────────────────────────────
 export const listCities = async () => (await api.get("/admin/cities")).data.cities;

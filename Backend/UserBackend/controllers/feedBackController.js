@@ -1,9 +1,31 @@
 const Feedback = require('../models/feedback');
 const User = require('../../LocalGuidePannel/models/User');
+const Booking = require('../models/booking');
+const TourBooking = require('../models/tourBooking');
+
+/**
+ * Does this traveller have an approved (non-cancelled) booking for the subject?
+ * Used to mark reviews as "Verified booking". Matches an accommodation by accId,
+ * a tour by packageId, or falls back to a hotel-name match.
+ */
+async function hasVerifiedBooking(userId, { accId, packageId, locationName }) {
+  try {
+    if (accId) {
+      if (await Booking.exists({ userId, accId, paymentStatus: 'Approved', status: { $ne: 'Cancelled' } })) return true;
+    }
+    if (packageId) {
+      if (await TourBooking.exists({ userId, packageId, paymentStatus: 'Approved', status: { $ne: 'Cancelled' } })) return true;
+    }
+    if (!accId && locationName) {
+      if (await Booking.exists({ userId, hotel: locationName, paymentStatus: 'Approved', status: { $ne: 'Cancelled' } })) return true;
+    }
+  } catch { /* verification is best-effort */ }
+  return false;
+}
 
 // Add new feedback (general spot/trip review by a signed-in traveller).
 exports.addFeedback = async (req, res) => {
-  const { locationName, rating, message } = req.body;
+  const { locationName, rating, message, accId = '', packageId = '' } = req.body;
 
   if (!locationName || !rating || !message) {
     return res.status(400).json({ error: 'All fields are required' });
@@ -13,8 +35,13 @@ exports.addFeedback = async (req, res) => {
     // Capture the reviewer's identity so the review can be shown with a name +
     // avatar on the feedback page and the landing page.
     const me = await User.findById(req.user.id).select('name username avatar');
+    const verifiedBooking = await hasVerifiedBooking(req.user.id, { accId, packageId, locationName });
     const newFeedback = new Feedback({
       locationName,
+      userId: req.user.id,
+      accId,
+      packageId,
+      verifiedBooking,
       rating: Number(rating),
       message,
       name: me?.name || me?.username || 'Traveller',
@@ -95,6 +122,7 @@ exports.addGuideFeedback = async (req, res) => {
     const me = await User.findById(req.user.id).select('name username avatar');
     const feedback = await Feedback.create({
       guideId,
+      userId: req.user.id,
       locationName: `guide:${guideId}`,
       rating: Number(rating),
       message,

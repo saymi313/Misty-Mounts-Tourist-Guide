@@ -1,4 +1,5 @@
 const Notification = require("../models/notification");
+const { sendPushToUser } = require("../../utils/webpush");
 
 const shape = (n) => ({
   _id: n._id,
@@ -10,11 +11,19 @@ const shape = (n) => ({
   time: n.createdAt,
 });
 
-/** Reusable helper so other controllers (e.g. bookings) can push a notification. */
+/** Reusable helper so other controllers (e.g. bookings) can push a notification.
+ * Also fires a Web-Push to the user's devices (no-op when push isn't configured). */
 const createNotification = (userId, data) =>
-  Notification.create({ userId, ...data }).catch((err) =>
-    console.error("createNotification error:", err.message)
-  );
+  Notification.create({ userId, ...data })
+    .then((n) => {
+      sendPushToUser(userId, {
+        title: data.title || "Misty Mounts",
+        body: data.body || "",
+        link: data.link || "/notifications",
+      });
+      return n;
+    })
+    .catch((err) => console.error("createNotification error:", err.message));
 
 // GET /api/notifications
 exports.getNotifications = async (req, res) => {

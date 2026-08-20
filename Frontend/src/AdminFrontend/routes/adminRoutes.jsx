@@ -11,6 +11,7 @@ import AdminSettings from "../pages/Settings";
 import Revenue from "../pages/Revenue";
 import Queries from "../pages/Queries";
 import TourManagement from "../pages/TourManagement";
+import Analytics from "../pages/Analytics";
 
 /**
  * Validate the admin session token — a real, unexpired admin JWT, not just any
@@ -38,6 +39,7 @@ const AdminRoutes = () => (
   <Routes>
     <Route path="login" element={<Login />} />
     <Route path="dashboard" element={<RequireAdmin><AdminDashboard /></RequireAdmin>} />
+    <Route path="analytics" element={<RequireAdmin><Analytics /></RequireAdmin>} />
     <Route path="tourist-spots" element={<RequireAdmin><TouristSpotManagement /></RequireAdmin>} />
     <Route path="accommodation" element={<RequireAdmin><AccommodationManagement /></RequireAdmin>} />
     <Route path="tours" element={<RequireAdmin><TourManagement /></RequireAdmin>} />
