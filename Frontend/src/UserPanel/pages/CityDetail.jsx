@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { getSpotsByCity, getAccommodations, getTransportation, getWeather } from '../../data/mockApi';
+import { getSpotsByCity, getAccommodations, getTransportation } from '../../data/mockApi';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Mountain, CalendarRange, MapPin, MessageCircle, BedDouble, ArrowUpRight } from 'lucide-react';
 import Navbar from "../components/Navbar";
@@ -10,15 +10,17 @@ import Activity from '../components/Detail/Activity';
 import Map from '../components/Detail/Map';
 import HotelCard from '../components/Detail/HotelCard';
 import TransportationSection from '../components/Detail/TransportationSection';
-import WeatherCard from '../components/Detail/WeatherCard';
+import WeatherWidget from '../../components/WeatherWidget';
+import HazardAlerts from '../../components/HazardAlerts';
+import Seo from '../../components/Seo';
 import Footer from '../components/Home/Footer';
 import { Link } from 'react-router-dom';
+import { coordsFor } from '../../data/geo';
 import { Tile, Eyebrow, SectionHead } from '../components/bento/tiles';
 
 const CityDetail = () => {
   const [spotData, setSpotData] = useState(null);
   const [hotelData, setHotelData] = useState([]);
-  const [weatherData, setWeatherData] = useState(null);
   const [transportationData, setTransportationData] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -61,7 +63,6 @@ const CityDetail = () => {
     const run = async () => {
       await Promise.all([fetchSpotData(), fetchHotelData(), fetchTransportationData()]);
       setIsLoading(false);
-      setWeatherData(await getWeather(spotId));
     };
     run();
   }, [city, spotId]);
@@ -102,12 +103,33 @@ const CityDetail = () => {
     { icon: MapPin, label: 'Region', value: spotData?.city },
   ];
 
+  // Spot coordinates, falling back to the city centroid when a spot has none.
+  const wx = coordsFor(spotData, spotData?.city);
+
   return (
     <div className="min-h-screen bg-night-950 text-white selection:bg-lime-400 selection:text-night-950">
       <Navbar />
+      <Seo
+        title={`${spotData?.name}${spotData?.city ? `, ${spotData.city}` : ""}`}
+        description={spotData?.description}
+        image={spotData?.picture}
+        type="place"
+        jsonLd={{
+          "@context": "https://schema.org",
+          "@type": "TouristAttraction",
+          name: spotData?.name,
+          description: spotData?.description,
+          image: spotData?.picture,
+          address: { "@type": "PostalAddress", addressRegion: spotData?.city, addressCountry: "PK" },
+          ...(wx ? { geo: { "@type": "GeoCoordinates", latitude: wx[0], longitude: wx[1] } } : {}),
+        }}
+      />
       <HeroSection spot={spotData} />
 
       <main className="mx-auto max-w-6xl px-4 pb-16 sm:px-6 lg:px-8">
+        {/* Region hazard alerts (only render when there's an active alert) */}
+        <HazardAlerts compact filter={spotData?.city} className="mt-6" />
+
         <Highlights />
 
         {/* ── Bento of info tiles ─────────────────────────────────────── */}
@@ -119,8 +141,8 @@ const CityDetail = () => {
             className="lg:col-span-2 lg:row-span-2"
           />
 
-          {/* Weather */}
-          <WeatherCard weather={weatherData} className="lg:col-span-1" />
+          {/* Weather — live 7-day forecast from the spot's coordinates */}
+          {wx && <WeatherWidget lat={wx[0]} lng={wx[1]} placeName={spotData?.name} className="lg:col-span-1" />}
 
           {/* Quick facts */}
           <Tile pad="p-6" className="lg:col-span-1">

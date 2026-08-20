@@ -28,8 +28,12 @@ export const CITY_COORDS = {
 export const DEFAULT_CENTER = [35.4, 74.2];
 export const DEFAULT_ZOOM = 7;
 
-/** Resolve [lat,lng] for a spot (own coords) or its city. */
+/** Resolve [lat,lng] for a spot (own coords) or its city. Data uses
+ * latitude/longitude; some records also use lat/lng. Zeros are treated as
+ * "unset" and fall back to the city coordinate. */
 export const coordsFor = (spot, city) => {
-  if (spot && Number.isFinite(spot.lat) && Number.isFinite(spot.lng)) return [spot.lat, spot.lng];
+  const lat = spot?.latitude ?? spot?.lat;
+  const lng = spot?.longitude ?? spot?.lng;
+  if (Number.isFinite(lat) && Number.isFinite(lng) && (lat !== 0 || lng !== 0)) return [lat, lng];
   return CITY_COORDS[city] || null;
 };

@@ -1,0 +1,13 @@
+# Misty Mounts — https://www.mistymounts.pk (replace with your real domain)
+User-agent: *
+Allow: /
+
+# Keep private panels out of search results
+Disallow: /admin
+Disallow: /travel-agency
+Disallow: /hotel
+Disallow: /local-guide
+Disallow: /payment
+Disallow: /notifications
+
+Sitemap: https://www.mistymounts.pk/sitemap.xml

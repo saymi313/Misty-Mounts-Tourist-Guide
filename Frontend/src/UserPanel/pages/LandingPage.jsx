@@ -14,6 +14,7 @@ import { useCountUp } from "../../components/dashboard/motion";
 import { Eyebrow } from "../components/bento/tiles";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Home/Footer";
+import AiConcierge from "../../components/AiConcierge";
 
 const EASE = [0.16, 1, 0.3, 1];
 const byId = (id) => allPlaces.find((p) => p._id === id);
@@ -703,6 +704,7 @@ const LandingPage = () => {
         <FinalCTA />
       </main>
       <Footer />
+      <AiConcierge />
     </div>
   );
 };

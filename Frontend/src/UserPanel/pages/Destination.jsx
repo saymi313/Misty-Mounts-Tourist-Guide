@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
+import { Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Search, Compass, SlidersHorizontal, RotateCcw } from 'lucide-react';
+import { Search, Compass, SlidersHorizontal, RotateCcw, Sparkles } from 'lucide-react';
 import { getAllSpots } from '../../data/mockApi';
 import useCities from '../../hooks/useCities';
 import Navbar from '../components/Navbar';
@@ -172,6 +173,12 @@ const Destination = () => {
             {(cityData?.tagline || cityTaglines[selectedCity]) && (
               <p className="mt-3 max-w-xl text-white/70">{cityData?.tagline || cityTaglines[selectedCity]}</p>
             )}
+            <Link
+              to="/discover"
+              className="mt-5 inline-flex items-center gap-2 rounded-full border border-lime-400/30 bg-lime-400/10 px-4 py-2 text-sm font-bold text-lime-300 transition-colors hover:bg-lime-400 hover:text-night-950"
+            >
+              <Sparkles className="h-4 w-4" /> Search by vibe with AI
+            </Link>
           </div>
         </motion.section>
 

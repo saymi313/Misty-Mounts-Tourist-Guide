@@ -147,6 +147,8 @@ export default {
         accent: ['Poppins', 'ui-sans-serif', 'system-ui', 'sans-serif'],
         // Futuristic display face — used for the hero headline.
         future: ['Orbitron', 'Space Grotesk', 'ui-sans-serif', 'sans-serif'],
+        // Urdu Nastaʿlīq — for Iqbal's poetry.
+        nastaliq: ['"Noto Nastaliq Urdu"', 'serif'],
       },
       letterSpacing: {
         tightest: '-0.04em',

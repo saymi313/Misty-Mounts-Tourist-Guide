@@ -2,9 +2,9 @@
 
 # ⛰️ Misty Mounts
 
-### A cinematic, full‑stack tourist‑guide platform for Northern Pakistan
+### A cinematic, full‑stack travel marketplace for Northern Pakistan
 
-Discover the valleys of Gilgit‑Baltistan — browse spots, book stays, chat with real local guides in real time, and stay safe with live weather & disaster alerts.
+Discover the valleys of Gilgit‑Baltistan and beyond — browse spots, book stays and group tours, plan a trip in seconds, chat with real local guides, and travel safe with **live weather**, **hazard alerts** and a one‑tap **SOS**. Now fully bilingual — **English & اردو**.
 
 <br/>
 
@@ -13,6 +13,7 @@ Discover the valleys of Gilgit‑Baltistan — browse spots, book stays, chat wi
 ![Node](https://img.shields.io/badge/Node-Express-3c873a?style=for-the-badge&logo=node.js&logoColor=white)
 ![MongoDB](https://img.shields.io/badge/MongoDB-Atlas-13aa52?style=for-the-badge&logo=mongodb&logoColor=white)
 ![Socket.io](https://img.shields.io/badge/Realtime-Socket.io-010101?style=for-the-badge&logo=socket.io&logoColor=white)
+![PWA](https://img.shields.io/badge/PWA-installable-5a0fc8?style=for-the-badge)
 ![License](https://img.shields.io/badge/license-MIT-a3e635?style=for-the-badge)
 
 </div>
@@ -21,55 +22,49 @@ Discover the valleys of Gilgit‑Baltistan — browse spots, book stays, chat wi
 
 ## ✨ Overview
 
-**Misty Mounts** is a three‑role MERN application:
+**Misty Mounts** is a **five‑role** MERN marketplace:
 
 | Role | What they do |
 | :--- | :--- |
-| 🧭 **Traveller** | Browse destinations, save spots, book stays, leave reviews, and chat with a local guide. |
-| 🏔️ **Local Guide** | Curate tourist spots, post safety alerts, and answer travellers in real time. |
-| 🛡️ **Admin** | Manage spots, accommodations, transport, and bookings across the platform. |
+| 🧭 **Traveller** | Discover spots, plan trips, book stays & group tours, save & review, chat with guides, travel safe. |
+| 🏔️ **Local Guide** | Curate tourist spots, post safety alerts, answer travellers in real time. |
+| 🏨 **Hotel** | List stays, manage bookings, track revenue & request payouts. |
+| 🚐 **Travel Agency** | Build tour packages with fixed group departures, manage bookings, revenue & payouts. |
+| 🛡️ **Admin** | Approve accounts & listings, manage content, verify payments, oversee revenue. |
 
-The frontend is an immersive, dark **“night + lime”** bento UI (React + Vite + Tailwind + Framer Motion). It runs against the live API when configured, and **gracefully falls back to a built‑in dummy‑data layer** when it isn't — so you can demo the whole UI with zero backend.
+The frontend is an immersive, dark **“night + lime”** bento UI (React + Vite + Tailwind + Framer Motion), with a parallax storytelling landing page. It runs against the live API when configured, and **gracefully falls back to a built‑in dummy‑data layer** when it isn't — so you can demo the whole UI with zero backend.
+
+> **Built free‑first.** Every integration added for growth uses free, keyless services — no paid AI or weather APIs.
 
 ---
 
 ## 🚀 Features
 
-<table>
-<tr><td width="33%" valign="top">
-
 ### 🧭 Traveller
-- Destination discovery with advanced filters
-- Spot detail (weather · map · activities)
-- Hotel & food booking with PKR pricing
-- **Saved spots** ❤️ (server‑synced)
-- **My bookings** history + cancel
-- **Notifications** centre + bell
-- **Profile** + avatar upload
-- Reviews & ratings
-- Real‑time **guide chat**
+- Destination discovery with advanced filters, interactive **Leaflet map**
+- Spot detail with **live 7‑day weather & "best time to visit"** (Open‑Meteo, free)
+- **Group tours** — browse, detail, and book fixed departures with seat reservation
+- Hotel & food **booking with escrow payment** (proof upload → admin verify) and PKR pricing
+- **Trip Planner** — generates a day‑by‑day itinerary from real spots by your interests & pace
+- **Trip Builder** (shareable) · **Wishlist** ❤️ · **Saved spots** · **My bookings**
+- **Safety toolkit** — one‑tap SOS live‑location share, emergency dial, live hazard alerts
+- **Real‑time 1:1 chat** with local guides (presence + typing)
+- **Photo reviews** & ratings · **Notifications** centre · **Profile** + avatar
+- **Bilingual** — whole‑site English ⇄ اردو runtime translation (RTL + Nastaʿlīq)
+- **Installable PWA** — works offline for saved trips & maps
 
-</td><td width="33%" valign="top">
-
-### 🏔️ Local Guide
-- Tourist‑spot CRUD (with photo upload)
-- Natural‑disaster **safety alerts**
-- Real‑time inbox — reply to travellers
-- Reviews dashboard
-- Dashboard analytics
-
-</td><td width="33%" valign="top">
+### 🏔️ Local Guide · 🏨 Hotel · 🚐 Travel Agency
+- Shared dashboard kit (night mode, notifications, revenue) tailored per role
+- **Guide:** tourist‑spot CRUD (photo upload), natural‑disaster safety alerts, real‑time inbox, reviews
+- **Hotel:** accommodation listings, bookings, revenue & payout requests
+- **Travel Agency:** tour packages + **fixed group departures**, bookings, revenue & payouts
 
 ### 🛡️ Admin
-- Spots / accommodations / transport CRUD
-- Booking & payment management
-- Revenue & content analytics
-- Secure username/password login
+- **Two‑gate approvals** — vet accounts (guide/hotel/agency) and individual listings/packages, with auto‑approve toggles
+- Spots / accommodations / transport / tours CRUD · **payment verification** · **payout approval**
+- Revenue & content analytics · queries inbox with **email replies** · secure login
 
-</td></tr>
-</table>
-
-**Platform‑wide:** unified JWT auth · email **OTP verification** (Brevo) · **Cloudinary** image uploads · persisted Socket.io chat · role‑based route protection · server‑side validation.
+**Platform‑wide:** unified JWT auth · email **OTP verification** · **Cloudinary** image uploads · persisted Socket.io chat with presence · role‑based route protection · server‑side validation · **SEO** (JSON‑LD structured data, sitemap, per‑page meta) · **verified‑guide badges**.
 
 ---
 
@@ -77,9 +72,9 @@ The frontend is an immersive, dark **“night + lime”** bento UI (React + Vite
 
 | Layer | Technologies |
 | :--- | :--- |
-| **Frontend** | React 18 · Vite 6 · Tailwind CSS 3 · Framer Motion · React Router 7 · Axios · Socket.io‑client · Leaflet |
+| **Frontend** | React 18 · Vite · Tailwind CSS 3 · Framer Motion · Lenis · React Router · Axios · Socket.io‑client · Leaflet / react‑leaflet · PWA (service worker + manifest) |
 | **Backend** | Node.js · Express 4 · MongoDB (Atlas) · Mongoose 8 · Socket.io 4 · JWT · bcryptjs |
-| **Integrations** | ☁️ Cloudinary (images) · ✉️ Brevo SMTP (OTP email via Nodemailer) |
+| **Free integrations** | ☁️ Cloudinary (images) · ✉️ SMTP via Nodemailer (OTP + query replies) · 🌦️ **Open‑Meteo** (weather, no key) · 🌐 **Google gtx + MyMemory** translation proxy (no key) |
 
 ---
 
@@ -88,24 +83,28 @@ The frontend is an immersive, dark **“night + lime”** bento UI (React + Vite
 ```
 Misty-Mounts-Tourist-Guide/
 ├─ Backend/
-│  ├─ AdminBackend/         # admin auth + spots/accommodations/transport/places
-│  ├─ LocalGuidePannel/     # user & guide auth (OTP), tourist spots, disasters
-│  ├─ UserBackend/          # profile, saved, bookings, notifications, reviews, chat
-│  ├─ config/               # db.js, cloudinary.js
-│  ├─ middleware/           # auth.js (authenticate / requireRole)
-│  ├─ routes/               # uploadRoutes.js (Cloudinary)
-│  ├─ utils/                # mailer.js (Brevo OTP email)
-│  ├─ seed.js               # populate MongoDB from the frontend demo content
-│  └─ server.js             # Express + Socket.io entry
+│  ├─ AdminBackend/          # admin auth + spots/accommodations/transport/tours/settings/stats
+│  ├─ LocalGuidePannel/      # user & guide auth (OTP), tourist spots, disasters, User model
+│  ├─ UserBackend/           # profile, saved, bookings, tours, messages, notifications, payments
+│  ├─ HotelPannel/           # hotel listings, bookings, revenue
+│  ├─ TravelAgencyPannel/    # tour packages, group departures, tour bookings
+│  ├─ routes/                # uploadRoutes, hotelRoutes, travelAgencyRoutes, tourRoutes, translateRoutes
+│  ├─ middleware/            # auth.js (authenticate / requireRole / requireAdmin)
+│  ├─ utils/                 # mailer, slug helpers
+│  └─ server.js              # Express + Socket.io (JWT socket auth, presence, typing)
 └─ Frontend/
+   ├─ public/                # Logo, images, manifest, robots.txt, sitemap.xml
    └─ src/
-      ├─ UserPanel/         # traveller-facing pages & components (night/lime bento)
-      ├─ AdminFrontend/     # admin dashboard (emerald)
-      ├─ LocalGuidePannel/  # guide dashboard (emerald)
-      ├─ components/        # shared (dashboard kit, NotificationSystem, ...)
-      ├─ context/           # AuthContext (auth + socket)
-      ├─ data/              # api.js, mockApi.js, adminApi.js, mockData.js
-      └─ utils/             # validation, currency, stores (saved/bookings/notifications)
+      ├─ UserPanel/          # traveller pages & components (night/lime bento)
+      │  └─ pages/           # Destination, CityDetail, Tours, TourDetail, Guides, TripPlanner, Safety, ...
+      ├─ AdminFrontend/      # admin dashboard
+      ├─ LocalGuidePannel/   # guide dashboard
+      ├─ HotelPannel/        # hotel dashboard
+      ├─ TravelAgencyPannel/ # travel agency dashboard
+      ├─ components/         # WeatherWidget, SosCard, HazardAlerts, Seo, VerifiedBadge, ExploreMap, chat, ...
+      ├─ context/            # AuthContext (auth + socket), I18nContext (EN/UR), ThemeContext
+      ├─ data/               # api.js, mockApi.js, adminApi.js, toursApi.js, agencyApi.js, geo.js, safety.js
+      └─ utils/              # weather.js, tripPlanner.js, autoTranslate.js, stores, validation, currency
 ```
 
 ---
@@ -115,7 +114,7 @@ Misty-Mounts-Tourist-Guide/
 ### Prerequisites
 - **Node.js** ≥ 18 and npm
 - A **MongoDB** connection string (Atlas or local)
-- *(optional for full features)* **Cloudinary** account + **Brevo** SMTP credentials
+- *(optional for full features)* **Cloudinary** account + **SMTP** credentials
 
 ### 1 · Clone
 ```bash
@@ -124,7 +123,6 @@ cd Misty-Mounts-Tourist-Guide
 ```
 
 ### 2 · Configure environment
-Copy the example files and fill in your values:
 ```bash
 cp Backend/.env.example  Backend/.env
 cp Frontend/.env.example Frontend/.env
@@ -134,7 +132,7 @@ cp Frontend/.env.example Frontend/.env
 ```bash
 cd Backend
 npm install
-npm run seed     # populates MongoDB with demo spots, stays, reviews, admin & test users
+npm run seed     # optional: populate MongoDB with demo content + accounts
 npm run dev      # http://localhost:5000
 ```
 
@@ -157,10 +155,11 @@ npm run dev      # http://localhost:5173
 | :--- | :--- |
 | `MONGO_URI` | MongoDB connection string |
 | `JWT_SECRET` | Secret used to sign/verify all JWTs |
+| `ADMIN_USERNAME` · `ADMIN_PASSWORD` | Admin credentials (never commit real values) |
 | `PORT` | API port *(optional, default `5000`)* |
 | `CLIENT_URL` | Allowed CORS/socket origin *(optional, default `http://localhost:5173`)* |
 | `CLOUDINARY_CLOUD_NAME` · `CLOUDINARY_API_KEY` · `CLOUDINARY_API_SECRET` | Cloudinary image uploads |
-| `EMAIL_HOST` · `EMAIL_PORT` · `EMAIL_SECURE` · `EMAIL_USER` · `EMAIL_PASS` · `BREVO_SENDER_EMAIL` | Brevo SMTP (OTP email) |
+| `EMAIL_HOST` · `EMAIL_PORT` · `EMAIL_SECURE` · `EMAIL_USER` · `EMAIL_PASS` · `SENDER_EMAIL` | SMTP (OTP + query replies) |
 
 **`Frontend/.env`**
 
@@ -169,31 +168,15 @@ npm run dev      # http://localhost:5173
 | `VITE_API_URL` | API base, e.g. `http://localhost:5000/api` *(unset → dummy‑data mode)* |
 | `VITE_SOCKET_URL` | Socket.io URL, e.g. `http://localhost:5000` |
 
-> ⚠️ **Never commit real `.env` files.** They're git‑ignored; commit only the `.env.example` templates.
+> ⚠️ **Never commit real `.env` files.** They're git‑ignored; commit only the `.env.example` templates. If a secret was ever committed, **rotate it**.
 
 ---
 
-## 👤 Demo Accounts (after `npm run seed`)
+## 👤 Demo Accounts
 
-| Role | Email / Username | Password |
-| :--- | :--- | :--- |
-| Traveller | `test@example.com` | `password123` |
-| Local Guide | `guide@example.com` | `password123` |
-| Admin | `saymi313` | `usairam1234` |
+After `npm run seed`, sign in with the seeded demo users, or register a new account (each role has a sign‑up option). New sign‑ups go through **email OTP verification** (6‑digit code via SMTP, with a `dev OTP:` console fallback when SMTP is unavailable). Guide, hotel and travel‑agency accounts require **admin approval** before their listings go public.
 
-New sign‑ups go through **email OTP verification** — a 6‑digit code is emailed via Brevo (with a graceful `dev OTP:` console fallback if SMTP is unavailable).
-
----
-
-## 🔑 Authentication & OTP Flow
-
-```
-Sign up ──▶ 6-digit OTP emailed (Brevo) ──▶ Verify code ──▶ JWT issued ──▶ Signed in
-Log in  ──▶ if unverified: OTP re-sent ──▶ Verify ──▶ Signed in
-```
-
-- One `JWT_SECRET` and a shared `{ id, type }` payload for **admin / user / guide**.
-- `authenticate` + `requireRole(...)` middleware guard every write route.
+> Admin credentials come from `ADMIN_USERNAME` / `ADMIN_PASSWORD` in `Backend/.env` — **not** hard‑coded.
 
 ---
 
@@ -206,11 +189,10 @@ Base URL: `http://localhost:5000/api`
 
 | Method | Endpoint | Purpose |
 | :--- | :--- | :--- |
-| `POST` | `/user/auth/signup` | Register + send OTP |
-| `POST` | `/user/auth/verify-otp` | Verify OTP → JWT |
-| `POST` | `/user/auth/resend-otp` | Resend OTP |
+| `POST` | `/user/auth/signup` | Register (any role) + send OTP |
+| `POST` | `/user/auth/verify-otp` · `/user/auth/resend-otp` | Verify / resend OTP |
 | `POST` | `/user/auth/login` | Login (blocks unverified) |
-| `POST` | `/admin/auth/login` | Admin login (username) |
+| `POST` | `/admin/auth/login` | Admin login |
 </details>
 
 <details>
@@ -218,14 +200,25 @@ Base URL: `http://localhost:5000/api`
 
 | Method | Endpoint | Purpose |
 | :--- | :--- | :--- |
-| `GET/PUT` | `/user/me` | Get / update profile |
-| `POST` | `/user/avatar` | Upload avatar → Cloudinary |
+| `GET/PUT` | `/user/me` · `POST /user/avatar` | Profile & avatar |
 | `GET/POST/DELETE` | `/user/saved[/:spotId]` | Saved spots |
-| `POST` | `/payment/create` | Create a booking |
-| `GET` | `/payment/me` | My bookings |
-| `PATCH` | `/payment/:id/cancel` | Cancel a booking |
-| `GET/PATCH/DELETE` | `/notifications*` | List / mark‑read / delete |
-| `POST` | `/upload` | Generic image upload → Cloudinary |
+| `POST` | `/payment/create` · `GET /payment/me` · `PATCH /payment/:id/cancel` | Bookings |
+| `GET/POST` | `/tours` · `/tours/:id` · `/tours/book` | Browse & book group tours |
+| `GET/POST` | `/messages/*` | 1:1 guide chat threads + unread count |
+| `GET/PATCH/DELETE` | `/notifications*` | Notifications |
+| `POST` | `/upload` | Image upload → Cloudinary |
+| `POST` | `/translate` | Free EN→UR translation proxy (no key) |
+</details>
+
+<details>
+<summary><b>Providers (auth + role)</b></summary>
+
+| Method | Endpoint | Purpose |
+| :--- | :--- | :--- |
+| `GET/POST/PUT/DELETE` | `/hotel/*` | Hotel listings & bookings |
+| `GET/POST/PUT/DELETE` | `/agency/packages*` · `GET /agency/bookings` | Tour packages & bookings |
+| `GET/POST/PUT/DELETE` | `/guide/*` · `/natural-disaster/*` | Guide spots & safety alerts |
+| `GET` | `/payment/balance` · `/payouts/me` · `POST /payouts/request` | Revenue & payouts |
 </details>
 
 <details>
@@ -234,40 +227,36 @@ Base URL: `http://localhost:5000/api`
 | Method | Endpoint | Purpose |
 | :--- | :--- | :--- |
 | `GET` | `/admin/cities` · `/admin/spots[/:city]` · `/admin/places` | Tourist spots |
-| `GET` | `/admin/accommodations[/:id]` | Stays & food |
-| `GET` | `/admin/transportation[/:spotId]` | Transport |
-| `GET` | `/feedback[/:locationName]` | Reviews |
-| `POST` | `/feedback/submit` | Submit a review |
-| `GET` | `/natural-disaster/get-disaster` | Safety alerts |
-| `POST/PUT/DELETE` | `/admin/{places,accommodations,transportation}` · `/natural-disaster` | CRUD (admin/guide) |
+| `GET` | `/admin/accommodations[/:id]` · `/admin/transportation[/:spotId]` | Stays & transport |
+| `GET` | `/feedback[/:locationName]` · `POST /feedback/submit` | Reviews |
+| `GET` | `/natural-disaster/get-disaster` | Live safety / hazard alerts |
+| `*` | `/admin/{users,tours,places,accommodations}` · approvals · stats | Admin management |
 </details>
 
 <details>
 <summary><b>Realtime (Socket.io)</b></summary>
 
-Client emits `join-chat`, `user-message`, `agent-message`, `get-message-history`, `typing`.
-Server emits `active-users`, `system-message`, `agent-message`, `user-message`, `message-history`, `new-message-notification`, `user-disconnected`. Messages persist to MongoDB.
+JWT‑authenticated sockets power **1:1 traveller ↔ guide messaging** (`message:new`, `messages:read`), **presence** (`presence:update` / `presence:list` / `presence:get`) and **typing** indicators. Messages persist to MongoDB.
 </details>
+
+---
+
+## 🌦️ Weather, 🛡️ Safety & 🧭 Planning (free integrations)
+
+- **Weather** — [Open‑Meteo](https://open-meteo.com) provides current + 7‑day forecasts directly in the browser (no key, CORS‑enabled). Spot coordinates fall back to city centroids (`data/geo.js`).
+- **Safety** — `/safety` aggregates a live‑location **SOS** (browser Geolocation → WhatsApp/copy/map), real emergency numbers, and **hazard alerts** from the natural‑disaster API. Alerts also surface on relevant spot pages.
+- **Trip Planner** — `/plan` scores the real spot catalog against your interests & pace and builds a day‑by‑day itinerary that drops straight into the Trip Builder. Fully algorithmic — no external AI.
+- **Translation** — `/api/translate` proxies free Google/MyMemory translation; the client walks the DOM and caches results in `localStorage`, flipping the site to RTL Nastaʿlīq for Urdu.
 
 ---
 
 ## 📜 Scripts
 
-**Backend**
-
-| Command | Description |
+| Backend | Frontend |
 | :--- | :--- |
-| `npm run dev` | Start with nodemon |
-| `npm start` | Start the server |
-| `npm run seed` | Seed MongoDB with demo content + accounts |
-
-**Frontend**
-
-| Command | Description |
-| :--- | :--- |
-| `npm run dev` | Vite dev server |
-| `npm run build` | Production build |
-| `npm run preview` | Preview the build |
+| `npm run dev` — nodemon | `npm run dev` — Vite dev server |
+| `npm start` — start server | `npm run build` — production build |
+| `npm run seed` — seed demo content | `npm run preview` — preview build |
 
 ---
 
@@ -276,16 +265,20 @@ Server emits `active-users`, `system-message`, `agent-message`, `user-message`, 
 - Passwords & OTPs hashed with **bcryptjs**; JWTs signed with a single secret.
 - Every write route is **auth‑ + role‑gated**; reads are public where appropriate.
 - Server‑side validation on all forms; CORS locked to `CLIENT_URL`.
-- Secrets live only in `.env` (git‑ignored) — rotate them if ever exposed.
+- Secrets live only in `.env` (git‑ignored) — **rotate any that were ever committed**.
 
 ---
 
 ## 🗺️ Roadmap
 
-- [ ] OpenWeatherMap / Wikipedia enrichment on spot detail
-- [ ] Real payment gateway (Stripe / Razorpay)
-- [ ] Real Northern‑Pakistan photography (replacing placeholders)
-- [ ] Push notifications & email digests
+- [x] Live weather & "best time to visit" on spot detail
+- [x] Safety toolkit — SOS, emergency contacts, live hazard alerts
+- [x] Trip planner + shareable trip builder
+- [x] Whole‑site English ⇄ Urdu translation
+- [x] SEO (structured data, sitemap) + verified‑guide badges
+- [ ] AI concierge via a free LLM tier / local model + RAG over Atlas
+- [ ] Verified‑booking review tags (link reviews to completed bookings)
+- [ ] Real payment gateway (Stripe / Razorpay) + web‑push notifications
 
 ---
 
@@ -297,6 +290,6 @@ Released under the **MIT License**.
 
 <br/>
 
-**Made for the mountains of Gilgit‑Baltistan** ⛰️
+**Made in Pakistan, for the mountains of the north** ⛰️🇵🇰
 
 </div>

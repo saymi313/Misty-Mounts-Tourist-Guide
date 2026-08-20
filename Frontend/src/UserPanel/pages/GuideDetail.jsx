@@ -11,6 +11,9 @@ import { Tile, Eyebrow, Btn, inputCls } from "../components/bento/tiles";
 import ChatPanel from "../../components/chat/ChatPanel";
 import WishlistButton from "../../components/WishlistButton";
 import AddToTripButton from "../../components/AddToTripButton";
+import VerifiedBadge from "../../components/VerifiedBadge";
+import Seo from "../../components/Seo";
+import ReviewSummary from "../../components/ReviewSummary";
 import usePresence from "../../hooks/usePresence";
 import { useAuth } from "../../context/AuthContext";
 import { getGuide, getGuideFeedbacks, submitGuideFeedback } from "../../data/guidesApi";
@@ -139,6 +142,24 @@ const GuideDetail = () => {
         <ArrowLeft className="h-4 w-4" /> All guides
       </Link>
 
+      <Seo
+        title={`${guide.name} — Local Guide${guide.city ? ` in ${guide.city}` : ""}`}
+        description={guide.bio || `Book ${firstName}, a vetted local guide on Misty Mounts, for your trip to Northern Pakistan.`}
+        image={guide.avatar}
+        type="profile"
+        jsonLd={{
+          "@context": "https://schema.org",
+          "@type": "Person",
+          name: guide.name,
+          jobTitle: "Local Tour Guide",
+          address: guide.city ? { "@type": "PostalAddress", addressRegion: guide.city, addressCountry: "PK" } : undefined,
+          image: guide.avatar,
+          aggregateRating: guide.reviewCount
+            ? { "@type": "AggregateRating", ratingValue: guide.rating, reviewCount: guide.reviewCount }
+            : undefined,
+        }}
+      />
+
       <div className="mt-5 grid gap-4 lg:grid-cols-[1.3fr_1fr]">
         {/* Profile */}
         <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, ease: EASE }}>
@@ -152,7 +173,10 @@ const GuideDetail = () => {
                 </span>
               )}
               <div className="min-w-0">
-                <span className="inline-flex items-center gap-1 rounded-full bg-lime-400/15 px-2.5 py-1 text-xs font-bold text-lime-400">Local Guide</span>
+                <span className="inline-flex flex-wrap items-center gap-2">
+                  <span className="inline-flex items-center gap-1 rounded-full bg-lime-400/15 px-2.5 py-1 text-xs font-bold text-lime-400">Local Guide</span>
+                  <VerifiedBadge label="Verified guide" />
+                </span>
                 <h1 className="mt-2 text-3xl font-extrabold tracking-tight text-white">{guide.name}</h1>
                 {guide.username && <p className="text-sm text-white/40">@{guide.username}</p>}
                 <p className="mt-1 flex items-center gap-1.5 text-sm text-white/60"><MapPin className="h-4 w-4 text-lime-400" /> {guide.city || "Location not set"}</p>
@@ -306,6 +330,7 @@ const GuideDetail = () => {
         <h2 className="text-2xl font-extrabold tracking-tight text-white">
           Reviews <span className="text-white/40">({reviews.length})</span>
         </h2>
+        <ReviewSummary reviews={reviews} subject={guide.name} className="mt-4" />
         {reviews.length === 0 ? (
           <Tile className="mt-4 py-12 text-center">
             <p className="text-white/60">No reviews yet — be the first to review {firstName}.</p>

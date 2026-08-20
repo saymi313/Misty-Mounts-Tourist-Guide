@@ -1,11 +1,12 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Search, Star, MapPin, Users, ChevronLeft, ChevronRight, ArrowRight } from "lucide-react";
+import { Search, Star, MapPin, Users, ChevronLeft, ChevronRight, ArrowRight, BadgeCheck } from "lucide-react";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Home/Footer";
 import { Tile, Eyebrow, Chip, inputCls } from "../components/bento/tiles";
 import WishlistButton from "../../components/WishlistButton";
+import Seo from "../../components/Seo";
 import { listGuides } from "../../data/guidesApi";
 import { LIVE } from "../../data/api";
 
@@ -58,6 +59,7 @@ const Guides = () => {
 
   return (
     <div className="min-h-screen bg-night-950 text-white selection:bg-lime-400 selection:text-night-950">
+      <Seo title="Local Guides" description="Browse vetted local guides across Northern Pakistan — book trusted experts for Hunza, Skardu, Swat and beyond." />
       <Navbar />
       <main className="mx-auto max-w-7xl px-5 pb-6 pt-6 sm:px-8">
         <motion.div initial={{ opacity: 0, y: 22 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, ease: EASE }}>
@@ -121,7 +123,10 @@ const Guides = () => {
                         </span>
                       )}
                       <div className="min-w-0">
-                        <h3 className="truncate text-base font-extrabold text-white">{g.name}</h3>
+                        <h3 className="flex items-center gap-1.5 text-base font-extrabold text-white">
+                          <span className="truncate">{g.name}</span>
+                          <BadgeCheck className="h-4 w-4 shrink-0 text-lime-400" title="Verified guide" />
+                        </h3>
                         <p className="mt-0.5 flex items-center gap-1 text-xs text-white/50"><MapPin className="h-3 w-3" /> {g.city || "—"}</p>
                         <div className="mt-1 flex items-center gap-1.5">
                           <Stars value={g.rating} />

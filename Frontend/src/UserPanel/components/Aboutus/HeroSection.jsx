@@ -1,7 +1,6 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { Compass } from 'lucide-react';
-import { img } from '../../../data/mockData';
 import { Eyebrow } from '../bento/tiles';
 
 const EASE = [0.16, 1, 0.3, 1];
@@ -14,8 +13,8 @@ const HeroSection = () => {
         initial={{ scale: 1.08, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
         transition={{ duration: 1.3, ease: EASE }}
-        src={img('about-hero', 1600, 900)}
-        alt="Hazara"
+        src="/Naran.jpg"
+        alt="Northern Pakistan"
         className="absolute inset-0 h-full w-full object-cover"
       />
       {/* Night overlay so white text stays legible */}
@@ -28,14 +27,14 @@ const HeroSection = () => {
         transition={{ duration: 0.7, delay: 0.15, ease: EASE }}
         className="relative mx-auto flex h-full max-w-4xl flex-col items-center justify-center px-6 text-center"
       >
-        <Eyebrow><Compass className="h-3.5 w-3.5" /> Our story</Eyebrow>
+        <Eyebrow><Compass className="h-3.5 w-3.5" /> Made in Pakistan 🇵🇰</Eyebrow>
         <h1 className="mt-4 text-[clamp(2.4rem,6vw,4.5rem)] font-extrabold leading-[0.98] tracking-tight text-white text-balance">
-          Built by locals,{" "}
-          <span className="text-lime-400">for travellers.</span>
+          Pakistan, like the world has{" "}
+          <span className="text-lime-400">never seen it.</span>
         </h1>
         <p className="mt-5 max-w-2xl text-white/70">
-          We started Misty Mounts to share the north the way locals know it — beyond the
-          postcards, with the people, routes, and hidden corners that make it unforgettable.
+          From K2's shadow to Hunza's apricot valleys, we're putting the north on the map the
+          way locals know it — and sending every rupee back to the people who make it magic.
         </p>
       </motion.div>
     </div>

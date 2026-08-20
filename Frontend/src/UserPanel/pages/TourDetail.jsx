@@ -10,6 +10,9 @@ import Footer from "../components/Home/Footer";
 import { Tile, Eyebrow, Btn, inputCls } from "../components/bento/tiles";
 import WishlistButton from "../../components/WishlistButton";
 import AddToTripButton from "../../components/AddToTripButton";
+import WeatherWidget from "../../components/WeatherWidget";
+import Seo from "../../components/Seo";
+import { CITY_COORDS } from "../../data/geo";
 import { useAuth } from "../../context/AuthContext";
 import { getTour, bookTour } from "../../data/toursApi";
 import { getPaymentAccounts } from "../../data/revenueApi";
@@ -159,6 +162,23 @@ export default function TourDetail() {
         </div>
       </motion.div>
 
+      <Seo
+        title={tour.title}
+        description={tour.summary || `A ${tour.durationDays}-day group tour across ${(tour.cities || []).join(", ")} with Misty Mounts.`}
+        image={tour.coverImage}
+        type="product"
+        jsonLd={{
+          "@context": "https://schema.org",
+          "@type": "TouristTrip",
+          name: tour.title,
+          description: tour.summary,
+          image: tour.coverImage,
+          ...(tour.pricePerPerson
+            ? { offers: { "@type": "Offer", price: tour.pricePerPerson, priceCurrency: "PKR", availability: "https://schema.org/InStock" } }
+            : {}),
+        }}
+      />
+
       <div className="mt-6 grid gap-6 lg:grid-cols-[1.5fr_1fr]">
         {/* Left: details */}
         <div className="space-y-6">
@@ -206,6 +226,11 @@ export default function TourDetail() {
               </div>
             </Tile>
           )}
+
+          {(() => {
+            const c = (tour.cities || []).map((city) => CITY_COORDS[city]).find(Boolean);
+            return c ? <WeatherWidget lat={c[0]} lng={c[1]} placeName={(tour.cities || [])[0]} /> : null;
+          })()}
 
           {(tour.inclusions?.length > 0 || tour.exclusions?.length > 0) && (
             <div className="grid gap-6 sm:grid-cols-2">

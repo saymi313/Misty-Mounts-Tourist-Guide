@@ -2,6 +2,37 @@
 @tailwind components;
 @tailwind utilities;
 
+/* ── Urdu (runtime translation) ──────────────────────────────────────
+   When Urdu is active the <body> gets .lang-ur and <html dir="rtl">. The whole
+   UI uses Nastaʿlīq (matching the Iqbal couplet). Nastaliq is a tall, flowing
+   script, so it needs generous line-height to avoid clipping its loops. */
+.lang-ur {
+  font-family: "Noto Nastaliq Urdu", "Noto Naskh Arabic", "Segoe UI", ui-sans-serif, sans-serif;
+  line-height: 2.05;
+}
+.lang-ur input,
+.lang-ur textarea,
+.lang-ur select,
+.lang-ur button {
+  font-family: inherit;
+}
+.lang-ur p,
+.lang-ur li,
+.lang-ur h1,
+.lang-ur h2,
+.lang-ur h3,
+.lang-ur h4 {
+  line-height: 2.15;
+}
+/* Headings & display-font utilities set their own Latin font directly on the
+   element, which wins over the inherited body font. Force Nastaliq on them too
+   (the Iqbal couplet keeps its own font via inline style). */
+.lang-ur h1, .lang-ur h2, .lang-ur h3, .lang-ur h4, .lang-ur h5, .lang-ur h6,
+.lang-ur .font-future, .lang-ur .font-display, .lang-ur .font-sans,
+.lang-ur .font-accent, .lang-ur .font-mono {
+  font-family: "Noto Nastaliq Urdu", "Noto Naskh Arabic", "Segoe UI", ui-sans-serif, sans-serif !important;
+}
+
 @layer base {
   :root {
     color-scheme: light;
