@@ -3,6 +3,8 @@ import { Map as MapIcon, Gem, Building2, Plus, Pencil, Trash2, Check, Clock, Shi
 import AdminLayout from "../AdminLayout";
 import { Card, SectionHead, StatCard, StatusPill, Btn, BtnGhost, Field, adminInputCls } from "../../components/dashboard/ui";
 import Modal from "../../components/dashboard/Modal";
+import Pagination from "../../components/dashboard/Pagination";
+import usePagination from "../../hooks/usePagination";
 import { required, validate, hasErrors } from "../../utils/validation";
 import { LIVE, listPlaces, createPlace, updatePlace, approvePlace, deletePlace, getSettings, updateSettings } from "../../data/adminApi";
 import { toast } from "../../utils/toast";
@@ -157,6 +159,7 @@ const TouristSpotManagement = () => {
   const total = spots.length;
   const pending = spots.filter((s) => s.status === "Pending").length;
   const cityCount = new Set(spots.map((s) => s.city)).size;
+  const pg = usePagination(spots, 10);
 
   return (
     <AdminLayout greeting="Tourist Spots" subtitle="Curate and moderate the places on the map">
@@ -208,7 +211,7 @@ const TouristSpotManagement = () => {
               </tr>
             </thead>
             <tbody>
-              {spots.map((spot) => (
+              {pg.pageItems.map((spot) => (
                 <tr key={spot._id} className="border-t border-slate-100 transition-colors hover:bg-slate-50">
                   <td className="px-3 py-3">
                     <div className="flex items-center gap-3">
@@ -274,6 +277,7 @@ const TouristSpotManagement = () => {
             </tbody>
           </table>
         </div>
+        <Pagination page={pg.page} pageCount={pg.pageCount} setPage={pg.setPage} />
       </Card>
 
       {/* Add / Edit modal */}

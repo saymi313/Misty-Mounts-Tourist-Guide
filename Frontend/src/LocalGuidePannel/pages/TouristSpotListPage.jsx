@@ -3,6 +3,8 @@ import { useNavigate } from "react-router-dom";
 import { MapPin, Plus, Pencil, Trash2, Map as MapIcon, Gem, Building2 } from "lucide-react";
 import GuideLayout from "../GuideLayout";
 import { Card, SectionHead, StatCard, Btn } from "../../components/dashboard/ui";
+import Pagination from "../../components/dashboard/Pagination";
+import usePagination from "../../hooks/usePagination";
 import { LIVE, listPlaces, deletePlace } from "../../data/adminApi";
 import { toast } from "../../utils/toast";
 import { confirmDialog } from "../../utils/confirm";
@@ -32,6 +34,7 @@ export default function TouristSpotListPage() {
   };
 
   const citiesCovered = new Set(spots.map((s) => s.city)).size;
+  const pg = usePagination(spots, 9);
   const hiddenGems = spots.filter((s) => s.hiddenGem).length;
 
   return (
@@ -70,7 +73,7 @@ export default function TouristSpotListPage() {
             </div>
           ) : (
             <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-3">
-              {spots.map((spot) => (
+              {pg.pageItems.map((spot) => (
                 <div
                   key={spot._id}
                   className="group overflow-hidden rounded-3xl border border-slate-100 bg-white transition-shadow hover:shadow-md"
@@ -135,6 +138,7 @@ export default function TouristSpotListPage() {
               ))}
             </div>
           )}
+          <Pagination page={pg.page} pageCount={pg.pageCount} setPage={pg.setPage} />
         </Card>
       </div>
     </GuideLayout>

@@ -2,6 +2,8 @@ import React, { useState, useEffect } from "react";
 import { Star, MessageSquare, TrendingUp, Award } from "lucide-react";
 import GuideLayout from "../GuideLayout";
 import { Card, SectionHead, StatCard } from "../../components/dashboard/ui";
+import Pagination from "../../components/dashboard/Pagination";
+import usePagination from "../../hooks/usePagination";
 import { getFeedbacks } from "../../data/mockApi";
 
 /** Five-star row, filled up to `rating`. */
@@ -27,6 +29,7 @@ const fmtDate = (iso) => {
 
 const Feedback = () => {
   const [feedbacks, setFeedbacks] = useState([]);
+  const pg = usePagination(feedbacks, 8);
 
   useEffect(() => {
     getFeedbacks().then((d) => setFeedbacks(d.feedbacks || [])).catch(() => {});
@@ -49,7 +52,7 @@ const Feedback = () => {
       <Card className="mt-6">
         <SectionHead title="All reviews" sub={`${total} traveller ${total === 1 ? "review" : "reviews"}`} />
         <div className="divide-y divide-slate-100">
-          {feedbacks.map((f) => (
+          {pg.pageItems.map((f) => (
             <article key={f._id} className="flex gap-4 py-5 first:pt-0 last:pb-0">
               <img loading="lazy" decoding="async"
                 src={f.avatar}
@@ -77,6 +80,7 @@ const Feedback = () => {
             </article>
           ))}
         </div>
+        <Pagination page={pg.page} pageCount={pg.pageCount} setPage={pg.setPage} />
       </Card>
     </GuideLayout>
   );

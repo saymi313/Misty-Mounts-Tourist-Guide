@@ -3,6 +3,8 @@ import { useNavigate } from "react-router-dom";
 import { MapPin, Calendar, Plus, Pencil, Trash2, AlertTriangle, ShieldCheck } from "lucide-react";
 import GuideLayout from "../GuideLayout";
 import { Card, SectionHead, StatCard, StatusPill, Btn } from "../../components/dashboard/ui";
+import Pagination from "../../components/dashboard/Pagination";
+import usePagination from "../../hooks/usePagination";
 import { LIVE, listDisasters, deleteDisaster } from "../../data/adminApi";
 import { toast } from "../../utils/toast";
 import { confirmDialog } from "../../utils/confirm";
@@ -20,6 +22,7 @@ const fmtDate = (d) =>
 export default function NaturalDisasterList() {
   const navigate = useNavigate();
   const [alerts, setAlerts] = useState([]);
+  const pg = usePagination(alerts, 8);
 
   useEffect(() => {
     if (LIVE) listDisasters().then(setAlerts).catch(() => {});
@@ -79,7 +82,7 @@ export default function NaturalDisasterList() {
             </div>
           ) : (
             <div className="space-y-4">
-              {alerts.map((alert) => (
+              {pg.pageItems.map((alert) => (
                 <div
                   key={alert._id}
                   className="rounded-3xl border border-slate-100 p-5 transition-shadow hover:shadow-md"
@@ -128,6 +131,7 @@ export default function NaturalDisasterList() {
               ))}
             </div>
           )}
+          <Pagination page={pg.page} pageCount={pg.pageCount} setPage={pg.setPage} />
         </Card>
       </div>
     </GuideLayout>

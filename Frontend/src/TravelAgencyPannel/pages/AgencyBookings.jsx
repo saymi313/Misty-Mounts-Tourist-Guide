@@ -2,6 +2,8 @@ import React, { useState, useEffect } from "react";
 import { CalendarCheck, Wallet, Users } from "lucide-react";
 import TravelAgencyLayout from "../TravelAgencyLayout";
 import { Card, SectionHead, StatCard, StatusPill } from "../../components/dashboard/ui";
+import Pagination from "../../components/dashboard/Pagination";
+import usePagination from "../../hooks/usePagination";
 import { formatPKR } from "../../utils/currency";
 import { formatDate } from "../../utils/datetime";
 import { listMyTourBookings } from "../../data/agencyApi";
@@ -24,6 +26,7 @@ export default function AgencyBookings() {
   const confirmed = bookings.filter((b) => b.paymentStatus === "Approved" && b.status !== "Cancelled");
   const revenue = confirmed.reduce((s, b) => s + (b.amount || 0), 0);
   const seatsSold = confirmed.reduce((s, b) => s + (b.seats || 0), 0);
+  const pg = usePagination(bookings, 10);
 
   return (
     <TravelAgencyLayout greeting="Bookings" subtitle="Reservations made on your tour packages">
@@ -48,7 +51,7 @@ export default function AgencyBookings() {
               </tr>
             </thead>
             <tbody>
-              {bookings.map((b) => (
+              {pg.pageItems.map((b) => (
                 <tr key={b._id} className="border-t border-slate-100 transition-colors hover:bg-slate-50">
                   <td className="px-3 py-3">
                     <p className="text-sm font-semibold text-slate-900">{b.guest}</p>
@@ -67,6 +70,7 @@ export default function AgencyBookings() {
             </tbody>
           </table>
         </div>
+        <Pagination page={pg.page} pageCount={pg.pageCount} setPage={pg.setPage} />
       </Card>
     </TravelAgencyLayout>
   );

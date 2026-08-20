@@ -262,6 +262,17 @@ html.dark ::-webkit-scrollbar-thumb:hover {
   background: theme("colors.glacier.700");
 }
 
+/* Scrollable but with an invisible scrollbar (panel sidebars). */
+.no-scrollbar {
+  -ms-overflow-style: none; /* IE/old Edge */
+  scrollbar-width: none;    /* Firefox */
+}
+.no-scrollbar::-webkit-scrollbar {
+  width: 0;
+  height: 0;
+  display: none; /* Chrome/Safari */
+}
+
 /* Custom cursor — hide the native cursor only while the landing mounts it,
    and only on precise (mouse) pointers. Touch devices keep normal behaviour. */
 @media (pointer: fine) {

@@ -4,14 +4,12 @@ const bcrypt = require('bcryptjs');
 const crypto = require('crypto');
 const { sendOtpEmail } = require('../../utils/mailer');
 const { createNotification } = require('../../UserBackend/controllers/notificationController');
+const { getReferralConfig } = require('../../AdminBackend/controllers/settingsController');
 
 const OTP_MAX_ATTEMPTS = 5; // lock the code after this many wrong guesses
 // Coerce request values to plain strings so a JSON object like {"$gt":""} can
 // never reach a Mongo query as an operator (defence-in-depth beside mongo-sanitize).
 const str = (v) => (typeof v === "string" ? v : "");
-
-const REFERRAL_REWARD = 500; // PKR credit to the referrer when their invite verifies.
-const REFERRAL_WELCOME = 500; // PKR welcome credit to the invitee who joined via a code.
 
 // Generate a unique referral code (MM + 6 chars).
 const genReferralCode = async () => {
@@ -125,29 +123,33 @@ const verifyOtp = async (req, res) => {
     await user.save();
 
     // Two-sided referral: reward the referrer AND give the new joiner welcome
-    // credit, once, when their invite completes verification. Credit is
-    // discount-only (redeemed at checkout, never withdrawn as cash).
+    // credit, once, when their invite completes verification. Amounts + on/off
+    // are admin-configurable (Settings). Credit is discount-only.
     if (user.referredBy) {
-      const referrer = await User.findOne({ referralCode: user.referredBy });
+      const { enabled, reward, welcome } = await getReferralConfig();
+      const referrer = enabled ? await User.findOne({ referralCode: user.referredBy }) : null;
       if (referrer && String(referrer._id) !== String(user._id)) {
-        referrer.referralCount = (referrer.referralCount || 0) + 1;
-        referrer.referralCredits = (referrer.referralCredits || 0) + REFERRAL_REWARD;
-        await referrer.save();
-        // Welcome credit for the invitee.
-        user.referralCredits = (user.referralCredits || 0) + REFERRAL_WELCOME;
-        await user.save();
-        createNotification(referrer._id, {
-          type: "system",
-          title: "You earned referral credit",
-          body: `${user.name || "A friend"} joined with your invite. You've earned PKR ${REFERRAL_REWARD} in travel credit.`,
-          link: "/profile",
-        });
-        createNotification(user._id, {
-          type: "system",
-          title: `Welcome — here's PKR ${REFERRAL_WELCOME} credit`,
-          body: `You joined with a friend's invite, so we've added PKR ${REFERRAL_WELCOME} in travel credit. It applies automatically at checkout.`,
-          link: "/profile",
-        });
+        if (reward > 0) {
+          referrer.referralCount = (referrer.referralCount || 0) + 1;
+          referrer.referralCredits = (referrer.referralCredits || 0) + reward;
+          await referrer.save();
+          createNotification(referrer._id, {
+            type: "system",
+            title: "You earned referral credit",
+            body: `${user.name || "A friend"} joined with your invite. You've earned PKR ${reward} in travel credit.`,
+            link: "/profile",
+          });
+        }
+        if (welcome > 0) {
+          user.referralCredits = (user.referralCredits || 0) + welcome;
+          await user.save();
+          createNotification(user._id, {
+            type: "system",
+            title: `Welcome — here's PKR ${welcome} credit`,
+            body: `You joined with a friend's invite, so we've added PKR ${welcome} in travel credit. It applies automatically at checkout.`,
+            link: "/profile",
+          });
+        }
       }
     }
 

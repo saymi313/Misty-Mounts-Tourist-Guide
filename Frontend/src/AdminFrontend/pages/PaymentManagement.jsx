@@ -3,6 +3,8 @@ import { Wallet, Receipt, Clock, Pencil, Trash2 } from "lucide-react";
 import AdminLayout from "../AdminLayout";
 import { Card, SectionHead, StatCard, StatusPill, Btn, BtnGhost, adminInputCls, Field } from "../../components/dashboard/ui";
 import Modal from "../../components/dashboard/Modal";
+import Pagination from "../../components/dashboard/Pagination";
+import usePagination from "../../hooks/usePagination";
 import { formatPKR } from "../../utils/currency";
 import { LIVE, listPayments, updatePaymentStatus } from "../../data/adminApi";
 import { toast } from "../../utils/toast";
@@ -15,6 +17,7 @@ const PaymentManagement = () => {
   const [modalOpen, setModalOpen] = useState(false);
   const [editing, setEditing] = useState(null);
   const [status, setStatus] = useState("Upcoming");
+  const pg = usePagination(payments, 10);
 
   useEffect(() => {
     if (LIVE) listPayments().then(setPayments).catch(() => {});
@@ -78,7 +81,7 @@ const PaymentManagement = () => {
               </tr>
             </thead>
             <tbody>
-              {payments.map((p) => (
+              {pg.pageItems.map((p) => (
                 <tr key={p._id} className="border-t border-slate-100 transition-colors hover:bg-slate-50">
                   <td className="px-3 py-3">
                     <div className="flex items-center gap-3">
@@ -126,6 +129,7 @@ const PaymentManagement = () => {
             </tbody>
           </table>
         </div>
+        <Pagination page={pg.page} pageCount={pg.pageCount} setPage={pg.setPage} />
       </Card>
 
       {/* Edit status modal */}

@@ -6,6 +6,8 @@ import {
 import AdminLayout from "../AdminLayout";
 import { Card, SectionHead, StatCard, Btn, BtnGhost } from "../../components/dashboard/ui";
 import Modal from "../../components/dashboard/Modal";
+import Pagination from "../../components/dashboard/Pagination";
+import usePagination from "../../hooks/usePagination";
 import { LIVE, listUsers, deleteUser, approveUser, verifyUser } from "../../data/adminApi";
 import { formatDate } from "../../utils/datetime";
 import { toast } from "../../utils/toast";
@@ -70,6 +72,7 @@ const UserManagement = () => {
   const pendingAgencies = users.filter((u) => u.type === "travel agency" && u.isApproved === false).length;
   const counts = { all: users.length, user: travellers, "local guide": guides, hotel: hotels, "travel agency": agencies };
   const shown = filter === "all" ? users : users.filter((u) => u.type === filter);
+  const pg = usePagination(shown, 10);
 
   const approve = async (u) => {
     if (LIVE) {
@@ -145,7 +148,7 @@ const UserManagement = () => {
               </tr>
             </thead>
             <tbody>
-              {shown.map((u) => (
+              {pg.pageItems.map((u) => (
                 <tr key={u._id} className="border-t border-slate-100 transition-colors hover:bg-slate-50">
                   <td className="px-3 py-3">
                     <div className="flex items-center gap-3">
@@ -225,6 +228,7 @@ const UserManagement = () => {
             </tbody>
           </table>
         </div>
+        <Pagination page={pg.page} pageCount={pg.pageCount} setPage={pg.setPage} />
       </Card>
 
       {/* View profile */}

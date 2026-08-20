@@ -3,6 +3,8 @@ import { Wallet, Clock, Banknote, TrendingUp, Eye, Check, X, Send, Landmark, Loc
 import AdminLayout from "../AdminLayout";
 import { Card, SectionHead, StatCard, StatusPill, Btn, BtnGhost, Field, adminInputCls } from "../../components/dashboard/ui";
 import Modal from "../../components/dashboard/Modal";
+import Pagination from "../../components/dashboard/Pagination";
+import usePagination from "../../hooks/usePagination";
 import { formatPKR } from "../../utils/currency";
 import { formatDate } from "../../utils/datetime";
 import { LIVE, getSettings, listUsers } from "../../data/adminApi";
@@ -48,6 +50,10 @@ export default function Revenue() {
   // Funds collected but not yet released from escrow to partners.
   const isHeld = (p) => p.paymentStatus === "Approved" && p.escrowStatus !== "Released";
   const inEscrow = [...payments, ...tourPayments].filter(isHeld).reduce((s, p) => s + (p.amount || 0), 0);
+
+  const pPay = usePagination(payments, 8);
+  const pTour = usePagination(tourPayments, 8);
+  const pPayout = usePagination(payouts, 8);
 
   const handleRelease = async (payment) => {
     try {
@@ -169,7 +175,7 @@ export default function Revenue() {
               </tr>
             </thead>
             <tbody>
-              {payments.map((p) => (
+              {pPay.pageItems.map((p) => (
                 <tr key={p._id} className="border-t border-slate-100 transition-colors hover:bg-slate-50">
                   <td className="px-3 py-3">
                     <p className="text-sm font-semibold text-slate-900">{p.guest}</p>
@@ -210,6 +216,7 @@ export default function Revenue() {
             </tbody>
           </table>
         </div>
+        <Pagination page={pPay.page} pageCount={pPay.pageCount} setPage={pPay.setPage} />
       </Card>
 
       {/* Tour payments */}
@@ -231,7 +238,7 @@ export default function Revenue() {
               </tr>
             </thead>
             <tbody>
-              {tourPayments.map((p) => (
+              {pTour.pageItems.map((p) => (
                 <tr key={p._id} className="border-t border-slate-100 transition-colors hover:bg-slate-50">
                   <td className="px-3 py-3">
                     <p className="text-sm font-semibold text-slate-900">{p.guest}</p>
@@ -272,6 +279,7 @@ export default function Revenue() {
             </tbody>
           </table>
         </div>
+        <Pagination page={pTour.page} pageCount={pTour.pageCount} setPage={pTour.setPage} />
       </Card>
 
       {/* Payout requests */}
@@ -294,7 +302,7 @@ export default function Revenue() {
               </tr>
             </thead>
             <tbody>
-              {payouts.map((p) => {
+              {pPayout.pageItems.map((p) => {
                 const st = statusOf(p);
                 const cls = st === "Approved" ? "bg-lime-50 text-lime-600" : st === "Rejected" ? "bg-rose-50 text-rose-600" : "bg-apricot-50 text-apricot-600";
                 return (
@@ -330,6 +338,7 @@ export default function Revenue() {
             </tbody>
           </table>
         </div>
+        <Pagination page={pPayout.page} pageCount={pPayout.pageCount} setPage={pPayout.setPage} />
       </Card>
 
       {/* Proof / details modal */}

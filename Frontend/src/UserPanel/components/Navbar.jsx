@@ -167,12 +167,9 @@ const Navbar = () => {
 
         <div className="relative mx-auto max-w-7xl px-4 pt-3 sm:px-6">
           <nav className="flex items-center justify-between gap-3 rounded-full border border-white/10 bg-night-900/50 px-3 py-2 shadow-[0_8px_30px_-8px_rgba(0,0,0,0.6)] ring-1 ring-white/[0.06] backdrop-blur-xl sm:px-4">
-            {/* Wordmark */}
-            <Link to="/user" className="flex items-center gap-2.5 pl-1">
+            {/* Wordmark — logo only */}
+            <Link to="/user" className="flex items-center pl-1">
               <img loading="lazy" decoding="async" src="/Logo.png" alt="Misty Mounts" className="h-9 w-9 rounded-xl object-cover shadow-[0_0_20px_-4px_rgba(163,230,53,0.6)]" />
-              <span className="text-lg font-extrabold tracking-tight text-white">
-                Misty<span className="text-lime-400">Mounts</span>
-              </span>
             </Link>
 
             {/* Desktop nav — grouped into dropdowns so the bar never overflows.
@@ -286,11 +283,8 @@ const Navbar = () => {
             >
               {/* Header */}
               <div className="flex items-center justify-between">
-                <span className="flex items-center gap-2.5 text-white">
+                <span className="flex items-center text-white">
                   <img loading="lazy" decoding="async" src="/Logo.png" alt="Misty Mounts" className="h-9 w-9 rounded-xl object-cover" />
-                  <span className="text-lg font-extrabold">
-                    Misty<span className="text-lime-400">Mounts</span>
-                  </span>
                 </span>
                 <button
                   onClick={() => setMobileOpen(false)}

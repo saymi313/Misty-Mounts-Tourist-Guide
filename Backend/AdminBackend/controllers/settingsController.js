@@ -6,6 +6,9 @@ const shape = (s) => ({
   autoApprovePackages: !!s.autoApprovePackages,
   commissionPercent: s.commissionPercent ?? 15,
   minPayoutThreshold: s.minPayoutThreshold ?? 5000,
+  referralEnabled: s.referralEnabled !== false,
+  referralReward: s.referralReward ?? 500,
+  referralWelcome: s.referralWelcome ?? 500,
   paymentAccounts: s.paymentAccounts || [],
 });
 
@@ -33,6 +36,9 @@ exports.updateSettings = async (req, res) => {
     if ("minPayoutThreshold" in req.body) {
       s.minPayoutThreshold = Math.max(0, Number(req.body.minPayoutThreshold) || 0);
     }
+    if ("referralEnabled" in req.body) s.referralEnabled = !!req.body.referralEnabled;
+    if ("referralReward" in req.body) s.referralReward = Math.max(0, Number(req.body.referralReward) || 0);
+    if ("referralWelcome" in req.body) s.referralWelcome = Math.max(0, Number(req.body.referralWelcome) || 0);
     if (Array.isArray(req.body.paymentAccounts)) s.paymentAccounts = req.body.paymentAccounts;
     await s.save();
     res.json({ settings: shape(s) });
@@ -98,5 +104,15 @@ exports.getRevenueConfig = async () => {
     return { commissionPercent: s.commissionPercent ?? 15, minPayoutThreshold: s.minPayoutThreshold ?? 5000 };
   } catch {
     return { commissionPercent: 15, minPayoutThreshold: 5000 };
+  }
+};
+
+// { enabled, reward, welcome } for the referral program (admin-configurable).
+exports.getReferralConfig = async () => {
+  try {
+    const s = await Settings.getGlobal();
+    return { enabled: s.referralEnabled !== false, reward: s.referralReward ?? 500, welcome: s.referralWelcome ?? 500 };
+  } catch {
+    return { enabled: true, reward: 500, welcome: 500 };
   }
 };

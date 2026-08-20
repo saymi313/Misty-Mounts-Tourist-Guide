@@ -3,6 +3,8 @@ import { BedDouble, Banknote, Star, Clock, Check, Plus, Pencil, Trash2, MapPin, 
 import AdminLayout from "../AdminLayout";
 import { Card, SectionHead, StatCard, StatusPill, Btn, BtnGhost, Field, adminInputCls } from "../../components/dashboard/ui";
 import Modal from "../../components/dashboard/Modal";
+import Pagination from "../../components/dashboard/Pagination";
+import usePagination from "../../hooks/usePagination";
 import { required, number, min, max, validate, hasErrors } from "../../utils/validation";
 import { formatPKR } from "../../utils/currency";
 import { LIVE, listAccommodations, createAccommodation, updateAccommodation, approveAccommodation, deleteAccommodation, getSettings, updateSettings } from "../../data/adminApi";
@@ -36,6 +38,7 @@ const AccommodationManagement = () => {
   const [autoApprove, setAutoApprove] = useState(false);
   const cities = useCities();
   const cityOptions = [...new Set([...cities.map((c) => c.name), form.city].filter(Boolean))];
+  const pg = usePagination(stays, 9);
 
   useEffect(() => {
     if (!LIVE) return;
@@ -192,7 +195,7 @@ const AccommodationManagement = () => {
           }
         />
         <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-          {stays.map((item) => (
+          {pg.pageItems.map((item) => (
             <Card key={item._id} className="flex flex-col overflow-hidden !p-0">
               <div className="relative h-40 w-full">
                 {item.picture ? (
@@ -255,6 +258,7 @@ const AccommodationManagement = () => {
         {stays.length === 0 && (
           <Card className="mt-4 text-center text-sm text-slate-400">No accommodation yet. Add your first stay.</Card>
         )}
+        <Pagination page={pg.page} pageCount={pg.pageCount} setPage={pg.setPage} />
       </div>
 
       {/* Add / Edit modal */}

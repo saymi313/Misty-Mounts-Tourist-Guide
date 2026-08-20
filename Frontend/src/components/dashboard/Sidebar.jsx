@@ -11,14 +11,13 @@ import { Contour } from "./ui";
  */
 export default function Sidebar({ items = [], onLogout, footerCard = null }) {
   return (
-    <aside className="sticky top-0 hidden h-screen w-64 shrink-0 flex-col overflow-hidden bg-white px-5 py-7 lg:flex">
+    <aside className="no-scrollbar sticky top-0 hidden h-screen w-64 shrink-0 flex-col overflow-y-auto bg-white px-5 py-7 lg:flex">
       {/* Topographic brand texture (mountain contours) */}
-      <Contour className="pointer-events-none absolute -bottom-4 left-0 h-56 w-full text-lime-900" opacity={0.05} />
+      <Contour className="pointer-events-none absolute bottom-0 left-0 h-56 w-full text-lime-900" opacity={0.05} />
 
-      {/* Brand */}
-      <div className="relative flex items-center gap-2.5 px-2">
-        <img loading="lazy" decoding="async" src="/Logo.png" alt="Misty Mounts" className="h-9 w-9 rounded-xl object-cover" />
-        <span className="font-display text-lg font-bold tracking-tight text-slate-900">Misty Mounts</span>
+      {/* Brand — logo only */}
+      <div className="relative flex items-center px-2">
+        <img loading="lazy" decoding="async" src="/Logo.png" alt="Misty Mounts" className="h-10 w-10 rounded-xl object-cover" />
       </div>
 
       {/* Nav */}

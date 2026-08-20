@@ -4,6 +4,8 @@ import HotelLayout from "../HotelLayout";
 import { Card, SectionHead, StatCard, StatusPill, Btn, BtnGhost, Field, adminInputCls } from "../../components/dashboard/ui";
 import Modal from "../../components/dashboard/Modal";
 import AvailabilityCalendar from "../../components/dashboard/AvailabilityCalendar";
+import Pagination from "../../components/dashboard/Pagination";
+import usePagination from "../../hooks/usePagination";
 import { required, number, min, validate, hasErrors } from "../../utils/validation";
 import { formatPKR } from "../../utils/currency";
 import {
@@ -30,6 +32,7 @@ export default function HotelListings() {
   const [errors, setErrors] = useState({});
   const cities = useCities();
   const cityOptions = [...new Set([...cities.map((c) => c.name), form.city].filter(Boolean))];
+  const pg = usePagination(items, 9);
 
   useEffect(() => {
     if (LIVE) listMyAccommodations().then((rows) => setItems(rows.map(toRow))).catch(() => {});
@@ -138,7 +141,7 @@ export default function HotelListings() {
           <Card className="text-center text-sm text-slate-400">No listings yet. Add your first hotel or dining spot.</Card>
         ) : (
           <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-            {items.map((item) => (
+            {pg.pageItems.map((item) => (
               <Card key={item._id} className="flex flex-col overflow-hidden !p-0">
                 <div className="relative h-40 w-full">
                   {item.picture ? (
@@ -169,6 +172,7 @@ export default function HotelListings() {
             ))}
           </div>
         )}
+        <Pagination page={pg.page} pageCount={pg.pageCount} setPage={pg.setPage} />
       </div>
 
       <Modal

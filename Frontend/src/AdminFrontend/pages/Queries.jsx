@@ -3,6 +3,8 @@ import { Mail, MailOpen, Trash2, MessageSquare, Check, Reply, Send, CornerDownRi
 import AdminLayout from "../AdminLayout";
 import { Card, SectionHead, StatCard, Btn, BtnGhost, adminInputCls } from "../../components/dashboard/ui";
 import Modal from "../../components/dashboard/Modal";
+import Pagination from "../../components/dashboard/Pagination";
+import usePagination from "../../hooks/usePagination";
 import { LIVE } from "../../data/adminApi";
 import { listQueries, markQueryRead, replyToQuery, deleteQuery } from "../../data/queriesApi";
 import { formatDate } from "../../utils/datetime";
@@ -22,6 +24,7 @@ export default function Queries() {
 
   const unread = queries.filter((q) => !q.isRead).length;
   const shown = filter === "unread" ? queries.filter((q) => !q.isRead) : queries;
+  const pg = usePagination(shown, 8);
 
   const toggleRead = async (q) => {
     const next = !q.isRead;
@@ -101,7 +104,7 @@ export default function Queries() {
           <p className="py-12 text-center text-sm text-slate-400">No queries{filter === "unread" ? " unread" : " yet"}.</p>
         ) : (
           <div className="space-y-3">
-            {shown.map((q) => (
+            {pg.pageItems.map((q) => (
               <div key={q._id} className={`rounded-2xl border p-4 ${q.isRead ? "border-slate-100 bg-slate-50/60" : "border-lime-300 bg-lime-50"}`}>
                 <div className="flex items-start justify-between gap-3">
                   <div className="min-w-0">
@@ -160,6 +163,7 @@ export default function Queries() {
             ))}
           </div>
         )}
+        <Pagination page={pg.page} pageCount={pg.pageCount} setPage={pg.setPage} />
       </Card>
 
       <Modal

@@ -3,6 +3,8 @@ import { Package, Clock, Users, Plus, Pencil, Trash2, MapPin, X, CalendarDays } 
 import TravelAgencyLayout from "../TravelAgencyLayout";
 import { Card, SectionHead, StatCard, StatusPill, Btn, BtnGhost, Field, adminInputCls } from "../../components/dashboard/ui";
 import Modal from "../../components/dashboard/Modal";
+import Pagination from "../../components/dashboard/Pagination";
+import usePagination from "../../hooks/usePagination";
 import ImageUploadButton from "../../components/dashboard/ImageUploadButton";
 import { required, number, min, validate, hasErrors } from "../../utils/validation";
 import { formatPKR } from "../../utils/currency";
@@ -38,6 +40,7 @@ export default function AgencyPackages() {
   const [catalogHotels, setCatalogHotels] = useState([]);
 
   const cityOptions = [...new Set([...cities.map((c) => c.name), ...form.cities].filter(Boolean))];
+  const pg = usePagination(items, 9);
 
   useEffect(() => {
     if (!LIVE) return;
@@ -151,7 +154,7 @@ export default function AgencyPackages() {
           <Card className="text-center text-sm text-slate-400">No packages yet. Create your first tour.</Card>
         ) : (
           <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-            {items.map((p) => (
+            {pg.pageItems.map((p) => (
               <Card key={p._id} className="flex flex-col overflow-hidden !p-0">
                 <div className="relative h-40 w-full">
                   {p.coverImage ? (
@@ -177,6 +180,7 @@ export default function AgencyPackages() {
             ))}
           </div>
         )}
+        <Pagination page={pg.page} pageCount={pg.pageCount} setPage={pg.setPage} />
       </div>
 
       <Modal

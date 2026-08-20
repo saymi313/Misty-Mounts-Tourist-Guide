@@ -2,6 +2,8 @@ import React, { useState, useEffect } from "react";
 import { Package, Clock, CheckCircle2, Check, Trash2, MapPin, Users, CalendarDays } from "lucide-react";
 import AdminLayout from "../AdminLayout";
 import { Card, SectionHead, StatCard, StatusPill } from "../../components/dashboard/ui";
+import Pagination from "../../components/dashboard/Pagination";
+import usePagination from "../../hooks/usePagination";
 import { LIVE, listAdminTours, approveTour, deleteTour, getSettings, updateSettings } from "../../data/adminApi";
 import { formatPKR } from "../../utils/currency";
 import { toast } from "../../utils/toast";
@@ -21,6 +23,7 @@ export default function TourManagement() {
   const pending = tours.filter((t) => t.isApproved === false).length;
   const published = tours.filter((t) => t.isApproved !== false && t.isPublished !== false).length;
   const shown = filter === "pending" ? tours.filter((t) => t.isApproved === false) : tours;
+  const pg = usePagination(shown, 8);
 
   const toggleAutoApprove = async () => {
     const next = !autoApprove;
@@ -87,7 +90,7 @@ export default function TourManagement() {
           <p className="py-12 text-center text-sm text-slate-400">No packages{filter === "pending" ? " pending review" : " yet"}.</p>
         ) : (
           <div className="space-y-3">
-            {shown.map((t) => {
+            {pg.pageItems.map((t) => {
               const departures = (t.departures || []).length;
               return (
                 <div key={t._id} className={`flex items-start gap-4 rounded-2xl border p-4 ${t.isApproved === false ? "border-apricot-200 bg-apricot-50/40" : "border-slate-100"}`}>
@@ -122,6 +125,7 @@ export default function TourManagement() {
             })}
           </div>
         )}
+        <Pagination page={pg.page} pageCount={pg.pageCount} setPage={pg.setPage} />
       </Card>
     </AdminLayout>
   );

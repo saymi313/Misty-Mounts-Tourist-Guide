@@ -2,6 +2,8 @@ import React, { useState, useEffect } from "react";
 import { CalendarCheck, Wallet, Clock } from "lucide-react";
 import HotelLayout from "../HotelLayout";
 import { Card, SectionHead, StatCard, StatusPill } from "../../components/dashboard/ui";
+import Pagination from "../../components/dashboard/Pagination";
+import usePagination from "../../hooks/usePagination";
 import { formatPKR } from "../../utils/currency";
 import { formatDate } from "../../utils/datetime";
 import { listMyBookings } from "../../data/hotelApi";
@@ -16,6 +18,7 @@ export default function HotelBookings() {
 
   const revenue = bookings.reduce((s, b) => s + (b.amount || 0), 0);
   const upcoming = bookings.filter((b) => b.status === "Upcoming").length;
+  const pg = usePagination(bookings, 10);
 
   return (
     <HotelLayout greeting="Bookings" subtitle="Reservations made for your listings">
@@ -40,7 +43,7 @@ export default function HotelBookings() {
               </tr>
             </thead>
             <tbody>
-              {bookings.map((b) => (
+              {pg.pageItems.map((b) => (
                 <tr key={b._id} className="border-t border-slate-100 transition-colors hover:bg-slate-50">
                   <td className="px-3 py-3">
                     <p className="text-sm font-semibold text-slate-900">{b.guest}</p>
@@ -59,6 +62,7 @@ export default function HotelBookings() {
             </tbody>
           </table>
         </div>
+        <Pagination page={pg.page} pageCount={pg.pageCount} setPage={pg.setPage} />
       </Card>
     </HotelLayout>
   );

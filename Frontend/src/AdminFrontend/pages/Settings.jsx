@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Building2, Plus, Pencil, Trash2, MapPin, Image as ImageIcon, Landmark, Percent } from "lucide-react";
+import { Building2, Plus, Pencil, Trash2, MapPin, Image as ImageIcon, Landmark, Percent, Gift } from "lucide-react";
 import AdminLayout from "../AdminLayout";
 import { Card, SectionHead, StatCard, Btn, BtnGhost, Field, adminInputCls } from "../../components/dashboard/ui";
 import Modal from "../../components/dashboard/Modal";
@@ -28,6 +28,10 @@ export default function AdminSettings() {
   const [accounts, setAccounts] = useState([]);
   const [savingPay, setSavingPay] = useState(false);
 
+  // Referral program settings
+  const [referral, setReferral] = useState({ referralEnabled: true, referralReward: 500, referralWelcome: 500 });
+  const [savingRef, setSavingRef] = useState(false);
+
   useEffect(() => {
     if (!LIVE) return;
     listCities().then(setCities).catch(() => {});
@@ -35,8 +39,29 @@ export default function AdminSettings() {
       setCommission(s.commissionPercent ?? 15);
       setThreshold(s.minPayoutThreshold ?? 5000);
       setAccounts(s.paymentAccounts || []);
+      setReferral({
+        referralEnabled: s.referralEnabled !== false,
+        referralReward: s.referralReward ?? 500,
+        referralWelcome: s.referralWelcome ?? 500,
+      });
     }).catch(() => {});
   }, []);
+
+  const saveReferralSettings = async () => {
+    setSavingRef(true);
+    try {
+      if (LIVE) await updateSettings({
+        referralEnabled: !!referral.referralEnabled,
+        referralReward: Number(referral.referralReward) || 0,
+        referralWelcome: Number(referral.referralWelcome) || 0,
+      });
+      toast.success("Referral settings saved.");
+    } catch {
+      toast.error("Couldn't save referral settings. Please try again.");
+    } finally {
+      setSavingRef(false);
+    }
+  };
 
   const setAccount = (i, key, val) => setAccounts((prev) => prev.map((a, idx) => (idx === i ? { ...a, [key]: val } : a)));
   const addAccount = () => setAccounts((prev) => [...prev, { ...emptyAccount }]);
@@ -172,6 +197,40 @@ export default function AdminSettings() {
             ))}
           </div>
         )}
+      </Card>
+
+      {/* Referral program */}
+      <Card className="mt-6">
+        <SectionHead
+          title="Referral program"
+          sub="The travel credit each side earns when a friend joins via an invite link. Credit is applied as a discount at checkout."
+          action={<Btn onClick={saveReferralSettings} disabled={savingRef}>{savingRef ? "Saving…" : "Save referral settings"}</Btn>}
+        />
+        <label className="flex items-center gap-2.5 text-sm font-medium text-slate-600">
+          <input
+            type="checkbox"
+            checked={referral.referralEnabled}
+            onChange={(e) => setReferral((r) => ({ ...r, referralEnabled: e.target.checked }))}
+            className="h-4 w-4 rounded border-slate-300 text-lime-500 accent-lime-500"
+          />
+          <Gift className="h-4 w-4 text-lime-600" /> Referral program enabled
+        </label>
+        <div className="mt-5 grid max-w-lg gap-5 sm:grid-cols-2">
+          <Field
+            label="Referrer reward (PKR)"
+            type="number" min="0" step="100"
+            value={referral.referralReward}
+            onChange={(v) => setReferral((r) => ({ ...r, referralReward: v }))}
+            hint="Credit the inviter gets when their friend joins."
+          />
+          <Field
+            label="Joiner welcome credit (PKR)"
+            type="number" min="0" step="100"
+            value={referral.referralWelcome}
+            onChange={(v) => setReferral((r) => ({ ...r, referralWelcome: v }))}
+            hint="Credit the new user gets for joining via a link."
+          />
+        </div>
       </Card>
 
       <div className="mt-6 grid gap-4 sm:grid-cols-3">

@@ -17,6 +17,11 @@ const settingsSchema = new mongoose.Schema(
     commissionPercent: { type: Number, default: 15, min: 0, max: 100 },
     // Minimum available balance a partner needs before requesting a payout.
     minPayoutThreshold: { type: Number, default: 5000, min: 0 },
+    // Referral program: whether it's on, and the PKR credit each side earns.
+    // referralReward → the referrer; referralWelcome → the friend who joined.
+    referralEnabled: { type: Boolean, default: true },
+    referralReward: { type: Number, default: 500, min: 0 },
+    referralWelcome: { type: Number, default: 500, min: 0 },
     paymentAccounts: {
       type: [
         {
