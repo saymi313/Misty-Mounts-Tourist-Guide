@@ -6,7 +6,19 @@
  *   • API (different origin) & map tiles → passed straight to the network */
 const CACHE = "mm-cache-v2";
 const FONT_CACHE = "mm-fonts-v1";
+const IMG_CACHE = "mm-img-v1";     // cross-origin images (Cloudinary etc.) — cache-first
+const TILE_CACHE = "mm-tiles-v1";  // OSM map tiles — cache-first, offline-map ready
 const SHELL = ["/", "/index.html", "/Logo.png", "/main logo.png", "/manifest.webmanifest"];
+
+// OSM serves the same tile from rotating subdomains (a/b/c). Normalise to one
+// host so a tile pre-cached by the offline-trip-pack builder matches whatever
+// subdomain Leaflet later requests.
+function tileKey(url) {
+  return url.replace(/^https:\/\/[abc]\.tile\.openstreetmap\.org\//, "https://tile.openstreetmap.org/");
+}
+function isTile(url) {
+  return /\.tile\.openstreetmap\.org\//.test(url);
+}
 
 self.addEventListener("install", (event) => {
   event.waitUntil(caches.open(CACHE).then((c) => c.addAll(SHELL).catch(() => {})));
@@ -14,7 +26,7 @@ self.addEventListener("install", (event) => {
 });
 
 self.addEventListener("activate", (event) => {
-  const keep = [CACHE, FONT_CACHE];
+  const keep = [CACHE, FONT_CACHE, IMG_CACHE, TILE_CACHE];
   event.waitUntil(
     caches.keys().then((keys) => Promise.all(keys.filter((k) => !keep.includes(k)).map((k) => caches.delete(k))))
   );
@@ -76,7 +88,34 @@ self.addEventListener("fetch", (event) => {
     return;
   }
 
-  if (url.origin !== self.location.origin) return; // skip API / map tiles
+  // OSM map tiles (cross-origin) — cache-first under a subdomain-normalised key
+  // so offline trip packs (and any previously-viewed area) render the map with
+  // no signal. Falls through to network the first time a tile is seen.
+  if (isTile(request.url)) {
+    const keyReq = new Request(tileKey(request.url), { mode: "no-cors" });
+    event.respondWith(
+      caches.open(TILE_CACHE).then(async (cache) => {
+        const hit = await cache.match(keyReq);
+        if (hit) return hit;
+        try {
+          const res = await fetch(request);
+          if (res && (res.ok || res.type === "opaque")) cache.put(keyReq, res.clone());
+          return res;
+        } catch { return hit || Response.error(); }
+      })
+    );
+    return;
+  }
+
+  // Cross-origin images (Cloudinary photos, etc.) — cache-first. Every photo the
+  // traveller scrolls past is kept, so revisits and offline packs show imagery
+  // without re-downloading on a weak connection.
+  if (request.destination === "image") {
+    event.respondWith(cacheFirst(request, IMG_CACHE));
+    return;
+  }
+
+  if (url.origin !== self.location.origin) return; // skip the API
 
   // Vite emits content-hashed files under /assets/ — the URL changes whenever the
   // bytes change, so a cache hit is always current. Serve them without touching

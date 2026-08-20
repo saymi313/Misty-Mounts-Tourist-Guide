@@ -18,6 +18,11 @@ const accommodationSchema = new mongoose.Schema({
   tags: { type: [String], default: [] },
   isAvailable: { type: Boolean, default: true },
   specialOffer: { type: String, default: "" },
+  // Operator tooling: booking mode + date-based availability. blackoutDates holds
+  // "YYYY-MM-DD" strings the owner has marked unavailable; a check-in that falls
+  // on any occupied blackout night is rejected at booking time.
+  bookingMode: { type: String, enum: ["instant", "request"], default: "request" },
+  blackoutDates: { type: [String], default: [] },
 });
 
 module.exports = mongoose.model("Accommodation", accommodationSchema);

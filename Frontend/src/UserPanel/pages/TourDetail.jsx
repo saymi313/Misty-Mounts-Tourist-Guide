@@ -17,7 +17,7 @@ import { CITY_COORDS } from "../../data/geo";
 import { useAuth } from "../../context/AuthContext";
 import { getTour, bookTour } from "../../data/toursApi";
 import { getPaymentAccounts } from "../../data/revenueApi";
-import { getPayConfig, startCheckout } from "../../data/paymentApi";
+import { getPayConfig, startCheckout, submitCheckout } from "../../data/paymentApi";
 import { formatPKR } from "../../utils/currency";
 import { formatDate } from "../../utils/datetime";
 import { required, email as emailRule, phone as phoneRule, validate, hasErrors } from "../../utils/validation";
@@ -136,8 +136,8 @@ export default function TourDetail() {
     setSubmitting(true);
     try {
       const res = await bookTour({ packageId: tour._id, departureId, seats: n, guestName: form.guestName, email: form.email, phone: form.phone });
-      const { url } = await startCheckout("tour", res.bookingId);
-      window.location.href = url; // leaves the app for the gateway
+      const checkout = await startCheckout("tour", res.bookingId);
+      submitCheckout(checkout); // redirect URL or auto-submit the gateway POST form
     } catch (e2) {
       setError(e2?.response?.data?.error || "Couldn't start payment. Please try again.");
       setSubmitting(false);

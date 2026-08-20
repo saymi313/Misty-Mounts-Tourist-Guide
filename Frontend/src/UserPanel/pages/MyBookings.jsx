@@ -3,15 +3,17 @@ import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import {
   Calendar, MapPin, Users, Moon, Ticket, ArrowUpRight, Compass,
-  CalendarCheck, Wallet, X,
+  CalendarCheck, Wallet, X, ShieldCheck, Lock,
 } from "lucide-react";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Home/Footer";
 import { Tile, Eyebrow, Btn, Chip } from "../components/bento/tiles";
 import { getBookings, saveBookings, fetchBookings, cancelBookingRemote } from "../../utils/bookingsStore";
 import { listMyTourBookings } from "../../data/toursApi";
+import { confirmStay, confirmTour } from "../../data/paymentApi";
 import { formatPKR } from "../../utils/currency";
 import { formatDate } from "../../utils/datetime";
+import { toast } from "../../utils/toast";
 import { LIVE } from "../../data/api";
 
 const EASE = [0.16, 1, 0.3, 1];
@@ -30,6 +32,7 @@ const normalizeTour = (t) => ({
   ref: t.ref,
   status: t.status || "Upcoming",
   paymentStatus: t.paymentStatus || "Pending",
+  escrowStatus: t.escrowStatus || "None",
   hotel: t.packageTitle,
   city: t.city || "",
   image: t.image || "",
@@ -61,6 +64,19 @@ const MyBookings = () => {
       cancelBookingRemote(id);
       return next;
     });
+
+  // Milestone: traveller confirms the trip happened → releases escrow to the partner.
+  const confirm = async (b) => {
+    try {
+      if (b.kind === "tour") await confirmTour(b._id); else await confirmStay(b._id);
+      const patch = (x) => (x._id === b._id ? { ...x, escrowStatus: "Released", status: "Completed" } : x);
+      setStays((prev) => { const n = prev.map(patch); saveBookings(n); return n; });
+      setTours((prev) => prev.map(patch));
+      toast.success("Thanks for confirming — funds released to your host.");
+    } catch (e) {
+      toast.error(e?.response?.data?.error || "Couldn't confirm right now.");
+    }
+  };
 
   const counts = FILTERS.reduce((acc, f) => {
     acc[f] = f === "All" ? bookings.length : bookings.filter((b) => b.status === f).length;
@@ -188,14 +204,29 @@ const MyBookings = () => {
                         <div className="sm:text-right">
                           <p className="text-xl font-extrabold text-lime-400">{formatPKR(b.amount)}</p>
                           <p className="text-[11px] text-white/40">total paid</p>
+                          {b.escrowStatus === "Held" && (
+                            <p className="mt-1 inline-flex items-center gap-1 text-[11px] font-semibold text-amber-300"><Lock className="h-3 w-3" /> Held in escrow</p>
+                          )}
+                          {b.escrowStatus === "Released" && (
+                            <p className="mt-1 inline-flex items-center gap-1 text-[11px] font-semibold text-lime-300"><ShieldCheck className="h-3 w-3" /> Released to host</p>
+                          )}
                         </div>
-                        <div className="flex items-center gap-2">
+                        <div className="flex flex-wrap items-center gap-2">
                           <Link
                             to={b.kind === "tour" ? `/tours/${b.packageId}` : b.accId ? `/accommodations/${b.accId}` : "/destinations"}
                             className="inline-flex items-center gap-1.5 rounded-full border border-white/15 px-3.5 py-2 text-xs font-bold text-white transition-colors hover:border-lime-400 hover:text-lime-400"
                           >
                             {b.kind === "tour" ? "View tour" : "View stay"} <ArrowUpRight className="h-3.5 w-3.5" />
                           </Link>
+                          {b.paymentStatus === "Approved" && b.escrowStatus === "Held" && (
+                            <button
+                              onClick={() => confirm(b)}
+                              title="Confirm your trip happened to release payment from escrow"
+                              className="inline-flex items-center gap-1.5 rounded-full border border-lime-400/40 bg-lime-400/10 px-3.5 py-2 text-xs font-bold text-lime-300 transition-colors hover:bg-lime-400/20"
+                            >
+                              <ShieldCheck className="h-3.5 w-3.5" /> Confirm &amp; release
+                            </button>
+                          )}
                           {b.kind !== "tour" && b.status === "Upcoming" && (
                             <button
                               onClick={() => cancel(b._id)}

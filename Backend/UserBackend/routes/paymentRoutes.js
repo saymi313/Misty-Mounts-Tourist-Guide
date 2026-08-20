@@ -5,6 +5,7 @@ const {
   createPayment, getMyBookings, cancelBooking, getAllPayments, updateBookingApproval,
   verifyPayment, getBalance, requestPayout, listPayouts, listMyPayouts, verifyPayout,
   creditGuide, listEarnings, listMyEarnings, getAllTourPayments, verifyTourPayment,
+  confirmBooking, releaseEscrow, confirmTourBooking, releaseTourEscrow,
 } = require('../controllers/paymentController');
 const { getPublicPaymentInfo } = require('../../AdminBackend/controllers/settingsController');
 const { authenticate, requireAdmin } = require('../../middleware/auth');
@@ -16,6 +17,9 @@ router.get('/accounts', getPublicPaymentInfo);
 router.post('/create', authenticate, createPayment);
 router.get('/me', authenticate, getMyBookings);
 router.patch('/:id/cancel', authenticate, cancelBooking);
+// Milestone escrow: traveller confirms service → releases held funds to partner.
+router.patch('/tour-payments/:id/confirm', authenticate, confirmTourBooking);
+router.patch('/:id/confirm', authenticate, confirmBooking);
 
 // Partner (hotel / local guide): balance, payout requests, own earnings
 router.get('/balance', authenticate, getBalance);
@@ -27,8 +31,10 @@ router.get('/earnings/me', authenticate, listMyEarnings);
 router.get('/', authenticate, requireAdmin, getAllPayments);
 router.get('/tour-payments', authenticate, requireAdmin, getAllTourPayments);
 router.patch('/tour-payments/:id/verify', authenticate, requireAdmin, verifyTourPayment);
+router.patch('/tour-payments/:id/release', authenticate, requireAdmin, releaseTourEscrow);
 router.put('/approve', authenticate, requireAdmin, updateBookingApproval);
 router.patch('/:id/verify', authenticate, requireAdmin, verifyPayment);
+router.patch('/:id/release', authenticate, requireAdmin, releaseEscrow);
 router.get('/payouts', authenticate, requireAdmin, listPayouts);
 router.patch('/payouts/:id/verify', authenticate, requireAdmin, verifyPayout);
 router.get('/earnings', authenticate, requireAdmin, listEarnings);

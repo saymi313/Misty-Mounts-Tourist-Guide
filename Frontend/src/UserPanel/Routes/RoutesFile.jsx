@@ -23,6 +23,7 @@ const TourDetail = lazy(() => import('../pages/TourDetail'));
 const Messages = lazy(() => import('../pages/Messages'));
 const Wishlist = lazy(() => import('../pages/Wishlist'));
 const TripBuilder = lazy(() => import('../pages/TripBuilder'));
+const OfflineTrip = lazy(() => import('../pages/OfflineTrip'));
 const TripPlanner = lazy(() => import('../pages/TripPlanner'));
 const Discover = lazy(() => import('../pages/Discover'));
 const MapPage = lazy(() => import('../pages/MapPage'));
@@ -57,6 +58,7 @@ const RoutesFile = () => {
         <Route path="/safety" element={<Safety />} />
         <Route path="/wishlist" element={<Wishlist />} />
         <Route path="/trip" element={<TripBuilder />} />
+        <Route path="/trip/offline" element={<OfflineTrip />} />
         <Route path="/plan" element={<TripPlanner />} />
         <Route path="/discover" element={<Discover />} />
 

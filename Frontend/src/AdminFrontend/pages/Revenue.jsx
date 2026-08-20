@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from "react";
-import { Wallet, Clock, Banknote, TrendingUp, Eye, Check, X, Send, Landmark } from "lucide-react";
+import { Wallet, Clock, Banknote, TrendingUp, Eye, Check, X, Send, Landmark, Lock, Unlock } from "lucide-react";
 import AdminLayout from "../AdminLayout";
 import { Card, SectionHead, StatCard, StatusPill, Btn, BtnGhost, Field, adminInputCls } from "../../components/dashboard/ui";
 import Modal from "../../components/dashboard/Modal";
 import { formatPKR } from "../../utils/currency";
 import { formatDate } from "../../utils/datetime";
 import { LIVE, getSettings, listUsers } from "../../data/adminApi";
-import { listPayments, verifyPayment, listPayouts, verifyPayout, creditGuide, listTourPayments, verifyTourPayment } from "../../data/revenueApi";
+import { listPayments, verifyPayment, listPayouts, verifyPayout, creditGuide, listTourPayments, verifyTourPayment, releasePayment, releaseTourPayment } from "../../data/revenueApi";
 import { toast } from "../../utils/toast";
 import { confirmDialog } from "../../utils/confirm";
 
@@ -45,6 +45,24 @@ export default function Revenue() {
   const paidOut = payouts.filter((p) => statusOf(p) === "Approved").reduce((s, p) => s + (p.amount || 0), 0);
   const pendingRequests = payouts.filter((p) => statusOf(p) === "Requested");
   const retained = collected - paidOut;
+  // Funds collected but not yet released from escrow to partners.
+  const isHeld = (p) => p.paymentStatus === "Approved" && p.escrowStatus !== "Released";
+  const inEscrow = [...payments, ...tourPayments].filter(isHeld).reduce((s, p) => s + (p.amount || 0), 0);
+
+  const handleRelease = async (payment) => {
+    try {
+      const updated = await releasePayment(payment._id);
+      setPayments((prev) => prev.map((p) => (p._id === payment._id ? { ...p, escrowStatus: updated?.escrowStatus || "Released", status: updated?.status || p.status } : p)));
+      toast.success("Escrow released to the hotel.");
+    } catch { toast.error("Couldn't release escrow. Please try again."); }
+  };
+  const handleReleaseTour = async (payment) => {
+    try {
+      const updated = await releaseTourPayment(payment._id);
+      setTourPayments((prev) => prev.map((p) => (p._id === payment._id ? { ...p, escrowStatus: updated?.escrowStatus || "Released", status: updated?.status || p.status } : p)));
+      toast.success("Escrow released to the agency.");
+    } catch { toast.error("Couldn't release escrow. Please try again."); }
+  };
 
   const handleVerifyPayout = async (payout, approved) => {
     if (!approved) {
@@ -124,8 +142,9 @@ export default function Revenue() {
   return (
     <AdminLayout greeting="Revenue" subtitle="Verify payments, track earnings and pay out partners">
       {/* Stats */}
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
         <StatCard icon={Banknote} tone="emerald" label="Collected" value={formatPKR(collected)} />
+        <StatCard icon={Lock} tone="apricot" label="In escrow" value={formatPKR(inEscrow)} />
         <StatCard icon={Clock} tone="apricot" label="Pending review" value={pending.length + tourPending.length} />
         <StatCard icon={Send} tone="violet" label="Paid out" value={formatPKR(paidOut)} />
         <StatCard icon={TrendingUp} tone="sky" label="Net retained" value={formatPKR(retained)} />
@@ -175,6 +194,12 @@ export default function Revenue() {
                           </button>
                         </>
                       )}
+                      {p.paymentStatus === "Approved" && p.escrowStatus !== "Released" && (
+                        <button onClick={() => handleRelease(p)} title="Release escrow to the hotel" className="flex h-8 items-center gap-1 rounded-lg border border-lime-300 px-2.5 text-xs font-semibold text-lime-700 transition-colors hover:bg-lime-50">
+                          <Unlock className="h-3.5 w-3.5" /> Release
+                        </button>
+                      )}
+                      {p.escrowStatus === "Released" && <span className="text-xs font-semibold text-lime-600">Released</span>}
                     </div>
                   </td>
                 </tr>
@@ -231,6 +256,12 @@ export default function Revenue() {
                           </button>
                         </>
                       )}
+                      {p.paymentStatus === "Approved" && p.escrowStatus !== "Released" && (
+                        <button onClick={() => handleReleaseTour(p)} title="Release escrow to the agency" className="flex h-8 items-center gap-1 rounded-lg border border-lime-300 px-2.5 text-xs font-semibold text-lime-700 transition-colors hover:bg-lime-50">
+                          <Unlock className="h-3.5 w-3.5" /> Release
+                        </button>
+                      )}
+                      {p.escrowStatus === "Released" && <span className="text-xs font-semibold text-lime-600">Released</span>}
                     </div>
                   </td>
                 </tr>

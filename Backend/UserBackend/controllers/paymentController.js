@@ -29,8 +29,11 @@ const shapeBooking = (b) => ({
   nights: b.nights,
   guests: b.guests,
   amount: b.amount,
+  creditApplied: b.creditApplied || 0,
   status: b.status,
   paymentStatus: b.paymentStatus || "Approved",
+  escrowStatus: b.escrowStatus || "None",
+  releasedAt: b.releasedAt || null,
   bookedOn: b.createdAt,
   ref: b.ref,
 });
@@ -49,7 +52,35 @@ exports.createPayment = async (req, res) => {
     // trusted from the client (which could send subtotal/fee = 0 to pay nothing).
     const acc = accId ? await Accommodation.findById(accId) : null;
     if (!acc) return res.status(400).json({ error: "Invalid accommodation selected" });
-    const amount = Number(acc.price) * nights;
+
+    // Respect the owner's availability calendar: reject if any night of the stay
+    // falls on a blacked-out date.
+    if (date && Array.isArray(acc.blackoutDates) && acc.blackoutDates.length) {
+      const base = new Date(date);
+      if (!isNaN(base)) {
+        const black = new Set(acc.blackoutDates);
+        for (let i = 0; i < nights; i++) {
+          const key = new Date(Date.UTC(base.getUTCFullYear(), base.getUTCMonth(), base.getUTCDate() + i)).toISOString().slice(0, 10);
+          if (black.has(key)) return res.status(400).json({ error: "Those dates aren't available for this stay. Please choose different dates." });
+        }
+      }
+    }
+
+    let amount = Number(acc.price) * nights;
+
+    // Redeem referral credit (discount-only) if the traveller opted in. Applied
+    // server-side against the authoritative price; the balance is decremented
+    // atomically so it can't be double-spent.
+    let creditApplied = 0;
+    if (req.body.useCredit) {
+      const me = await User.findById(req.user.id).select("referralCredits");
+      const bal = Math.max(0, Number(me?.referralCredits) || 0);
+      creditApplied = Math.min(bal, amount);
+      if (creditApplied > 0) {
+        amount -= creditApplied;
+        await User.updateOne({ _id: req.user.id }, { $inc: { referralCredits: -creditApplied } });
+      }
+    }
     const ref = `MM-${Date.now().toString(36).toUpperCase()}`;
 
     const booking = await Booking.create({
@@ -62,6 +93,7 @@ exports.createPayment = async (req, res) => {
       nights,
       guests: Math.max(1, Number(guests) || 1),
       amount,
+      creditApplied,
       status: "Upcoming",
       ref,
       guestName: [firstName, lastName].filter(Boolean).join(" "),
@@ -138,6 +170,7 @@ exports.getAllPayments = async (req, res) => {
       amount: b.amount,
       status: b.status,
       paymentStatus: b.paymentStatus || "Approved",
+      escrowStatus: b.escrowStatus || "None",
       paymentProof: b.paymentProof || "",
       paymentRef: b.paymentRef || "",
       paymentAccountLabel: b.paymentAccountLabel || "",
@@ -161,6 +194,10 @@ exports.verifyPayment = async (req, res) => {
     if (!booking) return res.status(404).json({ error: "Booking not found" });
     booking.paymentStatus = approved ? "Approved" : "Rejected";
     booking.status = approved ? "Upcoming" : "Cancelled";
+    // Approval places the funds in escrow; they're released to the hotel only
+    // after the traveller confirms the stay (or admin/auto-release on check-out).
+    if (approved && booking.escrowStatus !== "Released") { booking.escrowStatus = "Held"; booking.heldAt = new Date(); }
+    if (!approved) booking.escrowStatus = "Refunded";
     await booking.save();
 
     createNotification(
@@ -169,7 +206,7 @@ exports.verifyPayment = async (req, res) => {
         ? {
             type: "booking",
             title: "Booking confirmed",
-            body: `Your payment for ${booking.hotel} (ref ${booking.ref}) is verified — booking confirmed.`,
+            body: `Your payment for ${booking.hotel} (ref ${booking.ref}) is verified — booking confirmed. Your money is held safely in escrow until your stay.`,
             link: "/bookings",
           }
         : {
@@ -217,6 +254,7 @@ exports.getAllTourPayments = async (req, res) => {
       amount: b.amount,
       status: b.status,
       paymentStatus: b.paymentStatus || "Pending",
+      escrowStatus: b.escrowStatus || "None",
       paymentProof: b.paymentProof || "",
       paymentRef: b.paymentRef || "",
       paymentAccountLabel: b.paymentAccountLabel || "",
@@ -240,6 +278,8 @@ exports.verifyTourPayment = async (req, res) => {
     const wasPending = booking.paymentStatus === "Pending";
     booking.paymentStatus = approved ? "Approved" : "Rejected";
     booking.status = approved ? "Upcoming" : "Cancelled";
+    if (approved && booking.escrowStatus !== "Released") { booking.escrowStatus = "Held"; booking.heldAt = new Date(); }
+    if (!approved) booking.escrowStatus = "Refunded";
     await booking.save();
 
     // On rejection, release the seats reserved at booking time.
@@ -258,7 +298,7 @@ exports.verifyTourPayment = async (req, res) => {
         ? {
             type: "booking",
             title: "Tour booking confirmed",
-            body: `Your payment for ${booking.packageTitle} (ref ${booking.ref}) is verified — you're booked.`,
+            body: `Your payment for ${booking.packageTitle} (ref ${booking.ref}) is verified — you're booked. Your money is held safely in escrow until your trip.`,
             link: "/bookings",
           }
         : {
@@ -282,6 +322,93 @@ exports.verifyTourPayment = async (req, res) => {
   } catch (err) {
     console.error("verifyTourPayment error:", err.message);
     res.status(500).json({ error: "Failed to verify tour payment" });
+  }
+};
+
+// ── Escrow release (milestone) ───────────────────────────────────────────────
+// Release held funds so they become withdrawable (computeBalance counts only
+// Released). Triggered by the traveller confirming service, or by an admin.
+const releaseHotel = async (booking) => {
+  booking.escrowStatus = "Released";
+  booking.releasedAt = new Date();
+  if (booking.status === "Upcoming") booking.status = "Completed";
+  await booking.save();
+  if (booking.accId) {
+    Accommodation.findById(booking.accId).select("ownerId").then((acc) => {
+      if (acc?.ownerId) createNotification(acc.ownerId, {
+        type: "system", title: "Funds released from escrow",
+        body: `Escrow for ${booking.hotel} (ref ${booking.ref}) has been released to your balance.`,
+        link: "/hotel/revenue",
+      });
+    }).catch(() => {});
+  }
+};
+
+const releaseTour = async (booking) => {
+  booking.escrowStatus = "Released";
+  booking.releasedAt = new Date();
+  if (booking.status === "Upcoming") booking.status = "Completed";
+  await booking.save();
+  if (booking.agencyId) createNotification(booking.agencyId, {
+    type: "system", title: "Funds released from escrow",
+    body: `Escrow for ${booking.packageTitle} (ref ${booking.ref}) has been released to your balance.`,
+    link: "/travel-agency/revenue",
+  });
+};
+
+// PATCH /api/payment/:id/confirm — traveller confirms their stay → releases escrow.
+exports.confirmBooking = async (req, res) => {
+  try {
+    const booking = await Booking.findOne({ _id: req.params.id, userId: req.user.id });
+    if (!booking) return res.status(404).json({ error: "Booking not found" });
+    if (booking.paymentStatus !== "Approved") return res.status(400).json({ error: "Payment isn't verified yet." });
+    if (booking.escrowStatus !== "Released") await releaseHotel(booking);
+    res.json({ booking: shapeBooking(booking) });
+  } catch (err) {
+    console.error("confirmBooking error:", err.message);
+    res.status(500).json({ error: "Failed to confirm booking" });
+  }
+};
+
+// PATCH /api/payment/:id/release — admin releases held escrow to the hotel.
+exports.releaseEscrow = async (req, res) => {
+  try {
+    const booking = await Booking.findById(req.params.id);
+    if (!booking) return res.status(404).json({ error: "Booking not found" });
+    if (booking.paymentStatus !== "Approved") return res.status(400).json({ error: "Payment isn't approved." });
+    if (booking.escrowStatus !== "Released") await releaseHotel(booking);
+    res.json({ booking: shapeBooking(booking) });
+  } catch (err) {
+    console.error("releaseEscrow error:", err.message);
+    res.status(500).json({ error: "Failed to release escrow" });
+  }
+};
+
+// PATCH /api/payment/tour-payments/:id/confirm — traveller confirms tour → releases escrow.
+exports.confirmTourBooking = async (req, res) => {
+  try {
+    const booking = await TourBooking.findOne({ _id: req.params.id, userId: req.user.id });
+    if (!booking) return res.status(404).json({ error: "Tour booking not found" });
+    if (booking.paymentStatus !== "Approved") return res.status(400).json({ error: "Payment isn't verified yet." });
+    if (booking.escrowStatus !== "Released") await releaseTour(booking);
+    res.json({ booking });
+  } catch (err) {
+    console.error("confirmTourBooking error:", err.message);
+    res.status(500).json({ error: "Failed to confirm tour booking" });
+  }
+};
+
+// PATCH /api/payment/tour-payments/:id/release — admin releases held escrow to the agency.
+exports.releaseTourEscrow = async (req, res) => {
+  try {
+    const booking = await TourBooking.findById(req.params.id);
+    if (!booking) return res.status(404).json({ error: "Tour booking not found" });
+    if (booking.paymentStatus !== "Approved") return res.status(400).json({ error: "Payment isn't approved." });
+    if (booking.escrowStatus !== "Released") await releaseTour(booking);
+    res.json({ booking });
+  } catch (err) {
+    console.error("releaseTourEscrow error:", err.message);
+    res.status(500).json({ error: "Failed to release tour escrow" });
   }
 };
 
@@ -309,30 +436,37 @@ exports.updateBookingApproval = async (req, res) => {
 };
 
 // ── Balance, payout requests, guide credits ──────────────────────────────────
-// Compute a partner's withdrawable balance.
+// A booking's money is withdrawable only once its escrow is Released. Money that
+// is paid (Approved) but not yet released sits in escrow ("held"). Legacy
+// bookings approved before escrow existed (escrowStatus "None") are treated as
+// held so nothing silently vanishes — an admin/traveller can release them.
+const isReleased = (b) => b.escrowStatus === "Released";
+const isHeld = (b) => b.escrowStatus === "Held" || (b.escrowStatus === "None" && b.paymentStatus === "Approved");
+
+// Compute a partner's balance: released (withdrawable) + held (in escrow).
 const computeBalance = async (userId, type) => {
   const { commissionPercent, minPayoutThreshold } = await getRevenueConfig();
-  let earnings = 0;
+  const net = (gross) => Math.round(gross * (1 - commissionPercent / 100));
+  let earnings = 0; // released & net of commission — the base for withdrawals
+  let held = 0;     // in escrow, not yet withdrawable
+
   if (type === "hotel") {
     const ids = (await Accommodation.find({ ownerId: userId }).select("_id")).map((a) => a._id);
-    const bookings = await Booking.find({ accId: { $in: ids } });
-    const gross = bookings
-      .filter((b) => b.paymentStatus !== "Pending" && b.paymentStatus !== "Rejected" && b.status !== "Cancelled")
-      .reduce((s, b) => s + (b.amount || 0), 0);
-    earnings = Math.round(gross * (1 - commissionPercent / 100));
+    const bookings = (await Booking.find({ accId: { $in: ids } })).filter((b) => b.status !== "Cancelled");
+    earnings = net(bookings.filter(isReleased).reduce((s, b) => s + (b.amount || 0), 0));
+    held = net(bookings.filter(isHeld).reduce((s, b) => s + (b.amount || 0), 0));
   } else if (type === "local guide") {
+    // Guide credits are admin-issued and immediately withdrawable (no escrow).
     const credits = await Earning.find({ guideId: userId });
     earnings = credits.reduce((s, e) => s + (e.amount || 0), 0);
   } else if (type === "travel agency") {
-    const bookings = await TourBooking.find({ agencyId: userId });
-    const gross = bookings
-      .filter((b) => b.paymentStatus === "Approved" && b.status !== "Cancelled")
-      .reduce((s, b) => s + (b.amount || 0), 0);
-    earnings = Math.round(gross * (1 - commissionPercent / 100));
+    const bookings = (await TourBooking.find({ agencyId: userId })).filter((b) => b.status !== "Cancelled");
+    earnings = net(bookings.filter(isReleased).reduce((s, b) => s + (b.amount || 0), 0));
+    held = net(bookings.filter(isHeld).reduce((s, b) => s + (b.amount || 0), 0));
   }
   const withdrawals = await Payout.find({ recipientId: userId, status: { $ne: "Rejected" } });
   const withdrawn = withdrawals.reduce((s, p) => s + (p.amount || 0), 0);
-  return { earnings, withdrawn, available: Math.max(0, earnings - withdrawn), minPayoutThreshold, commissionPercent };
+  return { earnings, held, withdrawn, available: Math.max(0, earnings - withdrawn), minPayoutThreshold, commissionPercent };
 };
 
 // GET /api/payment/balance  — the signed-in partner's withdrawable balance.

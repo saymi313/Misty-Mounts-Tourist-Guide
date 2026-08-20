@@ -13,6 +13,10 @@ export const listTourPayments = async () => (await api.get("/payment/tour-paymen
 export const verifyTourPayment = async (id, approved) =>
   (await api.patch(`/payment/tour-payments/${id}/verify`, { approved })).data.booking;
 
+// Admin — release held escrow to the partner (funds become withdrawable).
+export const releasePayment = async (id) => (await api.patch(`/payment/${id}/release`)).data.booking;
+export const releaseTourPayment = async (id) => (await api.patch(`/payment/tour-payments/${id}/release`)).data.booking;
+
 // Admin — payout requests + guide earnings credits.
 export const listPayouts = async () => (await api.get("/payment/payouts")).data.payouts;
 export const verifyPayout = async (id, approved) =>

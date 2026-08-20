@@ -1,6 +1,6 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
-import { LayoutDashboard, Package, CalendarCheck, Banknote, UserCircle, Clock } from "lucide-react";
+import { LayoutDashboard, Package, CalendarCheck, Banknote, UserCircle, Clock, BarChart3 } from "lucide-react";
 import DashboardLayout from "../components/dashboard/DashboardLayout";
 import { PromoCard } from "../components/dashboard/ui";
 import { useAuth } from "../context/AuthContext";
@@ -11,6 +11,7 @@ const NAV = [
   { to: "/travel-agency", label: "Dashboard", icon: LayoutDashboard, end: true },
   { to: "/travel-agency/packages", label: "Tour Packages", icon: Package },
   { to: "/travel-agency/bookings", label: "Bookings", icon: CalendarCheck },
+  { to: "/travel-agency/insights", label: "Insights", icon: BarChart3 },
   { to: "/travel-agency/revenue", label: "Revenue", icon: Banknote },
   { to: "/travel-agency/profile", label: "Profile", icon: UserCircle },
 ];

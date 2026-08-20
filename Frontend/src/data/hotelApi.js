@@ -6,3 +6,4 @@ export const createMyAccommodation = async (b) => (await api.post("/hotel/accomm
 export const updateMyAccommodation = async (id, b) => (await api.put(`/hotel/accommodations/${id}`, b)).data.accommodation;
 export const deleteMyAccommodation = async (id) => (await api.delete(`/hotel/accommodations/${id}`)).data;
 export const listMyBookings = async () => (await api.get("/hotel/bookings")).data.bookings;
+export const getMyAnalytics = async () => (await api.get("/hotel/analytics")).data;

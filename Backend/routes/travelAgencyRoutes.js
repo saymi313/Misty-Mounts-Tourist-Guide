@@ -10,5 +10,6 @@ router.post("/packages", agencyOnly, agencyController.createMyPackage);
 router.put("/packages/:id", agencyOnly, agencyController.updateMyPackage);
 router.delete("/packages/:id", agencyOnly, agencyController.deleteMyPackage);
 router.get("/bookings", agencyOnly, agencyController.listMyTourBookings);
+router.get("/analytics", agencyOnly, agencyController.getAnalytics);
 
 module.exports = router;

@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from "react";
-import { BedDouble, Banknote, Clock, Plus, Pencil, Trash2, MapPin, UtensilsCrossed } from "lucide-react";
+import { BedDouble, Banknote, Clock, Plus, Pencil, Trash2, MapPin, UtensilsCrossed, CalendarDays } from "lucide-react";
 import HotelLayout from "../HotelLayout";
 import { Card, SectionHead, StatCard, StatusPill, Btn, BtnGhost, Field, adminInputCls } from "../../components/dashboard/ui";
 import Modal from "../../components/dashboard/Modal";
+import AvailabilityCalendar from "../../components/dashboard/AvailabilityCalendar";
 import { required, number, min, validate, hasErrors } from "../../utils/validation";
 import { formatPKR } from "../../utils/currency";
 import {
@@ -17,6 +18,7 @@ import { confirmDialog } from "../../utils/confirm";
 const emptyForm = {
   name: "", type: "hotel", city: "", location: "", price: "",
   description: "", amenities: "", specialOffer: "", picture: "", isAvailable: true,
+  bookingMode: "request",
 };
 const toRow = (a) => ({ ...a, status: a.isApproved === false ? "Pending" : "Approved" });
 
@@ -45,8 +47,25 @@ export default function HotelListings() {
       price: item.price, description: item.description || "",
       amenities: (item.amenities || []).join(", "), specialOffer: item.specialOffer || "",
       picture: item.picture || "", isAvailable: item.isAvailable !== false,
+      bookingMode: item.bookingMode || "request",
     });
     setErrors({}); setModalOpen(true);
+  };
+
+  // Availability calendar (blackout dates) editor.
+  const [calItem, setCalItem] = useState(null);
+  const [blackout, setBlackout] = useState([]);
+  const openCalendar = (item) => { setCalItem(item); setBlackout(item.blackoutDates || []); };
+  const toggleDate = (k) => setBlackout((prev) => (prev.includes(k) ? prev.filter((x) => x !== k) : [...prev, k]));
+  const saveCalendar = async () => {
+    if (!calItem) return;
+    if (LIVE) {
+      try { await updateMyAccommodation(calItem._id, { blackoutDates: blackout }); }
+      catch { toast.error("Couldn't save availability. Please try again."); return; }
+    }
+    setItems((prev) => prev.map((x) => (x._id === calItem._id ? { ...x, blackoutDates: blackout } : x)));
+    setCalItem(null);
+    toast.success("Availability updated.");
   };
 
   const handleDelete = async (item) => {
@@ -77,6 +96,7 @@ export default function HotelListings() {
       price: Number(form.price) || 0, description: form.description,
       amenities: form.amenities ? form.amenities.split(",").map((s) => s.trim()).filter(Boolean) : [],
       specialOffer: form.specialOffer, picture: form.picture, isAvailable: !!form.isAvailable,
+      bookingMode: form.bookingMode === "instant" ? "instant" : "request",
     };
     if (LIVE) {
       try {
@@ -139,6 +159,7 @@ export default function HotelListings() {
                       <span className="text-xs text-slate-400"> / {item.type === "food" ? "avg" : "night"}</span>
                     </div>
                     <div className="flex items-center gap-2">
+                      <button onClick={() => openCalendar(item)} title="Availability calendar" className="flex h-8 w-8 items-center justify-center rounded-lg text-sky-600 transition-colors hover:bg-sky-50"><CalendarDays className="h-4 w-4" /></button>
                       <button onClick={() => openEdit(item)} title="Edit" className="flex h-8 w-8 items-center justify-center rounded-lg text-lime-600 transition-colors hover:bg-lime-50"><Pencil className="h-4 w-4" /></button>
                       <button onClick={() => handleDelete(item)} title="Delete" className="flex h-8 w-8 items-center justify-center rounded-lg text-rose-500 transition-colors hover:bg-rose-50"><Trash2 className="h-4 w-4" /></button>
                     </div>
@@ -200,11 +221,34 @@ export default function HotelListings() {
             <input value={form.picture} onChange={(e) => update("picture", e.target.value)} placeholder="https://…  or use Upload" className={adminInputCls} />
             {form.picture && <img loading="lazy" decoding="async" src={form.picture} alt="" className="mt-2 h-32 w-full rounded-xl object-cover" />}
           </div>
+          <Field label="Booking mode" hint="Instant = confirmed on payment. Request = you review each booking first.">
+            <select value={form.bookingMode} onChange={(e) => update("bookingMode", e.target.value)} className={adminInputCls}>
+              <option value="request">Request to book</option>
+              <option value="instant">Instant book</option>
+            </select>
+          </Field>
           <label className="flex items-center gap-2.5 text-sm font-medium text-slate-600">
             <input type="checkbox" checked={form.isAvailable} onChange={(e) => update("isAvailable", e.target.checked)} className="h-4 w-4 rounded border-slate-300 text-lime-500 accent-lime-500" />
             Available for booking
           </label>
         </div>
+      </Modal>
+
+      {/* Availability calendar */}
+      <Modal
+        open={!!calItem}
+        onClose={() => setCalItem(null)}
+        icon={CalendarDays}
+        title="Availability"
+        subtitle={calItem ? `Block dates when "${calItem.name}" can't take bookings.` : ""}
+        footer={
+          <>
+            <BtnGhost type="button" onClick={() => setCalItem(null)}>Cancel</BtnGhost>
+            <Btn type="button" onClick={saveCalendar}>Save availability</Btn>
+          </>
+        }
+      >
+        <AvailabilityCalendar value={blackout} onToggle={toggleDate} />
       </Modal>
     </HotelLayout>
   );

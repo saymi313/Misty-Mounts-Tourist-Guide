@@ -1,6 +1,6 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
-import { LayoutDashboard, BedDouble, CalendarCheck, Banknote, UserCircle } from "lucide-react";
+import { LayoutDashboard, BedDouble, CalendarCheck, Banknote, UserCircle, BarChart3 } from "lucide-react";
 import DashboardLayout from "../components/dashboard/DashboardLayout";
 import { PromoCard } from "../components/dashboard/ui";
 import { useAuth } from "../context/AuthContext";
@@ -11,6 +11,7 @@ const NAV = [
   { to: "/hotel", label: "Dashboard", icon: LayoutDashboard, end: true },
   { to: "/hotel/listings", label: "My Listings", icon: BedDouble },
   { to: "/hotel/bookings", label: "Bookings", icon: CalendarCheck },
+  { to: "/hotel/insights", label: "Insights", icon: BarChart3 },
   { to: "/hotel/revenue", label: "Revenue", icon: Banknote },
   { to: "/hotel/profile", label: "Profile", icon: UserCircle },
 ];

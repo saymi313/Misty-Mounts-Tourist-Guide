@@ -2,7 +2,7 @@ const TourPackage = require("../../UserBackend/models/tourPackage");
 const TourBooking = require("../../UserBackend/models/tourBooking");
 const User = require("../../LocalGuidePannel/models/User");
 const { slugify } = require("../../utils/slug");
-const { getAutoApprovePackages } = require("../../AdminBackend/controllers/settingsController");
+const { getAutoApprovePackages, getRevenueConfig } = require("../../AdminBackend/controllers/settingsController");
 
 // Unique slug from the title → used as the package _id so /tours/:id is readable.
 const uniquePkgSlug = async (title) => {
@@ -105,5 +105,59 @@ exports.listMyTourBookings = async (req, res) => {
   } catch (err) {
     console.error("listMyTourBookings error:", err.message);
     res.status(500).json({ error: "Failed to load bookings" });
+  }
+};
+
+// GET /api/agency/analytics — owner-scoped insights incl. seat utilization.
+exports.getAnalytics = async (req, res) => {
+  try {
+    const packages = await TourPackage.find({ agencyId: req.user.id });
+    const bookings = await TourBooking.find({ agencyId: req.user.id });
+    const { commissionPercent } = await getRevenueConfig();
+
+    const paid = bookings.filter((b) => b.paymentStatus === "Approved" && b.status !== "Cancelled");
+    const gross = paid.reduce((s, b) => s + (b.amount || 0), 0);
+    const net = Math.round(gross * (1 - commissionPercent / 100));
+    const held = paid.filter((b) => b.escrowStatus !== "Released").reduce((s, b) => s + (b.amount || 0), 0);
+    const seatsSold = paid.reduce((s, b) => s + (b.seats || 0), 0);
+
+    // Seat utilization across every departure.
+    let seatsTotal = 0, seatsBooked = 0;
+    packages.forEach((p) => (p.departures || []).forEach((d) => { seatsTotal += d.seatsTotal || 0; seatsBooked += d.seatsBooked || 0; }));
+    const fillRate = seatsTotal ? Math.round((seatsBooked / seatsTotal) * 100) : 0;
+
+    const MONTHS = 6;
+    const since = new Date(); since.setDate(1); since.setHours(0, 0, 0, 0); since.setMonth(since.getMonth() - (MONTHS - 1));
+    const series = [];
+    for (let i = 0; i < MONTHS; i++) {
+      const d = new Date(since); d.setMonth(since.getMonth() + i);
+      const y = d.getFullYear(), m = d.getMonth();
+      const rows = paid.filter((b) => { const c = new Date(b.createdAt); return c.getFullYear() === y && c.getMonth() === m; });
+      series.push({ label: d.toLocaleString("en", { month: "short" }), revenue: rows.reduce((s, b) => s + (b.amount || 0), 0), bookings: rows.length });
+    }
+
+    const byStatus = {};
+    bookings.forEach((b) => { byStatus[b.status] = (byStatus[b.status] || 0) + 1; });
+
+    const revByPkg = {};
+    paid.forEach((b) => { revByPkg[b.packageId] = (revByPkg[b.packageId] || 0) + (b.amount || 0); });
+    const topPackages = packages
+      .map((p) => ({ name: p.title, revenue: revByPkg[p._id] || 0 }))
+      .sort((a, b) => b.revenue - a.revenue).slice(0, 5);
+
+    const now = new Date();
+    const upcomingDeps = packages.reduce((n, p) => n + (p.departures || []).filter((d) => new Date(d.date) >= now).length, 0);
+
+    res.json({
+      kpis: {
+        bookings: paid.length, gross, net, held, seatsSold, fillRate,
+        aov: paid.length ? Math.round(gross / paid.length) : 0,
+        packages: packages.length, upcomingDeps, commissionPercent,
+      },
+      series, byStatus, topPackages,
+    });
+  } catch (err) {
+    console.error("agency getAnalytics error:", err.message);
+    res.status(500).json({ error: "Failed to load analytics" });
   }
 };

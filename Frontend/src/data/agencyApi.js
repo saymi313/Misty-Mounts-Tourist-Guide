@@ -6,3 +6,4 @@ export const createMyPackage = async (b) => (await api.post("/agency/packages", 
 export const updateMyPackage = async (id, b) => (await api.put(`/agency/packages/${id}`, b)).data.package;
 export const deleteMyPackage = async (id) => (await api.delete(`/agency/packages/${id}`)).data;
 export const listMyTourBookings = async () => (await api.get("/agency/bookings")).data.bookings;
+export const getMyAnalytics = async () => (await api.get("/agency/analytics")).data;

@@ -1,12 +1,16 @@
 import React, { useMemo, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Map as MapIcon, MapPin, Trash2, Share2, Check, Compass, Route, Download, X } from "lucide-react";
+import { Map as MapIcon, MapPin, Trash2, Share2, Check, Compass, Route, Download, X, CloudDownload, WifiOff } from "lucide-react";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Home/Footer";
 import { Tile, Eyebrow, Btn, BtnGhost } from "../components/bento/tiles";
 import useTrip from "../../hooks/useTrip";
+import useOfflinePack from "../../hooks/useOfflinePack";
+import useOnline from "../../hooks/useOnline";
+import { buildPack } from "../../utils/offlineStore";
 import { formatPKR } from "../../utils/currency";
+import { timeAgo } from "../../utils/datetime";
 import { toast } from "../../utils/toast";
 
 const EASE = [0.16, 1, 0.3, 1];
@@ -23,8 +27,22 @@ const decodePlan = (s) => {
 
 const TripBuilder = () => {
   const { items, remove, setDay, clear, setAll } = useTrip();
+  const pack = useOfflinePack();
+  const online = useOnline();
+  const [saving, setSaving] = useState(false);
+  const [progress, setProgress] = useState(null);
   const [params, setParams] = useSearchParams();
   const sharedPlan = useMemo(() => (params.get("plan") ? decodePlan(params.get("plan")) : null), [params]);
+
+  const downloadOffline = async () => {
+    if (!online) { toast.error("Connect to the internet to download your trip."); return; }
+    setSaving(true);
+    try {
+      await buildPack(items, setProgress);
+      toast.success("Trip saved for offline — open it anytime with no signal.");
+    } catch { toast.error("Couldn't save the trip offline."); }
+    finally { setSaving(false); setProgress(null); }
+  };
 
   const total = items.reduce((s, i) => s + (Number(i.price) || 0), 0);
 
@@ -86,11 +104,26 @@ const TripBuilder = () => {
             {/* Toolbar */}
             <div className="mt-8 flex flex-wrap items-center justify-between gap-3">
               <p className="text-sm text-white/60"><span className="font-bold text-white">{items.length}</span> item(s) · est. <span className="font-bold text-lime-400">{formatPKR(total)}</span></p>
-              <div className="flex gap-2">
+              <div className="flex flex-wrap gap-2">
+                <Btn onClick={downloadOffline} disabled={saving} className="!px-4 !py-2.5">
+                  <CloudDownload className="h-4 w-4" />
+                  {saving ? (progress?.total ? `Saving ${progress.done}/${progress.total}…` : "Saving…") : "Download offline"}
+                </Btn>
                 <BtnGhost onClick={share} className="!px-4 !py-2.5"><Share2 className="h-4 w-4" /> Share</BtnGhost>
                 <BtnGhost onClick={() => { clear(); toast.success("Trip cleared."); }} className="!px-4 !py-2.5 hover:!border-rose-400 hover:!text-rose-400"><Trash2 className="h-4 w-4" /> Clear</BtnGhost>
               </div>
             </div>
+
+            {/* Offline availability status */}
+            {pack && (
+              <Tile className="mt-4 flex flex-col items-start gap-2 sm:flex-row sm:items-center sm:justify-between" pad="p-3 sm:p-4">
+                <p className="flex items-center gap-2 text-sm text-white/80">
+                  <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-lime-400/15 text-lime-300"><Check className="h-4 w-4" /></span>
+                  Saved for offline · <span className="text-white/50">{pack.itemCount} item(s), {pack.cities.length} town(s), updated {timeAgo(pack.builtAt)}</span>
+                </p>
+                <Link to="/trip/offline"><BtnGhost className="!px-4 !py-2"><WifiOff className="h-4 w-4" /> View offline trip</BtnGhost></Link>
+              </Tile>
+            )}
 
             {/* Days */}
             <div className="mt-6 space-y-6">

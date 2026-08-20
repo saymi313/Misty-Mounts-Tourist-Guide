@@ -11,5 +11,6 @@ router.post("/accommodations", hotelOnly, hotelController.createMyAccommodation)
 router.put("/accommodations/:id", hotelOnly, hotelController.updateMyAccommodation);
 router.delete("/accommodations/:id", hotelOnly, hotelController.deleteMyAccommodation);
 router.get("/bookings", hotelOnly, hotelController.listMyBookings);
+router.get("/analytics", hotelOnly, hotelController.getAnalytics);
 
 module.exports = router;

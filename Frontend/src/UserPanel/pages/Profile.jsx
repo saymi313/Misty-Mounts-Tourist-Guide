@@ -270,8 +270,8 @@ const Profile = () => {
             {referral?.referralCode && (
               <Tile glow="lime" pad="p-6">
                 <Eyebrow>Refer &amp; earn</Eyebrow>
-                <h3 className="mt-2 text-lg font-extrabold text-white">Invite friends, earn credit</h3>
-                <p className="mt-1 text-sm text-white/60">Share your link. When a friend joins, you get PKR 500 in travel credit.</p>
+                <h3 className="mt-2 text-lg font-extrabold text-white">Invite friends, you both earn</h3>
+                <p className="mt-1 text-sm text-white/60">Share your link. When a friend joins, <span className="font-semibold text-white/80">you both get PKR 500</span> in travel credit — applied automatically at checkout.</p>
 
                 <div className="mt-4 flex items-center gap-2 rounded-2xl border border-white/10 bg-night-900 p-1.5">
                   <span className="min-w-0 flex-1 truncate px-2 text-sm text-white/70">{inviteLink}</span>
@@ -287,7 +287,7 @@ const Profile = () => {
                   </div>
                   <div className="rounded-2xl bg-night-700/50 p-3 text-center">
                     <p className="text-2xl font-extrabold text-lime-400">PKR {referral.referralCredits || 0}</p>
-                    <p className="text-[11px] text-white/50">Credit earned</p>
+                    <p className="text-[11px] text-white/50">Credit to spend</p>
                   </div>
                 </div>
               </Tile>

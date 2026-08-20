@@ -11,6 +11,7 @@ const OTP_MAX_ATTEMPTS = 5; // lock the code after this many wrong guesses
 const str = (v) => (typeof v === "string" ? v : "");
 
 const REFERRAL_REWARD = 500; // PKR credit to the referrer when their invite verifies.
+const REFERRAL_WELCOME = 500; // PKR welcome credit to the invitee who joined via a code.
 
 // Generate a unique referral code (MM + 6 chars).
 const genReferralCode = async () => {
@@ -123,17 +124,28 @@ const verifyOtp = async (req, res) => {
     if (!user.referralCode) user.referralCode = await genReferralCode();
     await user.save();
 
-    // Reward the referrer, once, when their invite completes verification.
+    // Two-sided referral: reward the referrer AND give the new joiner welcome
+    // credit, once, when their invite completes verification. Credit is
+    // discount-only (redeemed at checkout, never withdrawn as cash).
     if (user.referredBy) {
       const referrer = await User.findOne({ referralCode: user.referredBy });
       if (referrer && String(referrer._id) !== String(user._id)) {
         referrer.referralCount = (referrer.referralCount || 0) + 1;
         referrer.referralCredits = (referrer.referralCredits || 0) + REFERRAL_REWARD;
         await referrer.save();
+        // Welcome credit for the invitee.
+        user.referralCredits = (user.referralCredits || 0) + REFERRAL_WELCOME;
+        await user.save();
         createNotification(referrer._id, {
           type: "system",
           title: "You earned referral credit",
-          body: `${user.name || "A friend"} joined with your invite. You've earned PKR ${REFERRAL_REWARD} in credit.`,
+          body: `${user.name || "A friend"} joined with your invite. You've earned PKR ${REFERRAL_REWARD} in travel credit.`,
+          link: "/profile",
+        });
+        createNotification(user._id, {
+          type: "system",
+          title: `Welcome — here's PKR ${REFERRAL_WELCOME} credit`,
+          body: `You joined with a friend's invite, so we've added PKR ${REFERRAL_WELCOME} in travel credit. It applies automatically at checkout.`,
           link: "/profile",
         });
       }

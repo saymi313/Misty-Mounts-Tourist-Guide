@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Calendar, Check, MapPin, ShieldCheck, AlertCircle, Upload, Loader2, Landmark, Clock, Copy } from 'lucide-react';
+import { Calendar, Check, MapPin, ShieldCheck, AlertCircle, Upload, Loader2, Landmark, Clock, Copy, Gift } from 'lucide-react';
 import { createPayment } from '../../../data/mockApi';
 import { getPaymentAccounts } from '../../../data/revenueApi';
 import { Tile, Btn, inputCls } from '../bento/tiles';
@@ -32,9 +32,15 @@ const PaymentForm = ({ subtotal = 0, fee = 0, hotelName, hotelImage, accId, city
   const [proofErr, setProofErr] = useState('');
   const [uploading, setUploading] = useState(false);
 
+  // Referral credit (redeemed as a discount, server-side).
+  const [credits, setCredits] = useState(0);
+  const [useCredit, setUseCredit] = useState(true);
+
   const nights = Math.max(1, parseInt(formData.numberOfDays, 10) || 1);
   const roomTotal = subtotal * nights;
   const totalAmount = roomTotal + fee;
+  const creditApplied = useCredit ? Math.min(credits, totalAmount) : 0;
+  const payable = Math.max(0, totalAmount - creditApplied);
 
   useEffect(() => {
     if (!LIVE) return;
@@ -42,6 +48,7 @@ const PaymentForm = ({ subtotal = 0, fee = 0, hotelName, hotelImage, accId, city
       setAccounts(a || []);
       if (a?.length) setSelectedAccount(a[0].label || a[0].accountNumber);
     }).catch(() => {});
+    api.get('/user/me').then(({ data }) => setCredits(Number(data.user?.referralCredits) || 0)).catch(() => {});
   }, []);
 
   const handleInputChange = (e) => {
@@ -95,7 +102,7 @@ const PaymentForm = ({ subtotal = 0, fee = 0, hotelName, hotelImage, accId, city
     try {
       const res = await createPayment({
         ...formData, subtotal, fee, totalAmount, hotelName, numberOfDays: nights,
-        accId, city, hotelImage,
+        accId, city, hotelImage, useCredit,
         paymentProof: proof, paymentRef: formData.paymentRef,
         paymentAccountLabel: selectedAccount, senderName: formData.senderName,
       });
@@ -105,7 +112,7 @@ const PaymentForm = ({ subtotal = 0, fee = 0, hotelName, hotelImage, accId, city
           : {
               _id: `mb-${res.data.bookingId}`, accId: accId || '', hotel: hotelName || 'Your stay',
               city: city || 'Hazara', image: hotelImage || '', checkIn: formData.date, nights,
-              guests: 1, amount: totalAmount, status: 'Upcoming', paymentStatus: 'Pending',
+              guests: 1, amount: payable, status: 'Upcoming', paymentStatus: 'Pending',
               bookedOn: todayStr(), ref: res.data.bookingId,
             }
       );
@@ -135,7 +142,8 @@ const PaymentForm = ({ subtotal = 0, fee = 0, hotelName, hotelImage, accId, city
             <Row label="Booking reference" value={confirmation.bookingId} strong />
             <Row label="Stay" value={hotelName} />
             <Row label="Nights" value={nights} />
-            <Row label="Total paid" value={formatPKR(totalAmount)} accent />
+            {creditApplied > 0 && <Row label="Referral credit" value={`- ${formatPKR(creditApplied)}`} />}
+            <Row label="Total paid" value={formatPKR(payable)} accent />
           </div>
         </Tile>
       </div>
@@ -192,7 +200,7 @@ const PaymentForm = ({ subtotal = 0, fee = 0, hotelName, hotelImage, accId, city
               <Landmark className="h-4 w-4 text-lime-400" /> Pay &amp; attach proof
             </h3>
             <p className="mt-1 text-xs text-white/50">
-              Transfer {formatPKR(totalAmount)} to an account below, then upload a screenshot of the receipt.
+              Transfer {formatPKR(payable)} to an account below, then upload a screenshot of the receipt.
             </p>
 
             {accounts.length === 0 ? (
@@ -256,10 +264,15 @@ const PaymentForm = ({ subtotal = 0, fee = 0, hotelName, hotelImage, accId, city
             </div>
           </div>
 
-          <label className="flex items-center gap-2.5 text-sm text-white/60">
-            <input type="checkbox" name="hasPromoCode" checked={formData.hasPromoCode} onChange={handleInputChange} className="h-4 w-4 rounded border-white/20 bg-night-800 text-lime-400 focus:ring-lime-400/40" />
-            I have a promo code
-          </label>
+          {credits > 0 && (
+            <label className="flex items-start gap-2.5 rounded-xl border border-lime-400/25 bg-lime-400/[0.06] p-3 text-sm text-white/80">
+              <input type="checkbox" checked={useCredit} onChange={(e) => setUseCredit(e.target.checked)} className="mt-0.5 h-4 w-4 rounded border-white/20 bg-night-800 text-lime-400 focus:ring-lime-400/40" />
+              <span className="flex flex-wrap items-center gap-1.5">
+                <Gift className="h-4 w-4 text-lime-400" /> Apply my <span className="font-bold text-lime-300">{formatPKR(credits)}</span> referral credit
+                {creditApplied > 0 && <span className="text-white/50">— you save {formatPKR(creditApplied)}</span>}
+              </span>
+            </label>
+          )}
 
           {error && <p className="text-sm font-medium text-rose-400">{error}</p>}
 
@@ -293,9 +306,15 @@ const PaymentForm = ({ subtotal = 0, fee = 0, hotelName, hotelImage, accId, city
             <div className="mt-5 space-y-2 border-t border-white/[0.07] pt-5 text-sm">
               <Row label={`${formatPKR(subtotal)} × ${nights} night${nights > 1 ? 's' : ''}`} value={formatPKR(roomTotal)} />
               <Row label="Service fee" value={formatPKR(fee)} />
+              {creditApplied > 0 && (
+                <div className="flex justify-between text-lime-300">
+                  <span className="flex items-center gap-1"><Gift className="h-3.5 w-3.5" /> Referral credit</span>
+                  <span className="font-semibold">- {formatPKR(creditApplied)}</span>
+                </div>
+              )}
               <div className="flex justify-between border-t border-white/10 pt-3 text-lg font-extrabold text-white">
                 <span>Total</span>
-                <span className="text-lime-400">{formatPKR(totalAmount)}</span>
+                <span className="text-lime-400">{formatPKR(payable)}</span>
               </div>
             </div>
           </div>

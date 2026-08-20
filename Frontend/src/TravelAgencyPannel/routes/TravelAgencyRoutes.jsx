@@ -3,6 +3,7 @@ import { Route } from "react-router-dom";
 import AgencyDashboard from "../pages/AgencyDashboard";
 import AgencyPackages from "../pages/AgencyPackages";
 import AgencyBookings from "../pages/AgencyBookings";
+import AgencyInsights from "../pages/AgencyInsights";
 import AgencyRevenue from "../pages/AgencyRevenue";
 import AgencyProfile from "../pages/AgencyProfile";
 
@@ -11,6 +12,7 @@ const TravelAgencyRoutes = () => [
   <Route key="dashboard" index element={<AgencyDashboard />} />,
   <Route key="packages" path="packages" element={<AgencyPackages />} />,
   <Route key="bookings" path="bookings" element={<AgencyBookings />} />,
+  <Route key="insights" path="insights" element={<AgencyInsights />} />,
   <Route key="revenue" path="revenue" element={<AgencyRevenue />} />,
   <Route key="profile" path="profile" element={<AgencyProfile />} />,
 ];

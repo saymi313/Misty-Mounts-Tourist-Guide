@@ -11,6 +11,7 @@ const bookingSchema = new mongoose.Schema(
     nights: { type: Number, default: 1, min: 1 },
     guests: { type: Number, default: 1, min: 1 },
     amount: { type: Number, required: true, min: 0 },
+    creditApplied: { type: Number, default: 0 }, // referral credit redeemed on this booking
     status: {
       type: String,
       enum: ["Upcoming", "Completed", "Cancelled"],
@@ -28,6 +29,16 @@ const bookingSchema = new mongoose.Schema(
     paymentAccountLabel: { type: String, default: "" },
     senderName: { type: String, default: "" },
     paymentStatus: { type: String, enum: ["Pending", "Approved", "Rejected"], default: "Pending" },
+    // Milestone escrow: once payment is Approved the money is "Held" by the
+    // platform; it becomes "Released" (and thus withdrawable by the partner)
+    // only when the traveller confirms the stay or admin/auto-release fires on
+    // check-out. This is what backs the "escrow-protected" guarantee.
+    escrowStatus: { type: String, enum: ["None", "Held", "Released", "Refunded"], default: "None" },
+    heldAt: { type: Date },
+    releasedAt: { type: Date },
+    // Gateway metadata (when paid online rather than by manual proof).
+    provider: { type: String, default: "" },
+    gatewayTxnId: { type: String, default: "" },
   },
   { timestamps: true }
 );

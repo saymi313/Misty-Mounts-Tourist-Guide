@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Wallet, Banknote, Send } from "lucide-react";
+import { Wallet, Banknote, Send, Lock } from "lucide-react";
 import TravelAgencyLayout from "../TravelAgencyLayout";
 import { Card, SectionHead, StatCard, Btn, BtnGhost, Field, adminInputCls } from "../../components/dashboard/ui";
 import Modal from "../../components/dashboard/Modal";
@@ -16,7 +16,7 @@ const payoutPill = (s) => {
 };
 
 export default function AgencyRevenue() {
-  const [balance, setBalance] = useState({ earnings: 0, withdrawn: 0, available: 0, minPayoutThreshold: 0, commissionPercent: 0 });
+  const [balance, setBalance] = useState({ earnings: 0, held: 0, withdrawn: 0, available: 0, minPayoutThreshold: 0, commissionPercent: 0 });
   const [payouts, setPayouts] = useState([]);
   const [open, setOpen] = useState(false);
   const [form, setForm] = useState({ amount: "", accountDetails: "", note: "" });
@@ -50,11 +50,13 @@ export default function AgencyRevenue() {
 
   return (
     <TravelAgencyLayout greeting="Revenue" subtitle="Your net earnings and payout requests">
-      <div className="grid gap-4 sm:grid-cols-3">
-        <StatCard icon={Banknote} tone="emerald" label={`Net earnings (after ${balance.commissionPercent}%)`} value={formatPKR(balance.earnings)} />
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <StatCard icon={Banknote} tone="emerald" label={`Released (after ${balance.commissionPercent}%)`} value={formatPKR(balance.earnings)} />
+        <StatCard icon={Lock} tone="apricot" label="In escrow (held)" value={formatPKR(balance.held || 0)} />
         <StatCard icon={Wallet} tone="sky" label="Available to withdraw" value={formatPKR(balance.available)} />
         <StatCard icon={Send} tone="violet" label="Requested / paid" value={formatPKR(balance.withdrawn)} />
       </div>
+      <p className="mt-3 text-xs text-slate-400">Funds are held in escrow until the traveller confirms the tour, then released to your balance.</p>
 
       <Card className="mt-6">
         <SectionHead

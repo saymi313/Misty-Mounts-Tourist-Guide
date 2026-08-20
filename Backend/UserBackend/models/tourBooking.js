@@ -34,6 +34,13 @@ const tourBookingSchema = new mongoose.Schema(
     paymentAccountLabel: { type: String, default: "" },
     senderName: { type: String, default: "" },
     paymentStatus: { type: String, enum: ["Pending", "Approved", "Rejected"], default: "Pending" },
+    // Milestone escrow (see booking.js): Held on approval → Released to the
+    // agency when the traveller confirms the tour or it completes.
+    escrowStatus: { type: String, enum: ["None", "Held", "Released", "Refunded"], default: "None" },
+    heldAt: { type: Date },
+    releasedAt: { type: Date },
+    provider: { type: String, default: "" },
+    gatewayTxnId: { type: String, default: "" },
   },
   { timestamps: true }
 );
