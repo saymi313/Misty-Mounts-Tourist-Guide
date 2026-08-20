@@ -44,10 +44,22 @@ const userSchema = new mongoose.Schema(
     isApproved: { type: Boolean, default: true },
     // Per-user saved tourist-spot ids (Phase 4)
     savedSpots: { type: [String], default: [] },
+    // Identity (KYC) verification — distinct from email `isVerified` below.
+    // Providers (guides/hosts/agencies) upload an ID doc → 'pending' → admin
+    // reviews → 'verified'. Drives the public "Verified" badge.
+    idDocument: { type: String, default: "" },
+    verificationStatus: { type: String, enum: ["unverified", "pending", "verified"], default: "unverified" },
+    verifiedAt: { type: Date },
+    // Referral program
+    referralCode: { type: String, default: "", index: true },
+    referredBy: { type: String, default: "" },
+    referralCount: { type: Number, default: 0 },
+    referralCredits: { type: Number, default: 0 },
     // Email OTP verification
     isVerified: { type: Boolean, default: false },
     otp: { type: String, select: false },
     otpExpires: { type: Date, select: false },
+    otpAttempts: { type: Number, default: 0, select: false }, // brute-force lockout counter
   },
   { timestamps: true }
 );

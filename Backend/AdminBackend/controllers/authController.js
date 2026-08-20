@@ -30,17 +30,18 @@ exports.registerAdmin = async (req, res) => {
 // Login Admin
 exports.loginAdmin = async (req, res) => {
   try {
-    const { username, password } = req.body;
-    if (!username || !password) {
+    const identifier = (typeof req.body.username === "string" ? req.body.username : "").trim();
+    const password = typeof req.body.password === "string" ? req.body.password : "";
+    if (!identifier || !password) {
       return res.status(400).json({ error: "username and password are required" });
     }
 
     // Accept either the admin's username or email as the identifier.
-    const identifier = String(username).trim();
     const admin = await Admin.findOne({
       $or: [{ username: identifier }, { email: identifier.toLowerCase() }],
     });
-    if (!admin) return res.status(404).json({ error: "Admin not found" });
+    // Same generic response whether the admin exists or the password is wrong.
+    if (!admin) return res.status(401).json({ error: "Invalid credentials" });
 
     const isMatch = await bcrypt.compare(password, admin.password);
     if (!isMatch) return res.status(401).json({ error: "Invalid credentials" });

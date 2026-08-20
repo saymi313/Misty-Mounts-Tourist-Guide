@@ -78,6 +78,7 @@ exports.createPlace = async (req, res) => {
 
     // Record who uploaded the spot, resolved from the authenticated user so it
     // can't be spoofed by the client.
+    place.uploaderId = req.user?.id || ""; // owner id for later permission checks
     if (req.user?.type === "local guide") {
       const guide = await User.findById(req.user.id).select("name");
       place.uploaderRole = "local guide";
@@ -108,6 +109,10 @@ exports.updatePlace = async (req, res) => {
 
     const place = doc.nearbyPlaces.id(id);
     const isAdmin = req.user?.type === "admin";
+    // Ownership: a guide may only edit a place they uploaded.
+    if (!isAdmin && String(place.uploaderId || "") !== String(req.user.id)) {
+      return res.status(403).json({ error: "You can only edit spots you added." });
+    }
     for (const f of PLACE_FIELDS) {
       // Only admins may change approval — guides can't self-approve via edit.
       if (f === "isApproved" && !isAdmin) continue;
@@ -141,6 +146,11 @@ exports.deletePlace = async (req, res) => {
     const { id } = req.params;
     const doc = await TouristSpot.findOne({ "nearbyPlaces._id": id });
     if (!doc) return res.status(404).json({ error: "Place not found" });
+    const place = doc.nearbyPlaces.id(id);
+    // Ownership: a guide may only delete a place they uploaded.
+    if (req.user?.type !== "admin" && String(place?.uploaderId || "") !== String(req.user.id)) {
+      return res.status(403).json({ error: "You can only delete spots you added." });
+    }
     doc.nearbyPlaces.pull(id);
     await doc.save();
     res.json({ success: true });

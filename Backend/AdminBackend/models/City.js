@@ -5,6 +5,7 @@ const mongoose = require("mongoose");
 const citySchema = new mongoose.Schema(
   {
     name: { type: String, required: true, unique: true, trim: true },
+    province: { type: String, default: "" },
     photo: { type: String, default: "" },
     tagline: { type: String, default: "" },
   },

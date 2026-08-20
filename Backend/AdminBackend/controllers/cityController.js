@@ -1,6 +1,6 @@
 const City = require("../models/City");
 
-const shape = (c) => ({ _id: c._id, name: c.name, photo: c.photo || "", tagline: c.tagline || "" });
+const shape = (c) => ({ _id: c._id, name: c.name, province: c.province || "", photo: c.photo || "", tagline: c.tagline || "" });
 
 // GET /api/cities — public list (dropdowns + traveller panel).
 exports.listCities = async (req, res) => {
@@ -20,7 +20,7 @@ exports.createCity = async (req, res) => {
     if (!name) return res.status(400).json({ error: "City name is required" });
     const exists = await City.findOne({ name });
     if (exists) return res.status(409).json({ error: "That city already exists" });
-    const city = await City.create({ name, photo: req.body.photo || "", tagline: req.body.tagline || "" });
+    const city = await City.create({ name, province: req.body.province || "", photo: req.body.photo || "", tagline: req.body.tagline || "" });
     res.status(201).json({ city: shape(city) });
   } catch (err) {
     console.error("createCity error:", err.message);
@@ -32,7 +32,7 @@ exports.createCity = async (req, res) => {
 exports.updateCity = async (req, res) => {
   try {
     const updates = {};
-    for (const k of ["name", "photo", "tagline"]) if (k in req.body) updates[k] = req.body[k];
+    for (const k of ["name", "province", "photo", "tagline"]) if (k in req.body) updates[k] = req.body[k];
     if (updates.name) updates.name = updates.name.trim();
     const city = await City.findByIdAndUpdate(req.params.id, updates, { new: true, runValidators: true });
     if (!city) return res.status(404).json({ error: "City not found" });

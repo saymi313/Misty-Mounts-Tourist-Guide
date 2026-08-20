@@ -17,6 +17,9 @@ const shape = (u) => ({
   interests: u.interests || [],
   savedSpots: u.savedSpots || [],
   isVerified: !!u.isVerified,
+  idDocument: u.idDocument || "",
+  verificationStatus: u.verificationStatus || "unverified",
+  verifiedAt: u.verifiedAt || null,
   memberSince: u.createdAt,
 });
 
@@ -67,6 +70,31 @@ exports.approveUser = async (req, res) => {
   } catch (err) {
     console.error("approveUser error:", err.message);
     res.status(500).json({ error: "Failed to update approval" });
+  }
+};
+
+// PATCH /api/admin/users/:id/verify — admin confirms (or rejects) a KYC submission.
+exports.verifyUser = async (req, res) => {
+  try {
+    const verified = "verified" in req.body ? !!req.body.verified : true;
+    const update = verified
+      ? { verificationStatus: "verified", verifiedAt: new Date() }
+      : { verificationStatus: "unverified", verifiedAt: null };
+    const user = await User.findByIdAndUpdate(req.params.id, update, { new: true })
+      .select("-password -otp -otpExpires");
+    if (!user) return res.status(404).json({ error: "User not found" });
+    createNotification(user._id, {
+      type: "system",
+      title: verified ? "You're verified" : "Verification not approved",
+      body: verified
+        ? "Your identity has been verified. A Verified badge now appears on your profile."
+        : "We couldn't verify your identity. Please re-upload a clear ID document.",
+      link: "/local-guide/profile",
+    });
+    res.json({ user: shape(user) });
+  } catch (err) {
+    console.error("verifyUser error:", err.message);
+    res.status(500).json({ error: "Failed to update verification" });
   }
 };
 

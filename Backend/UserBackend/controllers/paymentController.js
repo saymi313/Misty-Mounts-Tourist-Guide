@@ -45,7 +45,11 @@ exports.createPayment = async (req, res) => {
     } = req.body;
 
     const nights = Math.max(1, Number(numberOfDays) || 1);
-    const amount = (Number(subtotal) || 0) * nights + (Number(fee) || 0);
+    // Price is recomputed from the authoritative Accommodation record — never
+    // trusted from the client (which could send subtotal/fee = 0 to pay nothing).
+    const acc = accId ? await Accommodation.findById(accId) : null;
+    if (!acc) return res.status(400).json({ error: "Invalid accommodation selected" });
+    const amount = Number(acc.price) * nights;
     const ref = `MM-${Date.now().toString(36).toUpperCase()}`;
 
     const booking = await Booking.create({

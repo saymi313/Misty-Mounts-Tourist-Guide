@@ -15,11 +15,12 @@ const shapeGuide = (u, agg) => ({
   serviceAreas: u.serviceAreas || [],
   rating: agg ? Math.round(agg.avg * 10) / 10 : 0,
   reviewCount: agg ? agg.count : 0,
+  verified: u.verificationStatus === "verified",
   memberSince: u.createdAt,
 });
 
 const GUIDE_FIELDS =
-  "name username avatar city bio experience languages specialties serviceAreas createdAt";
+  "name username avatar city bio experience languages specialties serviceAreas verificationStatus createdAt";
 
 // GET /api/user/guides — public directory of local guides (with rating/reviews).
 exports.listGuides = async (req, res) => {

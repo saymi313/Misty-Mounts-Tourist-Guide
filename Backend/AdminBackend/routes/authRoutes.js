@@ -1,9 +1,10 @@
 const express = require("express");
-const { registerAdmin, loginAdmin } = require("../controllers/authController");
+const { loginAdmin } = require("../controllers/authController");
 
 const router = express.Router();
 
-router.post("/register", registerAdmin);
+// NOTE: public admin self-registration was removed for security. Admins are
+// provisioned server-side only (via `npm run seed` using ADMIN_* env vars).
 router.post("/login", loginAdmin);
 
 module.exports = router;

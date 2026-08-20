@@ -3,6 +3,9 @@ const cors = require("cors");
 const http = require("http");
 const path = require("path");
 const jwt = require("jsonwebtoken");
+const helmet = require("helmet");
+const rateLimit = require("express-rate-limit");
+const mongoSanitize = require("express-mongo-sanitize");
 const { Server } = require("socket.io");
 
 require("dotenv").config();
@@ -28,6 +31,8 @@ const messageRoutes = require("./UserBackend/routes/messageRoutes");
 const translateRoutes = require("./routes/translateRoutes");
 const aiRoutes = require("./routes/aiRoutes");
 const pushRoutes = require("./routes/pushRoutes");
+const waitlistRoutes = require("./routes/waitlistRoutes");
+const paymentGatewayRoutes = require("./routes/paymentGatewayRoutes");
 
 const app = express();
 const server = http.createServer(app);
@@ -47,14 +52,40 @@ const io = new Server(server, {
 app.set("io", io);
 
 // Middleware
+// Security headers (HSTS, nosniff, frameguard, no x-powered-by, etc.). Allow the
+// separate frontend origin to load /uploads images cross-origin.
+app.use(helmet({ crossOriginResourcePolicy: { policy: "cross-origin" } }));
+app.disable("x-powered-by");
+
 app.use(cors({
   origin: CLIENT_URL, // Allow frontend requests
   methods: ["GET", "POST", "PUT", "DELETE", "PATCH"],
   credentials: true,
 }));
 
-app.use(express.json({ limit: "5mb" }));
-app.use(express.urlencoded({ extended: true }));
+app.use(express.json({
+  limit: "1mb",
+  // Keep the raw body for the payment webhook so its signature can be verified.
+  verify: (req, _res, buf) => { if (req.originalUrl.startsWith("/api/pay/webhook")) req.rawBody = buf; },
+}));
+app.use(express.urlencoded({ extended: true, limit: "1mb" }));
+// Strip Mongo operator keys ($, .) from request payloads → blocks NoSQL injection.
+app.use(mongoSanitize());
+
+// ── Rate limiting ────────────────────────────────────────────────────────────
+const authLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, max: 30, standardHeaders: true, legacyHeaders: false,
+  message: { error: "Too many attempts. Please try again in a few minutes." },
+});
+const publicWriteLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, max: 60, standardHeaders: true, legacyHeaders: false,
+  message: { error: "Too many requests. Please slow down." },
+});
+const apiLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, max: 1000, standardHeaders: true, legacyHeaders: false,
+  message: { error: "Too many requests. Please try again later." },
+});
+app.use("/api", apiLimiter); // baseline cap for every API route
 
 // Serve uploaded files (e.g. profile avatars)
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
@@ -63,8 +94,8 @@ app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 app.get("/api/health", (req, res) => res.json({ ok: true, uptime: process.uptime() }));
 
 // Routes
-app.use("/api/admin/auth", authRoutes);
-app.use("/api/user/auth", userAuthRoutes);
+app.use("/api/admin/auth", authLimiter, authRoutes);
+app.use("/api/user/auth", authLimiter, userAuthRoutes);
 app.use("/api/user", userRoutes);         // Profile, avatar, saved spots
 app.use("/api/admin", AdminRoutes);       // Admin resource CRUD
 app.use("/api/guide", guideSpotRoutes);   // Local-guide tourist-spot CRUD
@@ -75,20 +106,24 @@ app.use("/api/upload", uploadRoutes);
 app.use("/api/hotel", hotelRoutes);
 app.use("/api/agency", travelAgencyRoutes);
 app.use("/api/tours", tourRoutes);
-app.use("/api/queries", queryRoutes);
+app.use("/api/queries", publicWriteLimiter, queryRoutes);
 app.use("/api/messages", messageRoutes);
-app.use("/api/translate", translateRoutes);
-app.use("/api/ai", aiRoutes);
+app.use("/api/translate", publicWriteLimiter, translateRoutes);
+app.use("/api/ai", publicWriteLimiter, aiRoutes);
 app.use("/api/push", pushRoutes);
+app.use("/api/waitlist", publicWriteLimiter, waitlistRoutes);
+app.use("/api/pay", paymentGatewayRoutes);
 app.use("/api/natural-disaster", naturalDisasterRoutes);
 
 // 404 for unmatched API routes
 app.use((req, res) => res.status(404).json({ error: "Route not found" }));
 
-// Central error handler
+// Central error handler — log details server-side, return a generic message so
+// internal error text (schema fields, driver internals) never leaks to clients.
 app.use((err, req, res, next) => {
-  console.error("Unhandled error:", err.message);
-  res.status(err.status || 500).json({ error: err.message || "Internal server error" });
+  console.error("Unhandled error:", err.stack || err.message);
+  const status = err.status || 500;
+  res.status(status).json({ error: status === 400 ? "Bad request" : "Internal server error" });
 });
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -103,7 +138,7 @@ io.use((socket, next) => {
   try {
     const token = socket.handshake.auth && socket.handshake.auth.token;
     if (!token) return next(new Error("Authentication required"));
-    const payload = jwt.verify(token, process.env.JWT_SECRET);
+    const payload = jwt.verify(token, process.env.JWT_SECRET, { algorithms: ["HS256"] });
     socket.data.user = { id: String(payload.id), type: payload.type };
     next();
   } catch {

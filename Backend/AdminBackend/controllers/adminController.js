@@ -187,3 +187,15 @@ exports.approveOrRejectSpot = async (req, res) => {
     res.status(500).json({ error: "Error approving/rejecting tourist spot" });
   }
 };
+
+// DELETE /api/admin/spots/city/:city — remove a whole city's TouristSpot doc
+// (used when an admin removes a destination city; its spots go with it).
+exports.deleteSpotsByCity = async (req, res) => {
+  try {
+    const city = decodeURIComponent(req.params.city || "");
+    await TouristSpot.deleteMany({ city });
+    res.json({ success: true });
+  } catch (error) {
+    res.status(500).json({ error: "Error deleting city spots" });
+  }
+};

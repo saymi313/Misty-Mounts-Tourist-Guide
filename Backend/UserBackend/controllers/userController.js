@@ -20,15 +20,34 @@ const publicUser = (u) => ({
   hotelName: u.hotelName || "",
   agencyName: u.agencyName || "",
   isApproved: u.isApproved !== false,
+  idDocument: u.idDocument || "",
+  verificationStatus: u.verificationStatus || "unverified",
+  verifiedAt: u.verifiedAt || null,
+  referralCode: u.referralCode || "",
+  referralCount: u.referralCount || 0,
+  referralCredits: u.referralCredits || 0,
   savedSpots: u.savedSpots || [],
   memberSince: u.createdAt,
 });
+
+// Ensure a user has a referral code (backfills accounts created before referrals).
+const ensureReferralCode = async (user) => {
+  if (user.referralCode) return user;
+  for (let i = 0; i < 6; i++) {
+    const code = "MM" + Math.random().toString(36).slice(2, 8).toUpperCase();
+    if (!(await User.exists({ referralCode: code }))) { user.referralCode = code; break; }
+  }
+  if (!user.referralCode) user.referralCode = "MM" + Date.now().toString(36).toUpperCase();
+  await user.save();
+  return user;
+};
 
 // GET /api/user/me
 exports.getMe = async (req, res) => {
   try {
     const user = await User.findById(req.user.id).select("-password");
     if (!user) return res.status(404).json({ error: "User not found" });
+    await ensureReferralCode(user);
     res.json({ user: publicUser(user) });
   } catch (err) {
     console.error("getMe error:", err.message);
@@ -42,9 +61,14 @@ exports.updateMe = async (req, res) => {
     const allowed = [
       "name", "email", "phone", "city", "bio", "interests", "avatar",
       "languages", "specialties", "serviceAreas", "experience", "hotelName", "agencyName",
+      "idDocument",
     ];
     const updates = {};
     for (const key of allowed) if (key in req.body) updates[key] = req.body[key];
+
+    // Submitting an ID document moves the account into KYC review (a user can
+    // never set 'verified' themselves — only an admin can via /users/:id/verify).
+    if (updates.idDocument) updates.verificationStatus = "pending";
 
     if (updates.email) {
       const clash = await User.findOne({ email: updates.email, _id: { $ne: req.user.id } });

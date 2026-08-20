@@ -1,12 +1,30 @@
 const User = require('../models/User');
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
+const crypto = require('crypto');
 const { sendOtpEmail } = require('../../utils/mailer');
+const { createNotification } = require('../../UserBackend/controllers/notificationController');
+
+const OTP_MAX_ATTEMPTS = 5; // lock the code after this many wrong guesses
+// Coerce request values to plain strings so a JSON object like {"$gt":""} can
+// never reach a Mongo query as an operator (defence-in-depth beside mongo-sanitize).
+const str = (v) => (typeof v === "string" ? v : "");
+
+const REFERRAL_REWARD = 500; // PKR credit to the referrer when their invite verifies.
+
+// Generate a unique referral code (MM + 6 chars).
+const genReferralCode = async () => {
+  for (let i = 0; i < 6; i++) {
+    const code = 'MM' + Math.random().toString(36).slice(2, 8).toUpperCase();
+    if (!(await User.exists({ referralCode: code }))) return code;
+  }
+  return 'MM' + Date.now().toString(36).toUpperCase();
+};
 
 const signToken = (user) =>
   jwt.sign({ id: user._id, type: user.type }, process.env.JWT_SECRET, { expiresIn: '30d' });
 
-const genOtp = () => String(Math.floor(100000 + Math.random() * 900000));
+const genOtp = () => String(crypto.randomInt(100000, 1000000)); // CSPRNG 6-digit
 
 const publicAuthUser = (u) => ({
   type: u.type,
@@ -22,6 +40,7 @@ const setAndSendOtp = async (user, purpose = "verify") => {
   const otp = genOtp();
   user.otp = await bcrypt.hash(otp, 10);
   user.otpExpires = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
+  user.otpAttempts = 0; // reset the brute-force counter for the new code
   await user.save();
   try {
     await sendOtpEmail(user.email, user.name || user.username, otp, purpose);
@@ -32,10 +51,16 @@ const setAndSendOtp = async (user, purpose = "verify") => {
 
 // POST /api/user/auth/signup
 const signup = async (req, res) => {
-  const { email, username, password, type, name } = req.body;
+  const email = str(req.body.email).trim().toLowerCase();
+  const username = str(req.body.username).trim();
+  const password = str(req.body.password);
+  const { type, name, ref } = req.body;
   try {
     if (!email || !username || !password || !type) {
       return res.status(400).json({ message: 'email, username, password and type are required' });
+    }
+    if (password.length < 8) {
+      return res.status(400).json({ message: 'Password must be at least 8 characters' });
     }
 
     const existing = await User.findOne({ $or: [{ email }, { username }] });
@@ -50,7 +75,12 @@ const signup = async (req, res) => {
 
     // Travel agencies must be vetted by an admin before their tours go public.
     const isApproved = type !== 'travel agency';
-    const newUser = new User({ email, username, password, type, name: name || username, isVerified: false, isApproved });
+    const referralCode = await genReferralCode();
+    const referredBy = (ref || '').trim().toUpperCase();
+    const newUser = new User({
+      email, username, password, type, name: name || username, isVerified: false, isApproved,
+      referralCode, referredBy,
+    });
     await newUser.save(); // hashes password via pre-save hook
     await setAndSendOtp(newUser);
 
@@ -63,25 +93,51 @@ const signup = async (req, res) => {
 
 // POST /api/user/auth/verify-otp
 const verifyOtp = async (req, res) => {
-  const { email, otp } = req.body;
+  const email = str(req.body.email).trim().toLowerCase();
+  const otp = str(req.body.otp);
   try {
     if (!email || !otp) return res.status(400).json({ message: 'email and otp are required' });
 
-    const user = await User.findOne({ email }).select('+otp +otpExpires');
-    if (!user) return res.status(404).json({ message: 'User not found' });
+    const user = await User.findOne({ email }).select('+otp +otpExpires +otpAttempts');
+    if (!user) return res.status(400).json({ message: 'Invalid code. Please try again.' });
     if (user.isVerified) {
       return res.status(200).json({ message: 'Already verified', token: signToken(user), ...publicAuthUser(user) });
     }
     if (!user.otp || !user.otpExpires || user.otpExpires < new Date()) {
       return res.status(400).json({ message: 'Your code has expired. Please request a new one.' });
     }
-    const ok = await bcrypt.compare(String(otp), user.otp);
-    if (!ok) return res.status(400).json({ message: 'Invalid code. Please try again.' });
+    if ((user.otpAttempts || 0) >= OTP_MAX_ATTEMPTS) {
+      user.otp = undefined; user.otpExpires = undefined; await user.save();
+      return res.status(429).json({ message: 'Too many incorrect codes. Please request a new one.' });
+    }
+    const ok = await bcrypt.compare(otp, user.otp);
+    if (!ok) {
+      user.otpAttempts = (user.otpAttempts || 0) + 1;
+      await user.save();
+      return res.status(400).json({ message: 'Invalid code. Please try again.' });
+    }
 
     user.isVerified = true;
     user.otp = undefined;
     user.otpExpires = undefined;
+    if (!user.referralCode) user.referralCode = await genReferralCode();
     await user.save();
+
+    // Reward the referrer, once, when their invite completes verification.
+    if (user.referredBy) {
+      const referrer = await User.findOne({ referralCode: user.referredBy });
+      if (referrer && String(referrer._id) !== String(user._id)) {
+        referrer.referralCount = (referrer.referralCount || 0) + 1;
+        referrer.referralCredits = (referrer.referralCredits || 0) + REFERRAL_REWARD;
+        await referrer.save();
+        createNotification(referrer._id, {
+          type: "system",
+          title: "You earned referral credit",
+          body: `${user.name || "A friend"} joined with your invite. You've earned PKR ${REFERRAL_REWARD} in credit.`,
+          link: "/profile",
+        });
+      }
+    }
 
     res.status(200).json({ message: 'Email verified', token: signToken(user), ...publicAuthUser(user) });
   } catch (error) {
@@ -92,14 +148,13 @@ const verifyOtp = async (req, res) => {
 
 // POST /api/user/auth/resend-otp
 const resendOtp = async (req, res) => {
-  const { email } = req.body;
+  const email = str(req.body.email).trim().toLowerCase();
   try {
     if (!email) return res.status(400).json({ message: 'email is required' });
     const user = await User.findOne({ email });
-    if (!user) return res.status(404).json({ message: 'User not found' });
-    if (user.isVerified) return res.status(400).json({ message: 'Already verified' });
-    await setAndSendOtp(user);
-    res.status(200).json({ message: 'Verification code resent', email });
+    // Respond the same whether or not the account exists (no enumeration).
+    if (user && !user.isVerified) await setAndSendOtp(user);
+    res.status(200).json({ message: 'If an unverified account exists, a code has been sent.', email });
   } catch (error) {
     console.error('resendOtp error:', error.message);
     res.status(500).json({ message: 'Server error' });
@@ -108,7 +163,8 @@ const resendOtp = async (req, res) => {
 
 // POST /api/user/auth/login
 const login = async (req, res) => {
-  const { email, password } = req.body;
+  const email = str(req.body.email).trim().toLowerCase();
+  const password = str(req.body.password);
   try {
     const user = await User.findOne({ email });
     if (!user) return res.status(400).json({ message: 'Invalid credentials' });
@@ -134,7 +190,7 @@ const login = async (req, res) => {
 
 // POST /api/user/auth/forgot-password
 const forgotPassword = async (req, res) => {
-  const { email } = req.body;
+  const email = str(req.body.email).trim().toLowerCase();
   try {
     if (!email) return res.status(400).json({ message: "email is required" });
     const user = await User.findOne({ email });
@@ -150,21 +206,31 @@ const forgotPassword = async (req, res) => {
 
 // POST /api/user/auth/reset-password
 const resetPassword = async (req, res) => {
-  const { email, otp, password } = req.body;
+  const email = str(req.body.email).trim().toLowerCase();
+  const otp = str(req.body.otp);
+  const password = str(req.body.password);
   try {
     if (!email || !otp || !password) {
       return res.status(400).json({ message: "email, otp and password are required" });
     }
-    if (String(password).length < 8) {
+    if (password.length < 8) {
       return res.status(400).json({ message: "Password must be at least 8 characters" });
     }
-    const user = await User.findOne({ email }).select("+otp +otpExpires");
-    if (!user) return res.status(404).json({ message: "User not found" });
-    if (!user.otp || !user.otpExpires || user.otpExpires < new Date()) {
-      return res.status(400).json({ message: "Your code has expired. Please request a new one." });
+    const user = await User.findOne({ email }).select("+otp +otpExpires +otpAttempts");
+    // Generic response (no account enumeration) for missing/expired codes.
+    if (!user || !user.otp || !user.otpExpires || user.otpExpires < new Date()) {
+      return res.status(400).json({ message: "Invalid or expired code." });
     }
-    const ok = await bcrypt.compare(String(otp), user.otp);
-    if (!ok) return res.status(400).json({ message: "Invalid code. Please try again." });
+    if ((user.otpAttempts || 0) >= OTP_MAX_ATTEMPTS) {
+      user.otp = undefined; user.otpExpires = undefined; await user.save();
+      return res.status(429).json({ message: "Too many incorrect codes. Please request a new one." });
+    }
+    const ok = await bcrypt.compare(otp, user.otp);
+    if (!ok) {
+      user.otpAttempts = (user.otpAttempts || 0) + 1;
+      await user.save();
+      return res.status(400).json({ message: "Invalid or expired code." });
+    }
 
     user.password = password; // hashed by the pre-save hook
     user.otp = undefined;

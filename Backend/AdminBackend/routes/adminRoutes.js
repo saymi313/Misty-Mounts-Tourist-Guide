@@ -32,6 +32,7 @@ router.delete('/cities/:id', adminOnly, cityController.deleteCity);
 router.get('/users', adminOnly, usersController.listUsers);
 router.get('/users/:id', adminOnly, usersController.getUser);
 router.patch('/users/:id/approve', adminOnly, usersController.approveUser);
+router.patch('/users/:id/verify', adminOnly, usersController.verifyUser);
 router.delete('/users/:id', adminOnly, usersController.deleteUser);
 
 // ── Tour packages (admin approval + moderation) ───────────────────────────────
@@ -54,6 +55,7 @@ router.get('/spots', adminController.getAllSpots);
 router.get('/spots/:city', adminController.getSpotsByCity);
 router.post('/spots', adminOnly, adminController.addTouristSpot);
 router.put('/spots/:id', adminOnly, adminController.updateTouristSpot);
+router.delete('/spots/city/:city', adminOnly, adminController.deleteSpotsByCity);
 router.delete('/spots/:id', adminOnly, adminController.deleteTouristSpot);
 router.patch('/spots/:id/approve', adminOnly, adminController.approveOrRejectSpot);
 

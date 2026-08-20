@@ -11,7 +11,8 @@ const authenticate = (req, res, next) => {
   const token = header.startsWith("Bearer ") ? header.slice(7) : null;
   if (!token) return res.status(401).json({ error: "Authentication required" });
   try {
-    req.user = jwt.verify(token, process.env.JWT_SECRET); // { id, type, iat, exp }
+    // Pin the algorithm so a forged token can't downgrade to "none"/alg-confusion.
+    req.user = jwt.verify(token, process.env.JWT_SECRET, { algorithms: ["HS256"] }); // { id, type, iat, exp }
     next();
   } catch {
     return res.status(401).json({ error: "Invalid or expired token" });

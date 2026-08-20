@@ -17,7 +17,11 @@ const upload = multer({
 router.post("/", authenticate, upload.single("image"), async (req, res) => {
   try {
     if (!req.file) return res.status(400).json({ error: "No image uploaded" });
-    const folder = req.query.folder ? `misty-mounts/${req.query.folder}` : "misty-mounts/uploads";
+    // Allow-list the folder name (alphanumeric/dash) so the client can't steer
+    // the Cloudinary path (e.g. traversal or arbitrary namespaces).
+    const raw = typeof req.query.folder === "string" ? req.query.folder : "";
+    const safe = /^[a-z0-9_-]{1,40}$/i.test(raw) ? raw : "uploads";
+    const folder = `misty-mounts/${safe}`;
     const result = await uploadBuffer(req.file.buffer, folder);
     res.json({ url: result.secure_url });
   } catch (err) {

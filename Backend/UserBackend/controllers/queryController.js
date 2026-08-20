@@ -6,9 +6,18 @@ const { sendReplyEmail } = require("../../utils/mailer");
 // POST /api/queries — public: a traveller sends a contact message.
 exports.createQuery = async (req, res) => {
   try {
-    const { name, email, message } = req.body;
+    const name = (typeof req.body.name === "string" ? req.body.name : "").trim();
+    const email = (typeof req.body.email === "string" ? req.body.email : "").trim();
+    const message = (typeof req.body.message === "string" ? req.body.message : "").trim();
     if (!name || !email || !message) {
       return res.status(400).json({ error: "name, email and message are required" });
+    }
+    // Bound input to prevent storage/notification-flood abuse (public endpoint).
+    if (name.length > 100 || email.length > 150 || message.length > 2000) {
+      return res.status(400).json({ error: "One or more fields are too long." });
+    }
+    if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) {
+      return res.status(400).json({ error: "Please enter a valid email." });
     }
     const query = await Query.create({ name, email, message });
     // Alert admins (their notification bell + Queries badge).
