@@ -6,7 +6,7 @@ const { sendOtpEmail } = require('../../utils/mailer');
 const { createNotification } = require('../../UserBackend/controllers/notificationController');
 const { getReferralConfig } = require('../../AdminBackend/controllers/settingsController');
 
-const OTP_MAX_ATTEMPTS = 5; // lock the code after this many wrong guesses
+const consumeOtp = require('../../utils/consumeOtp');
 // Coerce request values to plain strings so a JSON object like {"$gt":""} can
 // never reach a Mongo query as an operator (defence-in-depth beside mongo-sanitize).
 const str = (v) => (typeof v === "string" ? v : "");
@@ -38,13 +38,14 @@ const publicAuthUser = (u) => ({
 const setAndSendOtp = async (user, purpose = "verify") => {
   const otp = genOtp();
   user.otp = await bcrypt.hash(otp, 10);
+  user.otpPurpose = purpose;
   user.otpExpires = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
   user.otpAttempts = 0; // reset the brute-force counter for the new code
   await user.save();
   try {
     await sendOtpEmail(user.email, user.name || user.username, otp, purpose);
   } catch (e) {
-    console.error(`OTP email to ${user.email} failed: ${e.message} — dev OTP: ${otp}`);
+    console.error('OTP email delivery failed. Check SMTP configuration.');
   }
 };
 
@@ -60,6 +61,13 @@ const signup = async (req, res) => {
     }
     if (password.length < 8) {
       return res.status(400).json({ message: 'Password must be at least 8 characters' });
+    }
+    if (Buffer.byteLength(password, 'utf8') > 72 || email.length > 254 || username.length > 100 ||
+        !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) ||
+        !['user', 'local guide', 'hotel', 'travel agency'].includes(type) ||
+        (name !== undefined && (typeof name !== 'string' || name.length > 100)) ||
+        (ref !== undefined && (typeof ref !== 'string' || ref.length > 30))) {
+      return res.status(400).json({ message: 'Invalid signup details. Password must not exceed 72 UTF-8 bytes.' });
     }
 
     const existing = await User.findOne({ $or: [{ email }, { username }] });
@@ -97,30 +105,8 @@ const verifyOtp = async (req, res) => {
   try {
     if (!email || !otp) return res.status(400).json({ message: 'email and otp are required' });
 
-    const user = await User.findOne({ email }).select('+otp +otpExpires +otpAttempts');
-    if (!user) return res.status(400).json({ message: 'Invalid code. Please try again.' });
-    if (user.isVerified) {
-      return res.status(200).json({ message: 'Already verified', token: signToken(user), ...publicAuthUser(user) });
-    }
-    if (!user.otp || !user.otpExpires || user.otpExpires < new Date()) {
-      return res.status(400).json({ message: 'Your code has expired. Please request a new one.' });
-    }
-    if ((user.otpAttempts || 0) >= OTP_MAX_ATTEMPTS) {
-      user.otp = undefined; user.otpExpires = undefined; await user.save();
-      return res.status(429).json({ message: 'Too many incorrect codes. Please request a new one.' });
-    }
-    const ok = await bcrypt.compare(otp, user.otp);
-    if (!ok) {
-      user.otpAttempts = (user.otpAttempts || 0) + 1;
-      await user.save();
-      return res.status(400).json({ message: 'Invalid code. Please try again.' });
-    }
-
-    user.isVerified = true;
-    user.otp = undefined;
-    user.otpExpires = undefined;
-    if (!user.referralCode) user.referralCode = await genReferralCode();
-    await user.save();
+    const user = await consumeOtp(email, otp, 'verify');
+    if (!user) return res.status(400).json({ message: 'Invalid or expired code. Please request a new one.' });
 
     // Two-sided referral: reward the referrer AND give the new joiner welcome
     // credit, once, when their invite completes verification. Amounts + on/off
@@ -130,9 +116,7 @@ const verifyOtp = async (req, res) => {
       const referrer = enabled ? await User.findOne({ referralCode: user.referredBy }) : null;
       if (referrer && String(referrer._id) !== String(user._id)) {
         if (reward > 0) {
-          referrer.referralCount = (referrer.referralCount || 0) + 1;
-          referrer.referralCredits = (referrer.referralCredits || 0) + reward;
-          await referrer.save();
+          await User.updateOne({ _id: referrer._id }, { $inc: { referralCount: 1, referralCredits: reward } });
           createNotification(referrer._id, {
             type: "system",
             title: "You earned referral credit",
@@ -141,8 +125,7 @@ const verifyOtp = async (req, res) => {
           });
         }
         if (welcome > 0) {
-          user.referralCredits = (user.referralCredits || 0) + welcome;
-          await user.save();
+          await User.updateOne({ _id: user._id }, { $inc: { referralCredits: welcome } });
           createNotification(user._id, {
             type: "system",
             title: `Welcome — here's PKR ${welcome} credit`,
@@ -230,27 +213,10 @@ const resetPassword = async (req, res) => {
     if (password.length < 8) {
       return res.status(400).json({ message: "Password must be at least 8 characters" });
     }
-    const user = await User.findOne({ email }).select("+otp +otpExpires +otpAttempts");
-    // Generic response (no account enumeration) for missing/expired codes.
-    if (!user || !user.otp || !user.otpExpires || user.otpExpires < new Date()) {
-      return res.status(400).json({ message: "Invalid or expired code." });
-    }
-    if ((user.otpAttempts || 0) >= OTP_MAX_ATTEMPTS) {
-      user.otp = undefined; user.otpExpires = undefined; await user.save();
-      return res.status(429).json({ message: "Too many incorrect codes. Please request a new one." });
-    }
-    const ok = await bcrypt.compare(otp, user.otp);
-    if (!ok) {
-      user.otpAttempts = (user.otpAttempts || 0) + 1;
-      await user.save();
-      return res.status(400).json({ message: "Invalid or expired code." });
-    }
-
-    user.password = password; // hashed by the pre-save hook
-    user.otp = undefined;
-    user.otpExpires = undefined;
-    user.isVerified = true; // a successful reset also confirms the email
-    await user.save();
+    if (Buffer.byteLength(password, 'utf8') > 72) return res.status(400).json({ message: 'Password must not exceed 72 UTF-8 bytes.' });
+    const passwordHash = await bcrypt.hash(password, 10);
+    const user = await consumeOtp(email, otp, 'reset', { password: passwordHash });
+    if (!user) return res.status(400).json({ message: 'Invalid or expired code. Please request a new one.' });
 
     res.status(200).json({ message: "Password reset", token: signToken(user), ...publicAuthUser(user) });
   } catch (error) {

@@ -42,8 +42,20 @@ exports.createQuery = async (req, res) => {
 // GET /api/queries — admin: all contact queries, newest first.
 exports.listQueries = async (req, res) => {
   try {
-    res.json({ queries: await Query.find().sort({ createdAt: -1 }) });
+    const { page, limit, skip } = require('../../utils/pagination').pagination(req.query, 20);
+    if (req.query.filter !== undefined && !['all', 'unread'].includes(req.query.filter)) {
+      return res.status(400).json({ error: 'Invalid query filter' });
+    }
+    const filter = req.query.filter === 'unread' ? { isRead: false } : {};
+    const [queries, total, unread] = await Promise.all([
+      Query.find(filter).sort({ createdAt: -1, _id: -1 }).skip(skip).limit(limit).lean().maxTimeMS(5000),
+      Query.countDocuments({}).maxTimeMS(5000),
+      Query.countDocuments({ isRead: false }).maxTimeMS(5000),
+    ]);
+    res.json({ queries, counts: { total, unread }, pagination: { page, limit,
+      total: req.query.filter === 'unread' ? unread : total } });
   } catch (err) {
+    if (err.status === 400) return res.status(400).json({ error: err.message });
     res.status(500).json({ error: "Failed to load queries" });
   }
 };
@@ -63,8 +75,15 @@ exports.markRead = async (req, res) => {
 // POST /api/queries/:id/reply — admin emails a reply to the sender.
 exports.replyQuery = async (req, res) => {
   try {
-    const message = (req.body.message || "").trim();
+    const message = (typeof req.body.message === 'string' ? req.body.message : '').trim();
     if (!message) return res.status(400).json({ error: "Reply message is required" });
+    if (message.length > 5000) return res.status(400).json({ error: 'Reply must be at most 5000 characters.' });
+    const jobs = require('../../utils/deliveryJobs');
+    if (jobs.enabled()) {
+      const query = await jobs.queueReply(req.params.id, message);
+      if (!query) return res.status(404).json({ error: 'Query not found' });
+      return res.status(202).json({ query });
+    }
 
     const query = await Query.findById(req.params.id);
     if (!query) return res.status(404).json({ error: "Query not found" });

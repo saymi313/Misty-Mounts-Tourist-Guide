@@ -13,6 +13,7 @@ export default function usePresence() {
   useEffect(() => {
     if (!socket) return undefined;
     const onList = (ids) => setOnline(new Set((ids || []).map(String)));
+    const onUnavailable = () => setOnline(new Set());
     const onUpdate = ({ userId, online: on }) =>
       setOnline((prev) => {
         const next = new Set(prev);
@@ -22,11 +23,15 @@ export default function usePresence() {
       });
 
     socket.on("presence:list", onList);
+    socket.on('presence:unavailable', onUnavailable);
+    socket.on('disconnect', onUnavailable);
     socket.on("presence:update", onUpdate);
     if (socketConnected) socket.emit("presence:get");
 
     return () => {
       socket.off("presence:list", onList);
+      socket.off('presence:unavailable', onUnavailable);
+      socket.off('disconnect', onUnavailable);
       socket.off("presence:update", onUpdate);
     };
   }, [socket, socketConnected]);

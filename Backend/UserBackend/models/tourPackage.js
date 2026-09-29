@@ -58,7 +58,9 @@ const tourPackageSchema = new mongoose.Schema(
     rating: { type: Number, default: 0 },
     reviewCount: { type: Number, default: 0 },
   },
-  { timestamps: true }
+  { timestamps: true, optimisticConcurrency: true }
 );
 
+tourPackageSchema.index({ isApproved: 1, isPublished: 1, createdAt: -1, _id: -1 });
+tourPackageSchema.index({ isApproved: 1, isPublished: 1, cities: 1, createdAt: -1, _id: -1 });
 module.exports = mongoose.model("TourPackage", tourPackageSchema);

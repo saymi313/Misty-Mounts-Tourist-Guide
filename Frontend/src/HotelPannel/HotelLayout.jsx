@@ -8,6 +8,7 @@ import { img } from "../data/mockData";
 import { confirmDialog } from "../utils/confirm";
 
 const NAV = [
+  { to: "/hotel/quotes", label: "Trip requests", icon: CalendarCheck },
   { to: "/hotel", label: "Dashboard", icon: LayoutDashboard, end: true },
   { to: "/hotel/listings", label: "My Listings", icon: BedDouble },
   { to: "/hotel/bookings", label: "Bookings", icon: CalendarCheck },

@@ -17,4 +17,6 @@ const payoutSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
+payoutSchema.index({ recipientId: 1, status: 1 });
+payoutSchema.index({ recipientId: 1, createdAt: -1, _id: -1 });
 module.exports = mongoose.model("Payout", payoutSchema);

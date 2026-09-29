@@ -1,3 +1,4 @@
+import Seo from "../../components/Seo";
 import React, { useEffect, useMemo, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -115,6 +116,7 @@ const CitySpots = () => {
   return (
     <div className="min-h-screen bg-night-950 text-white selection:bg-lime-400 selection:text-night-950">
       <Navbar />
+      {!isLoading && <Seo title={`Places to Visit in ${cityName}, Pakistan`} description={tagline || `Explore attractions in ${cityName}, Pakistan, and discover places to include in your trip.`} image={heroImg} noindex={Boolean(error) || !places.length} jsonLd={{ '@type': 'CollectionPage', name: `Places to visit in ${cityName}` }} />}
 
       <main className="mx-auto max-w-7xl space-y-8 px-4 pb-8 pt-6 sm:px-6 lg:space-y-10">
         <Link to="/destinations" className="inline-flex items-center gap-1.5 text-sm font-semibold text-white/60 transition-colors hover:text-lime-400">

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { getSpotsByCity, getAccommodations, getTransportation } from '../../data/mockApi';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Mountain, CalendarRange, MapPin, MessageCircle, BedDouble, ArrowUpRight } from 'lucide-react';
@@ -15,7 +15,7 @@ import HazardAlerts from '../../components/HazardAlerts';
 import Seo from '../../components/Seo';
 import Footer from '../components/Home/Footer';
 import { Link } from 'react-router-dom';
-import { coordsFor } from '../../data/geo';
+import { weatherLocationFor } from '../../data/geo';
 import { Tile, Eyebrow, SectionHead } from '../components/bento/tiles';
 
 const CityDetail = () => {
@@ -28,6 +28,10 @@ const CityDetail = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
+    let active = true;
+    setIsLoading(true);
+    setError(null);
+    setSpotData(null);
     const fetchSpotData = async () => {
       if (!city || !spotId) {
         setError('City or Spot ID is missing');
@@ -36,35 +40,38 @@ const CityDetail = () => {
       }
       try {
         const data = await getSpotsByCity(decodeURIComponent(city));
+        if (!active) return;
         if (data && data.nearbyPlaces) {
           const place = data.nearbyPlaces.find((p) => p._id === spotId);
           if (place) {
-            setSpotData({ ...place, city: data.city, latitude: place.latitude || 0, longitude: place.longitude || 0 });
+            setSpotData({ ...place, city: data.city });
           } else setError('Spot not found');
         } else setError('Spot not found');
       } catch {
-        setError('Failed to fetch spot data');
+        if (active) setError('Failed to fetch spot data');
       }
     };
 
     const fetchHotelData = async () => {
       try {
         const data = await getAccommodations();
-        if (Array.isArray(data)) setHotelData(data);
+        if (active && Array.isArray(data)) setHotelData(data);
       } catch { /* ignore in prototype */ }
     };
 
     const fetchTransportationData = async () => {
       try {
-        setTransportationData(await getTransportation(spotId));
+        const data = await getTransportation(spotId);
+        if (active) setTransportationData(data);
       } catch { /* ignore in prototype */ }
     };
 
     const run = async () => {
       await Promise.all([fetchSpotData(), fetchHotelData(), fetchTransportationData()]);
-      setIsLoading(false);
+      if (active) setIsLoading(false);
     };
     run();
+    return () => { active = false; };
   }, [city, spotId]);
 
   if (isLoading) {
@@ -79,6 +86,7 @@ const CityDetail = () => {
     return (
       <div className="flex min-h-screen flex-col items-center justify-center bg-night-950 px-6 text-white">
         <div className="max-w-md rounded-[1.4rem] border border-white/[0.07] bg-night-800 p-8 text-center">
+          <Seo title="Destination unavailable" noindex />
           <h1 className="text-2xl font-extrabold tracking-tight text-white">Something went wrong</h1>
           <p className="mt-3 text-white/60">{error}</p>
           <button
@@ -104,7 +112,8 @@ const CityDetail = () => {
   ];
 
   // Spot coordinates, falling back to the city centroid when a spot has none.
-  const wx = coordsFor(spotData, spotData?.city);
+  const weatherLocation = weatherLocationFor(spotData, spotData?.city);
+  const wx = weatherLocation?.coordinates;
 
   return (
     <div className="min-h-screen bg-night-950 text-white selection:bg-lime-400 selection:text-night-950">
@@ -121,7 +130,7 @@ const CityDetail = () => {
           description: spotData?.description,
           image: spotData?.picture,
           address: { "@type": "PostalAddress", addressRegion: spotData?.city, addressCountry: "PK" },
-          ...(wx ? { geo: { "@type": "GeoCoordinates", latitude: wx[0], longitude: wx[1] } } : {}),
+          ...(wx && weatherLocation.kind === 'spot' ? { geo: { "@type": "GeoCoordinates", latitude: wx[0], longitude: wx[1] } } : {}),
         }}
       />
       <HeroSection spot={spotData} />
@@ -142,7 +151,7 @@ const CityDetail = () => {
           />
 
           {/* Weather — live 7-day forecast from the spot's coordinates */}
-          {wx && <WeatherWidget lat={wx[0]} lng={wx[1]} placeName={spotData?.name} className="lg:col-span-1" />}
+          <WeatherWidget lat={wx?.[0]} lng={wx?.[1]} placeName={weatherLocation?.label || spotData?.name} locationKind={weatherLocation?.kind} className="lg:col-span-1" />
 
           {/* Quick facts */}
           <Tile pad="p-6" className="lg:col-span-1">

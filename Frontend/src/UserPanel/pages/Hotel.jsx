@@ -1,3 +1,4 @@
+import Seo from "../../components/Seo";
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { getAccommodationById } from '../../data/mockApi';
@@ -33,6 +34,7 @@ const Hotel = () => {
     return (
       <div className="flex min-h-screen items-center justify-center bg-night-950 px-6 text-white">
         <div className="max-w-md rounded-[1.4rem] border border-white/[0.07] bg-night-800 p-8 text-center">
+          <Seo title="Stay unavailable" noindex />
           <h1 className="text-2xl font-extrabold tracking-tight text-white">Not found</h1>
           <p className="mt-3 text-white/60">{error || 'This place is unavailable.'}</p>
         </div>
@@ -43,6 +45,7 @@ const Hotel = () => {
   return (
     <div className="min-h-screen bg-night-950 text-white selection:bg-lime-400 selection:text-night-950">
       <Navbar />
+      <Seo title={`${hotelData.name}${hotelData.city ? `, ${hotelData.city}` : ''}`} description={hotelData.description || `Explore ${hotelData.name} and review its location, amenities and booking details.`} image={hotelData.picture} jsonLd={{ '@type': hotelData.type === 'food' ? 'Restaurant' : 'Hotel', name: hotelData.name, description: hotelData.description, image: hotelData.picture, address: { '@type': 'PostalAddress', addressLocality: hotelData.city, addressCountry: 'PK' } }} />
       <main className="mx-auto max-w-6xl px-4 py-8 sm:px-6 lg:px-8">
         <HeroSection hotel={hotelData} />
 

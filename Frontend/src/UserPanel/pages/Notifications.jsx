@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -11,6 +11,7 @@ import { Tile, Eyebrow, Btn, Chip } from "../components/bento/tiles";
 import PushToggle from "../../components/PushToggle";
 import {
   getNotifications, subscribeNotifications, fetchNotifications,
+  hasMoreNotifications, loadMoreNotifications,
   markRead as nMarkRead, markAllRead as nMarkAll, removeNotification as nRemove,
 } from "../../utils/notificationsStore";
 import { timeAgo } from "../../utils/datetime";
@@ -31,6 +32,8 @@ const Notifications = () => {
   const navigate = useNavigate();
   const [items, setItems] = useState(getNotifications);
   const [filter, setFilter] = useState("All");
+  const [loadingMore, setLoadingMore] = useState(false);
+  const [loadError, setLoadError] = useState('');
 
   // Fetch from the API (live) and stay in sync with the navbar bell (shared store).
   useEffect(() => {
@@ -82,6 +85,12 @@ const Notifications = () => {
           </div>
         </motion.div>
 
+        {hasMoreNotifications() && <button type="button" disabled={loadingMore} className="my-4 text-sm text-lime-400" onClick={async () => {
+          setLoadingMore(true); setLoadError('');
+          try { await loadMoreNotifications(); } catch { setLoadError('Could not load more notifications. Try again.'); }
+          finally { setLoadingMore(false); }
+        }}>{loadingMore ? 'Loading...' : 'Load older notifications'}</button>}
+        {loadError && <p role="alert">{loadError}</p>}
         {/* Filters */}
         <div className="mt-8 flex flex-wrap gap-2">
           {FILTERS.map((f) => (

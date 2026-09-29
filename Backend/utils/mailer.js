@@ -6,6 +6,11 @@ const transporter = nodemailer.createTransport({
   host: process.env.EMAIL_HOST,
   port: Number(process.env.EMAIL_PORT) || 587,
   secure: process.env.EMAIL_SECURE === "true",
+  connectionTimeout: 10000,
+  greetingTimeout: 10000,
+  socketTimeout: 30000,
+  disableFileAccess: true,
+  disableUrlAccess: true,
   auth: { user: process.env.EMAIL_USER, pass: process.env.EMAIL_PASS },
 });
 
@@ -52,7 +57,7 @@ const otpEmailHtml = (name, otp, purpose = "verify") => {
           <!-- Body -->
           <tr><td style="padding:16px 32px 8px 32px;">
             <p style="margin:0 0 6px 0;font-family:Arial,Helvetica,sans-serif;font-size:13px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:#a3e635;">${copy.eyebrow}</p>
-            <h1 style="margin:0 0 12px 0;font-family:Arial,Helvetica,sans-serif;font-size:26px;line-height:1.2;font-weight:800;color:#ffffff;">${copy.title(name)}</h1>
+            <h1 style="margin:0 0 12px 0;font-family:Arial,Helvetica,sans-serif;font-size:26px;line-height:1.2;font-weight:800;color:#ffffff;">${copy.title(esc(name))}</h1>
             <p style="margin:0;font-family:Arial,Helvetica,sans-serif;font-size:15px;line-height:1.6;color:rgba(255,255,255,0.65);">${copy.body}</p>
           </td></tr>
           <!-- Code -->
@@ -132,8 +137,9 @@ const replyEmailHtml = (name, reply, original) => `
   </div>`;
 
 /** Send an admin's reply to a traveller's contact-form message. */
-const sendReplyEmail = async (to, name, reply, original = "") => {
+const sendReplyEmail = async (to, name, reply, original = "", messageId) => {
   await transporter.sendMail({
+    ...(messageId ? { messageId } : {}),
     from: FROM,
     to,
     replyTo: process.env.BREVO_SENDER_EMAIL || process.env.EMAIL_USER,

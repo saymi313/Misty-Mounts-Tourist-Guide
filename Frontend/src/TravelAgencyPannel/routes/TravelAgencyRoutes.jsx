@@ -1,3 +1,4 @@
+import TripDesk from "../../components/TripDesk";
 import React from "react";
 import { Route } from "react-router-dom";
 import AgencyDashboard from "../pages/AgencyDashboard";
@@ -9,6 +10,7 @@ import AgencyProfile from "../pages/AgencyProfile";
 
 // Paths are relative — mounted under /travel-agency/* in App.jsx.
 const TravelAgencyRoutes = () => [
+  <Route key="quotes" path="quotes" element={<TripDesk mode="agency" />} />,
   <Route key="dashboard" index element={<AgencyDashboard />} />,
   <Route key="packages" path="packages" element={<AgencyPackages />} />,
   <Route key="bookings" path="bookings" element={<AgencyBookings />} />,

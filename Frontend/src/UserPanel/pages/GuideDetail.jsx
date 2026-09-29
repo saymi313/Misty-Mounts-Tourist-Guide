@@ -1,4 +1,5 @@
-import React, { useEffect, useState } from "react";
+import PropTypes from 'prop-types';
+import { useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import {
@@ -61,6 +62,10 @@ const GuideDetail = () => {
   const online = usePresence();
   const [guide, setGuide] = useState(null);
   const [reviews, setReviews] = useState([]);
+  const [reviewPage, setReviewPage] = useState(1);
+  const [moreReviews, setMoreReviews] = useState(false);
+  const [loadingReviews, setLoadingReviews] = useState(false);
+  const [reviewError, setReviewError] = useState('');
   const [loading, setLoading] = useState(true);
   const [showChat, setShowChat] = useState(false);
 
@@ -97,7 +102,8 @@ const GuideDetail = () => {
         const [g, fb] = await Promise.all([getGuide(id), getGuideFeedbacks(id).catch(() => [])]);
         if (!alive) return;
         setGuide(g);
-        setReviews(fb || []);
+        setReviews(fb.feedbacks || []);
+        setReviewPage(1); setMoreReviews(Boolean(fb.pagination?.hasMore)); setReviewError('');
       } catch { /* ignore */ }
       finally { if (alive) setLoading(false); }
     })();
@@ -127,7 +133,7 @@ const GuideDetail = () => {
     return (
       <Shell>
         <Tile className="py-16 text-center">
-          <p className="text-white/60">Guide not found.</p>
+          <Seo title="Guide unavailable" noindex /><p className="text-white/60">Guide not found.</p>
           <Link to="/guides" className="mt-4 inline-block font-semibold text-lime-400">← Back to guides</Link>
         </Tile>
       </Shell>
@@ -144,7 +150,7 @@ const GuideDetail = () => {
 
       <Seo
         title={`${guide.name} — Local Guide${guide.city ? ` in ${guide.city}` : ""}`}
-        description={guide.bio || `Book ${firstName}, a vetted local guide on Misty Mounts, for your trip to Northern Pakistan.`}
+        description={guide.bio || `Book ${firstName}, a local guide on Misty Mounts, for your trip to Northern Pakistan.`}
         image={guide.avatar}
         type="profile"
         jsonLd={{
@@ -154,9 +160,6 @@ const GuideDetail = () => {
           jobTitle: "Local Tour Guide",
           address: guide.city ? { "@type": "PostalAddress", addressRegion: guide.city, addressCountry: "PK" } : undefined,
           image: guide.avatar,
-          aggregateRating: guide.reviewCount
-            ? { "@type": "AggregateRating", ratingValue: guide.rating, reviewCount: guide.reviewCount }
-            : undefined,
         }}
       />
 
@@ -331,6 +334,16 @@ const GuideDetail = () => {
           Reviews <span className="text-white/40">({reviews.length})</span>
         </h2>
         <ReviewSummary reviews={reviews} subject={guide.name} className="mt-4" />
+        {moreReviews && <button type="button" disabled={loadingReviews} className="mt-4 text-lime-400" onClick={async () => {
+          setLoadingReviews(true); setReviewError('');
+          try {
+            const data = await getGuideFeedbacks(id, { page: reviewPage + 1 });
+            setReviews((prev) => [...prev, ...data.feedbacks.filter((r) => !prev.some((p) => p._id === r._id))]);
+            setReviewPage((value) => value + 1); setMoreReviews(Boolean(data.pagination?.hasMore));
+          } catch { setReviewError('Could not load more reviews. Please try again.'); }
+          finally { setLoadingReviews(false); }
+        }}>{loadingReviews ? 'Loading...' : 'Load more reviews'}</button>}
+        {reviewError && <p role="alert">{reviewError}</p>}
         {reviews.length === 0 ? (
           <Tile className="mt-4 py-12 text-center">
             <p className="text-white/60">No reviews yet — be the first to review {firstName}.</p>
@@ -371,3 +384,7 @@ const GuideDetail = () => {
 };
 
 export default GuideDetail;
+
+Stars.propTypes = { value: PropTypes.number, className: PropTypes.string };
+DetailRow.propTypes = { icon: PropTypes.elementType, label: PropTypes.string, items: PropTypes.oneOfType([PropTypes.string, PropTypes.arrayOf(PropTypes.string)]) };
+Shell.propTypes = { children: PropTypes.node };

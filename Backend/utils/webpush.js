@@ -27,7 +27,7 @@ async function sendPushToUser(userId, payload) {
     await Promise.all(
       subs.map(async (s) => {
         try {
-          await webpush.sendNotification(s.subscription, JSON.stringify(payload));
+          await sendPushSubscription(s, payload);
         } catch (err) {
           if (err.statusCode === 404 || err.statusCode === 410) {
             await PushSubscription.deleteOne({ _id: s._id }).catch(() => {});
@@ -40,4 +40,17 @@ async function sendPushToUser(userId, payload) {
   }
 }
 
-module.exports = { enabled, publicKey: PUB || null, sendPushToUser };
+async function sendPushSubscription(sub, payload) {
+  if (!enabled) throw new Error('Push is not configured');
+  if (!require('./pushValidation').cleanSubscription(sub.subscription)) {
+    await PushSubscription.deleteOne({ _id: sub._id });
+    return; // Legacy unsafe endpoints must never be fetched.
+  }
+  try {
+    await webpush.sendNotification(sub.subscription, JSON.stringify(payload), { timeout: 15000 });
+  } catch (err) {
+    if (err.statusCode !== 404 && err.statusCode !== 410) throw err;
+    await PushSubscription.deleteOne({ _id: sub._id });
+  }
+}
+module.exports = { enabled, publicKey: PUB || null, sendPushToUser, sendPushSubscription };

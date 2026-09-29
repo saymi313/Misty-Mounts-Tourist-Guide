@@ -1,3 +1,4 @@
+import TripDesk from "../../components/TripDesk";
 import React from "react";
 import { Route } from "react-router-dom";
 import HotelDashboard from "../pages/HotelDashboard";
@@ -9,6 +10,7 @@ import HotelProfile from "../pages/HotelProfile";
 
 // Paths are relative — mounted under /hotel/* in App.jsx.
 const HotelRoutes = () => [
+  <Route key="quotes" path="quotes" element={<TripDesk mode="hotel" />} />,
   <Route key="dashboard" index element={<HotelDashboard />} />,
   <Route key="listings" path="listings" element={<HotelListings />} />,
   <Route key="bookings" path="bookings" element={<HotelBookings />} />,

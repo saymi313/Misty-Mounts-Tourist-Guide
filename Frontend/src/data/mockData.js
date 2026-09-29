@@ -499,22 +499,6 @@ export const disasters = [
   },
 ];
 
-// ── Weather (previously hard-coded in the client) ─────────────────────────────
-export const weatherBySpot = {
-  default: {
-    main: { temp: 12, feels_like: 9, humidity: 58 },
-    weather: [{ description: "Partly cloudy", icon: "cloud-sun" }],
-    wind: { speed: 4 },
-    forecast: [
-      { day: "Mon", high: 15, low: 4, icon: "sun" },
-      { day: "Tue", high: 13, low: 3, icon: "cloud-sun" },
-      { day: "Wed", high: 10, low: 1, icon: "cloud-rain" },
-      { day: "Thu", high: 14, low: 4, icon: "sun" },
-      { day: "Fri", high: 16, low: 6, icon: "sun" },
-    ],
-  },
-};
-
 // ── Home page trip categories & packages ──────────────────────────────────────
 export const categories = [
   { _id: "cat-1", name: "Lakes & Valleys", count: 24, icon: "waves", image: img("cat-lakes", 600, 800) },

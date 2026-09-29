@@ -1,4 +1,5 @@
-import React, { useEffect, useRef, useState } from "react";
+import PropTypes from 'prop-types';
+import { useEffect, useRef, useState } from "react";
 import { Send, Check, CheckCheck, MessageSquare } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
 import { getThread, sendMessage } from "../../data/messagesApi";
@@ -28,11 +29,17 @@ export default function ChatPanel({
   const [loading, setLoading] = useState(true);
   const [sending, setSending] = useState(false);
   const [partnerTyping, setPartnerTyping] = useState(false);
+  const [before, setBefore] = useState(null);
+  const [loadingOlder, setLoadingOlder] = useState(false);
+  const [historyError, setHistoryError] = useState('');
+  const activePartner = useRef(null);
+  const prepending = useRef(false);
 
   const endRef = useRef(null);
   const typingTimer = useRef(null);
   const lastTypingSent = useRef(0);
   const partnerId = partner?.partnerId ? String(partner.partnerId) : null;
+  activePartner.current = partnerId;
 
   const t = dark
     ? {
@@ -69,17 +76,22 @@ export default function ChatPanel({
       };
 
   const scrollToEnd = () => endRef.current?.scrollIntoView({ behavior: "smooth" });
-  useEffect(() => { scrollToEnd(); }, [messages, partnerTyping]);
+  useEffect(() => {
+    if (prepending.current) { prepending.current = false; return; }
+    scrollToEnd();
+  }, [messages, partnerTyping]);
 
   // Load thread whenever the partner changes.
   useEffect(() => {
     if (!partnerId) return undefined;
     let alive = true;
     setLoading(true);
+    setBefore(null); setLoadingOlder(false); setHistoryError('');
     getThread(partnerId)
       .then((data) => {
         if (!alive) return;
         setMessages(data.messages || []);
+        setBefore(data.pagination?.before || null);
         onRead?.(partnerId);
         window.dispatchEvent(new Event("mm:messages-read")); // refresh nav badges
       })
@@ -105,8 +117,8 @@ export default function ChatPanel({
     const onTyping = ({ fromUserId, isTyping }) => {
       if (String(fromUserId) === partnerId) setPartnerTyping(!!isTyping);
     };
-    const onReadReceipt = ({ by }) => {
-      if (String(by) === partnerId) setMessages((prev) => prev.map((m) => (m.mine ? { ...m, read: true } : m)));
+    const onReadReceipt = ({ by, ids }) => {
+      if (String(by) === partnerId) setMessages((prev) => prev.map((m) => (m.mine && (!ids || ids.includes(m.id)) ? { ...m, read: true } : m)));
     };
 
     socket.on("message:new", onNew);
@@ -123,6 +135,20 @@ export default function ChatPanel({
   const emitTyping = (isTyping) => {
     if (!socket || !socketConnected || !partnerId) return;
     socket.emit("typing", { toUserId: partnerId, isTyping });
+  };
+
+  const loadOlder = async () => {
+    if (!before || loadingOlder) return;
+    const current = partnerId;
+    setLoadingOlder(true); setHistoryError('');
+    try {
+      const data = await getThread(current, { before });
+      if (activePartner.current !== current) return;
+      prepending.current = true;
+      setMessages((prev) => [...data.messages.filter((item) => !prev.some((m) => m.id === item.id)), ...prev]);
+      setBefore(data.pagination?.before || null);
+    } catch { if (activePartner.current === current) setHistoryError('Could not load older messages. Try again.'); }
+    finally { if (activePartner.current === current) setLoadingOlder(false); }
   };
 
   const onDraftChange = (v) => {
@@ -199,7 +225,10 @@ export default function ChatPanel({
             <p className={`text-sm ${t.empty}`}>No messages yet — say hello.</p>
           </div>
         ) : (
-          messages.map((m, i) => {
+          <>
+          {before && <button type="button" onClick={loadOlder} disabled={loadingOlder} className="text-sm text-lime-600">{loadingOlder ? 'Loading...' : 'Load older messages'}</button>}
+          {historyError && <p role="alert" className="text-sm text-red-500">{historyError}</p>}
+          {messages.map((m, i) => {
             const showDay = i === 0 || dayLabel(m.at) !== dayLabel(messages[i - 1]?.at);
             return (
               <div key={m.id}>
@@ -219,7 +248,8 @@ export default function ChatPanel({
                 </div>
               </div>
             );
-          })
+          })}
+          </>
         )}
         {partnerTyping && (
           <div className="flex justify-start">
@@ -256,3 +286,8 @@ export default function ChatPanel({
     </div>
   );
 }
+
+ChatPanel.propTypes = {
+  partner: PropTypes.shape({ partnerId: PropTypes.oneOfType([PropTypes.string, PropTypes.number]), name: PropTypes.string, avatar: PropTypes.string, city: PropTypes.string, type: PropTypes.string }),
+  online: PropTypes.bool, dark: PropTypes.bool, onActivity: PropTypes.func, onRead: PropTypes.func, heightClass: PropTypes.string,
+};

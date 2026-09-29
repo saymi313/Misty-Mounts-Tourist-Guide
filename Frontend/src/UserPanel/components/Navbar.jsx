@@ -19,9 +19,9 @@ import { getUnreadMessageCount } from "../../data/messagesApi";
 // the bar never overflows. `nav` entries are either { to } links or { items } menus.
 const NAV = [
   { to: "/user", key: "nav.home", label: "Home" },
+  { to: "/destinations", key: "nav.destinations", label: "Destinations" },
   {
     key: "nav.explore", label: "Explore", items: [
-      { to: "/destinations", key: "nav.destinations", label: "Destinations", icon: Compass },
       { to: "/guides", key: "nav.guides", label: "Local Guides", icon: Users },
       { to: "/tours", key: "nav.tours", label: "Tours", icon: Package },
       { to: "/map", key: "nav.map", label: "Map", icon: MapIcon },
@@ -165,7 +165,7 @@ const Navbar = () => {
         {/* soft scrim so page content fades under the floating bar */}
         <div className="pointer-events-none absolute inset-x-0 top-0 h-24 bg-gradient-to-b from-night-950/90 via-night-950/40 to-transparent" />
 
-        <div className="relative mx-auto max-w-7xl px-4 pt-3 sm:px-6">
+        <div className="relative mx-auto max-w-5xl px-4 pt-3 sm:px-6">
           <nav className="flex items-center justify-between gap-3 rounded-full border border-white/10 bg-night-900/50 px-3 py-2 shadow-[0_8px_30px_-8px_rgba(0,0,0,0.6)] ring-1 ring-white/[0.06] backdrop-blur-xl sm:px-4">
             {/* Wordmark — logo only */}
             <Link to="/user" className="flex items-center pl-1">

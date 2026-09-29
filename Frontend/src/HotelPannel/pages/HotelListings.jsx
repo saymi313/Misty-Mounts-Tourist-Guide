@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { BedDouble, Banknote, Clock, Plus, Pencil, Trash2, MapPin, UtensilsCrossed, CalendarDays } from "lucide-react";
 import HotelLayout from "../HotelLayout";
 import { Card, SectionHead, StatCard, StatusPill, Btn, BtnGhost, Field, adminInputCls } from "../../components/dashboard/ui";
@@ -16,6 +16,7 @@ import ImageUploadButton from "../../components/dashboard/ImageUploadButton";
 import useCities from "../../hooks/useCities";
 import { toast } from "../../utils/toast";
 import { confirmDialog } from "../../utils/confirm";
+import AiDraftAssistant from "../../components/dashboard/AiDraftAssistant";
 
 const emptyForm = {
   name: "", type: "hotel", city: "", location: "", price: "",
@@ -217,6 +218,7 @@ export default function HotelListings() {
             <textarea rows="3" value={form.description} onChange={(e) => update("description", e.target.value)} placeholder="Describe rooms, amenities, the view…" className={`${adminInputCls} resize-none`} />
           </Field>
           <Field label="Amenities" value={form.amenities} onChange={(v) => update("amenities", v)} placeholder="Wifi, Parking, Breakfast, Mountain view" hint="Comma separated." />
+          <AiDraftAssistant key={editing?._id || 'new'} facts={{ name: form.name, city: form.city, location: form.location, description: form.description, amenities: form.amenities, type: form.type }} onApply={text => update('description', text)} />
           <div>
             <div className="mb-1.5 flex items-center justify-between gap-3">
               <span className="text-xs font-semibold uppercase tracking-wide text-slate-500">Photo</span>

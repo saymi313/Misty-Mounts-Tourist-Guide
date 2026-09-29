@@ -149,7 +149,7 @@ export default function TourDetail() {
     return (
       <Shell>
         <Tile className="py-16 text-center">
-          <p className="text-white/60">Tour not found.</p>
+          <Seo title="Tour unavailable" noindex /><p className="text-white/60">Tour not found.</p>
           <Link to="/tours" className="mt-4 inline-block font-semibold text-lime-400">← Back to tours</Link>
         </Tile>
       </Shell>
@@ -166,7 +166,7 @@ export default function TourDetail() {
       <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }} className="mt-5 overflow-hidden rounded-[1.6rem] border border-white/[0.07]">
         <div className="relative h-64 w-full sm:h-80">
           {tour.coverImage ? (
-            <img loading="lazy" decoding="async" src={tour.coverImage} alt={tour.title} className="h-full w-full object-cover" />
+            <img fetchPriority="high" decoding="async" src={tour.coverImage} alt={tour.title} className="h-full w-full object-cover" />
           ) : (
             <div className="flex h-full w-full items-center justify-center bg-night-700 text-white/25"><Compass className="h-12 w-12" /></div>
           )}
@@ -198,7 +198,7 @@ export default function TourDetail() {
           description: tour.summary,
           image: tour.coverImage,
           ...(tour.pricePerPerson
-            ? { offers: { "@type": "Offer", price: tour.pricePerPerson, priceCurrency: "PKR", availability: "https://schema.org/InStock" } }
+            ? { offers: { "@type": "Offer", price: tour.pricePerPerson, priceCurrency: "PKR" } }
             : {}),
         }}
       />

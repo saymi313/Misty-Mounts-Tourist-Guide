@@ -1,0 +1,28 @@
+// Complete, authored Urdu phrases for prominent copy. Never assemble sentences
+// by concatenating translations of their individual English words.
+export const urduPhrases = {
+  'An AI-powered travel experience for Pakistan.': 'مصنوعی ذہانت کی مدد سے پاکستان کی سیاحت کا ایک نیا تجربہ۔',
+  'Artificial intelligence, with Pakistan at heart.': 'مصنوعی ذہانت، پاکستان کی محبت کے ساتھ۔',
+  'We bring artificial intelligence into travel planning to help you discover Pakistan with greater confidence, connect with local communities, and turn your curiosity into a journey.': 'ہم سفر کی منصوبہ بندی میں مصنوعی ذہانت سے مدد لیتے ہیں تاکہ آپ زیادہ اعتماد کے ساتھ پاکستان کی سیر کر سکیں، مقامی لوگوں سے مل سکیں اور نئی جگہوں کو جاننے کے شوق کو ایک یادگار سفر میں بدل سکیں۔',
+  'Usairam Saeed': 'اُصیرم سعید',
+  'Usairam': 'اُصیرم',
+  'Founder of Misty Mounts and the architect of its vision. Usairam conceived the platform and led the majority of its engineering, with a singular mission — to bring Northern Pakistan to the world.': 'مسٹی ماؤنٹس کے بانی اور اس کے تصور کے معمار۔ اُصیرم سعید نے اس پلیٹ فارم کا تصور پیش کیا اور اس کی تیاری کے بیشتر کام کی قیادت کی۔ ان کا مقصد شمالی پاکستان کو دنیا سے روشناس کرانا ہے۔',
+  'For the love of Pakistan.': 'پاکستان سے محبت کے نام',
+  'Built with love for Pakistan': 'پاکستان کی محبت میں بنایا گیا',
+  'Promoting Pakistan, one journey at a time.': 'ہر سفر کے ساتھ پاکستان کی سیاحت کو فروغ دینا',
+  'Our love for Pakistan shapes what we build.': 'پاکستان سے محبت ہی ہمارے کام کی بنیاد ہے۔',
+  'Bring Pakistan closer to the world': 'دنیا کو پاکستان سے روشناس کرانا',
+  'Create opportunities for local people': 'مقامی لوگوں کے لیے روزگار کے مواقع پیدا کرنا',
+  'Care for the places we love': 'اپنے خوب صورت مقامات کی حفاظت کرنا',
+  'From our home, an invitation to the world.': 'ہماری سرزمین سے دنیا بھر کے لوگوں کے لیے دعوت',
+  'The people behind the purpose': 'اس مقصد کے لیے کام کرنے والی ٹیم',
+  'Made in Pakistan. Dedicated to its discovery.': 'پاکستان میں بنایا گیا، پاکستان کی خوب صورتی اجاگر کرنے کے لیے۔',
+  'Explore Pakistan': 'پاکستان کی سیر کریں',
+  'Meet local guides': 'مقامی گائیڈز سے ملیں',
+  'Build my itinerary': 'میرے سفر کا منصوبہ بنائیں',
+  'Add to Trip Builder': 'سفر کے منصوبے میں شامل کریں',
+  'Ideas for your next trip': 'آپ کے اگلے سفر کے لیے تجاویز',
+  'Weather and trip adjustments': 'موسم کے مطابق سفر میں تبدیلیاں',
+  'Current model estimate': 'موسمی ماڈل کے مطابق موجودہ صورتِ حال',
+  'Unavailable': 'فی الحال دستیاب نہیں',
+};

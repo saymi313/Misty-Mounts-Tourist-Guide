@@ -1,4 +1,6 @@
-import React, { useState } from "react";
+import useFeatures from "../../hooks/useFeatures";
+import FeatureNotice from "../../components/FeatureNotice";
+import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Home/Footer";
@@ -7,10 +9,14 @@ import { getAllSpots } from "../../data/mockApi";
 import { CITY_COORDS } from "../../data/geo";
 import useTrip from "../../hooks/useTrip";
 import { INTERESTS, PACE, planTrip, planToTripItems } from "../../utils/tripPlanner";
+import api, { LIVE } from "../../data/api";
+import TripWeather from "../../components/TripWeather";
+import { swapActivities } from "../../utils/tripWeather";
 
 const REGIONS = ["", ...Object.keys(CITY_COORDS)];
 
 const TripPlanner = () => {
+  const features = useFeatures();
   const navigate = useNavigate();
   const { setAll } = useTrip();
 
@@ -19,21 +25,47 @@ const TripPlanner = () => {
   const [pace, setPace] = useState("balanced");
   const [region, setRegion] = useState("");
   const [plan, setPlan] = useState(null);
+  const [planVersion, setPlanVersion] = useState(0);
   const [busy, setBusy] = useState(false);
+  const [error, setError] = useState("");
+  const [details, setDetails] = useState({ startDate: new Date().toISOString().slice(0, 10), people: 2, budget: 100000, departure: "", transport: "own-car", instructions: "" });
+  const field = (key, value) => setDetails(previous => ({ ...previous, [key]: value }));
 
   const toggleInterest = (k) =>
     setInterests((prev) => (prev.includes(k) ? prev.filter((x) => x !== k) : [...prev, k]));
 
   const generate = async () => {
     setBusy(true);
+    setError("");
     try {
-      const spots = await getAllSpots();
-      setPlan(planTrip(spots, { days: Number(days), interests, pace, region }));
-    } catch {
-      setPlan({ days: [], cities: [] });
+      if (LIVE) {
+        const { data } = await api.post('/ai/plan', { ...details, days: Number(days), interests, pace, region }, { timeout: 30000 });
+        setPlan(data);
+      } else {
+        const spots = await getAllSpots();
+        if (!Number.isFinite(Date.parse(details.startDate))) throw new Error('Invalid departure date');
+        const basic = planTrip(spots, { days: Number(days), interests, pace, region });
+        basic.days = basic.days.map(day => {
+          const date = new Date(`${details.startDate}T00:00:00Z`); date.setUTCDate(date.getUTCDate() + day.day - 1);
+          return { ...day, date: date.toISOString().slice(0, 10) };
+        });
+        setPlan({ ...basic, fallback: true });
+      }
+      setPlanVersion(previous => previous + 1);
+    } catch (err) {
+      setError(err.response?.data?.error || 'Could not build your itinerary. Please try again.');
     } finally {
       setBusy(false);
     }
+  };
+
+  const requestQuote = () => {
+    const dates = plan.days.map(day => day.date).filter(Boolean);
+    const end = new Date(`${details.startDate}T00:00:00Z`);
+    end.setUTCDate(end.getUTCDate() + Number(days) - 1);
+    const draft = { destination: region || plan.days[0]?.city || '', startDate: dates[0] || details.startDate, endDate: dates.at(-1) || end.toISOString().slice(0, 10), people: Number(details.people), budget: Number(details.budget), requirements: details.instructions || `Please quote a ${days}-day trip including stays, guides and transport. Departure: ${details.departure || 'to be agreed'}.`, itinerary: plan.days.map(day => `Day ${day.day}${day.date ? ` (${day.date})` : ''}: ${day.city || ''}\n${(day.spots || []).map(spot => spot.name || spot.title || '').filter(Boolean).join(', ')}`).join('\n\n').slice(0, 12000) };
+    try { sessionStorage.setItem('mm-quote-draft', JSON.stringify(draft)); } catch { /* The request form also works without a saved draft. */ }
+    navigate('/trip-requests');
   };
 
   const addToTrip = () => {
@@ -50,11 +82,13 @@ const TripPlanner = () => {
         {/* Header */}
         <header className="max-w-2xl">
           <Eyebrow>Trip planner</Eyebrow>
+          {!features.gemini && <FeatureNotice feature="AI itinerary refinement" state={features.state}>Basic trip planning and supplier quote requests are available.</FeatureNotice>}
+          <Link to="/trip-requests" className="mt-3 inline-block min-h-11 text-sm text-lime-300 underline">Your supplier quotes and trip requests</Link>
           <h1 className="mt-3 text-[clamp(2rem,5vw,3.25rem)] font-extrabold leading-[1.05] tracking-tight">
             Plan your perfect trip to <span className="text-lime-400">the north.</span>
           </h1>
           <p className="mt-4 text-white/60">
-            Set your days and your vibe. We build a day-by-day itinerary from real, bookable spots and drop it into your Trip Builder.
+            Plan with real destinations, a group budget, and your interests. Review your itinerary, then save it to Trip Builder.
           </p>
         </header>
 
@@ -62,6 +96,27 @@ const TripPlanner = () => {
         <div className="mt-8 grid gap-6 lg:grid-cols-[340px_1fr] lg:items-start">
           {/* Control panel */}
           <Tile pad="p-5" className="lg:sticky lg:top-24">
+            <div className="mb-5 space-y-3">
+              {[
+                ['startDate', 'Departure date', 'date'], ['departure', 'Departing from', 'text'],
+                ['people', 'Travellers (1–20)', 'number'], ['budget', 'Total group budget (PKR)', 'number'],
+              ].map(([key, label, type]) => (
+                <label key={key} className="block text-sm font-semibold text-white/80">
+                  {label}
+                  <input type={type} value={details[key]} onChange={e => field(key, e.target.value)} min={type === 'number' ? 1 : undefined} max={key === 'people' ? 20 : key === 'budget' ? 10000000 : undefined}
+                    className="mt-1 min-h-11 w-full rounded-xl border border-white/15 bg-night-900 px-3 text-base focus:outline-lime-400" />
+                </label>
+              ))}
+              <label className="block text-sm font-semibold text-white/80">Transport
+                <select value={details.transport} onChange={e => field('transport', e.target.value)} className="mt-1 min-h-11 w-full rounded-xl border border-white/15 bg-night-900 px-3 text-base focus:outline-lime-400">
+                  <option value="own-car">Own car</option><option value="public">Public transport</option><option value="rental">Rental vehicle</option>
+                </select>
+              </label>
+              <label className="block text-sm font-semibold text-white/80">Preferences or changes
+                <textarea value={details.instructions} maxLength={1000} onChange={e => field('instructions', e.target.value)} placeholder="Make day three more relaxed, include lakes…" className="mt-1 min-h-24 w-full rounded-xl border border-white/15 bg-night-900 p-3 text-base focus:outline-lime-400" />
+              </label>
+              <p className="text-xs text-white/60">{features.gemini ? 'AI uses your preferences; dates, group size and budget come from these fields.' : 'Basic planning uses catalogue destinations. Dates, group size and budget come from these fields.'}</p>
+            </div>
             <div>
               <div className="flex items-baseline justify-between">
                 <label className="text-sm font-bold text-white/70">Trip length</label>
@@ -118,6 +173,17 @@ const TripPlanner = () => {
 
           {/* Results */}
           <div>
+            {error && <p role="alert" className="mb-4 rounded-xl border border-red-400/40 p-4 text-red-200">{error}</p>}
+            {busy && <p role="status" className="mb-4 text-lime-300">Building your itinerary. This may take up to 30 seconds.</p>}
+            {plan && <p role="status" className="mb-4 text-sm text-white/70">{plan.fallback ? 'Basic itinerary — AI refinement is unavailable or could not be validated.' : 'AI-assisted itinerary — destinations validated against the catalogue.'}</p>}
+            {plan?.days.length > 0 && <TripWeather key={planVersion} plan={plan} onSwap={(from, to) => setPlan(previous => swapActivities(previous, from, to))} />}
+            {plan?.budget && <Tile pad="p-5" className="mb-5">
+              <h2 className="text-lg font-bold">Estimated group cost: PKR {plan.budget.total.toLocaleString()}</h2>
+              <p className="mt-2 text-sm text-white/75">Lodging: {plan.budget.lodging === null ? 'price unavailable' : `PKR ${plan.budget.lodging.toLocaleString()}`} · Food: PKR {plan.budget.food.toLocaleString()} · Transport: PKR {plan.budget.transport.toLocaleString()} · Contingency: PKR {plan.budget.contingency.toLocaleString()}</p>
+              <p className="mt-2 text-sm text-lime-300">{plan.budget.overBudget ? `Over your budget by PKR ${(plan.budget.total - plan.budget.limit).toLocaleString()}. Try fewer days or another region.` : 'Estimated included costs fit your budget.'} {plan.budget.incomplete && 'Total is incomplete: lodging is not included.'}</p>
+              {plan.stay && <Link className="mt-3 block text-lime-300 underline" to={`/accommodations/${encodeURIComponent(plan.stay._id)}`}>Suggested stay: {plan.stay.name} — check availability</Link>}
+              {plan.notes.map(note => <p key={note} className="mt-3 text-xs leading-relaxed text-white/65">{note}</p>)}
+            </Tile>}
             {!plan && (
               <div className="flex min-h-[340px] flex-col items-center justify-center rounded-[1.4rem] border border-dashed border-white/12 bg-night-900/40 p-10 text-center">
                 <span className="h-12 w-12 rounded-full border border-white/15" />
@@ -130,7 +196,7 @@ const TripPlanner = () => {
 
             {plan && plan.days.length === 0 && (
               <div className="rounded-[1.4rem] border border-white/[0.07] bg-night-800 p-10 text-center text-white/60">
-                No spots matched that region yet. Try "Anywhere in the north" or different interests.
+                No spots matched that region yet. Try &quot;Anywhere in the north&quot; or different interests.
               </div>
             )}
 
@@ -142,9 +208,10 @@ const TripPlanner = () => {
                     <p className="mt-1 text-sm text-white/55">{plan.cities.join(", ")}</p>
                   </div>
                   <div className="flex gap-2">
-                    <button onClick={generate} className="rounded-full bg-night-700 px-4 py-2 text-sm font-bold text-white transition-colors hover:bg-night-600">
-                      Shuffle
+                    <button onClick={generate} disabled={busy} className="rounded-full bg-night-700 px-4 py-2 text-sm font-bold text-white transition-colors hover:bg-night-600 disabled:opacity-50">
+                      Apply preferences
                     </button>
+                    <button onClick={requestQuote} className="min-h-11 rounded-full border border-lime-400 px-4 py-2 text-sm font-bold text-lime-300">Request supplier quote</button>
                     <button onClick={addToTrip} className="rounded-full bg-lime-400 px-4 py-2 text-sm font-bold text-night-950 transition-transform hover:-translate-y-0.5 hover:bg-lime-300">
                       Add to Trip Builder
                     </button>
@@ -159,7 +226,7 @@ const TripPlanner = () => {
                           {d.day}
                         </span>
                         <div>
-                          <p className="text-[11px] font-semibold uppercase tracking-wide text-white/40">Day {d.day}</p>
+                          <p className="text-xs font-semibold uppercase tracking-wide text-white/60">Day {d.day}{d.date ? ` · ${d.date}` : ''}</p>
                           <h3 className="text-base font-extrabold text-white">{d.city}</h3>
                         </div>
                       </div>

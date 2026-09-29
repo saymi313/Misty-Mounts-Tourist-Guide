@@ -1,4 +1,7 @@
-import React, { useEffect, useState } from "react";
+import PropTypes from "prop-types";
+import useFeatures from "../hooks/useFeatures";
+import FeatureNotice from "../components/FeatureNotice";
+import { useEffect, useState } from "react";
 import { Sparkles, ThumbsUp, ThumbsDown, Loader2 } from "lucide-react";
 import api from "../data/api";
 
@@ -8,13 +11,14 @@ import api from "../data/api";
  * for fewer than 3 reviews. Accepts reviews with { rating, text|comment }.
  */
 const ReviewSummary = ({ reviews = [], subject, className = "" }) => {
+  const features = useFeatures();
   const [data, setData] = useState(null);
   const [state, setState] = useState("idle"); // idle | loading | ok | error
 
   const enough = reviews.length >= 3;
 
   useEffect(() => {
-    if (!enough) return;
+    if (!enough || !features.gemini) return;
     let alive = true;
     setState("loading");
     api
@@ -26,9 +30,11 @@ const ReviewSummary = ({ reviews = [], subject, className = "" }) => {
       .catch(() => alive && setState("error"));
     return () => { alive = false; };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [reviews.length, subject]);
+  }, [reviews.length, subject, features.gemini]);
 
-  if (!enough || state === "error") return null;
+  if (!enough) return null;
+  if (!features.gemini) return <div className={`text-white/80 ${className}`}><FeatureNotice feature="AI review summary" state={features.state}>Read traveler reviews below.</FeatureNotice></div>;
+  if (state === "error") return null;
 
   return (
     <div className={`rounded-2xl border border-lime-400/20 bg-lime-400/[0.05] p-5 ${className}`}>
@@ -71,4 +77,5 @@ const ReviewSummary = ({ reviews = [], subject, className = "" }) => {
   );
 };
 
+ReviewSummary.propTypes = { reviews: PropTypes.array, subject: PropTypes.string, className: PropTypes.string };
 export default ReviewSummary;

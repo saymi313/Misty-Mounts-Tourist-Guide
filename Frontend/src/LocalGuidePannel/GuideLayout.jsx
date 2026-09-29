@@ -10,6 +10,7 @@ import { LIVE } from "../data/api";
 import { getUnreadMessageCount } from "../data/messagesApi";
 
 const NAV = [
+  { to: "/local-guide/quotes", label: "Trip requests", icon: MessageSquare },
   { to: "/local-guide", label: "Dashboard", icon: LayoutDashboard, end: true },
   { to: "/local-guide/spots", label: "Tourist Spots", icon: Map },
   { to: "/local-guide/natural-disasters", label: "Alerts", icon: AlertTriangle },

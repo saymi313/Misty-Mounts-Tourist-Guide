@@ -58,6 +58,7 @@ const userSchema = new mongoose.Schema(
     // Email OTP verification
     isVerified: { type: Boolean, default: false },
     otp: { type: String, select: false },
+    otpPurpose: { type: String, enum: ['verify', 'reset'], select: false },
     otpExpires: { type: Date, select: false },
     otpAttempts: { type: Number, default: 0, select: false }, // brute-force lockout counter
   },

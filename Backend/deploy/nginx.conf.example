@@ -1,0 +1,25 @@
+# Example only: put this inside nginx's http context and configure TLS separately.
+# The frontend currently uses WebSocket-only Socket.IO connections.
+map $http_upgrade $misty_connection_upgrade {
+    default upgrade;
+    '' close;
+}
+upstream misty_api {
+    least_conn;
+    server 127.0.0.1:5000;
+    server 127.0.0.1:5001;
+}
+server {
+    listen 8080;
+    client_max_body_size 6m;
+    location / {
+        proxy_pass http://misty_api;
+        proxy_http_version 1.1;
+        proxy_set_header Host $host;
+        proxy_set_header X-Forwarded-For $remote_addr;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection $misty_connection_upgrade;
+        proxy_read_timeout 75s;
+    }
+}

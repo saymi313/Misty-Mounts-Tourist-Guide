@@ -1,3 +1,4 @@
+import TripDesk from "../../components/TripDesk";
 import React from "react";
 import { Routes, Route, Navigate } from "react-router-dom";
 import Login from "../pages/Login";
@@ -37,6 +38,7 @@ const RequireAdmin = ({ children }) =>
 
 const AdminRoutes = () => (
   <Routes>
+    <Route path="trip-requests" element={<RequireAdmin><TripDesk mode="admin" /></RequireAdmin>} />
     <Route path="login" element={<Login />} />
     <Route path="dashboard" element={<RequireAdmin><AdminDashboard /></RequireAdmin>} />
     <Route path="analytics" element={<RequireAdmin><Analytics /></RequireAdmin>} />

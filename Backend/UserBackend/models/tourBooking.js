@@ -45,4 +45,7 @@ const tourBookingSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
+tourBookingSchema.index({ userId: 1, createdAt: -1 });
+tourBookingSchema.index({ agencyId: 1, paymentStatus: 1, escrowStatus: 1 });
+tourBookingSchema.index({ ref: 1 });
 module.exports = mongoose.model("TourBooking", tourBookingSchema);

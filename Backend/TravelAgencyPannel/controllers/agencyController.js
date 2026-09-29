@@ -45,6 +45,7 @@ exports.createMyPackage = async (req, res) => {
     }
     const doc = { _id: await uniquePkgSlug(req.body.title), agencyId: req.user.id };
     for (const f of OWNER_FIELDS) if (f in req.body) doc[f] = req.body[f];
+    if (Array.isArray(doc.departures)) doc.departures = doc.departures.map(d => ({ ...d, seatsBooked: 0 }));
     // Approval gate: pending unless the admin enabled auto-approval.
     doc.isApproved = await getAutoApprovePackages();
     const pkg = await TourPackage.create(doc);
@@ -60,11 +61,28 @@ exports.updateMyPackage = async (req, res) => {
   try {
     const doc = await TourPackage.findOne({ _id: req.params.id, agencyId: req.user.id });
     if (!doc) return res.status(404).json({ error: "Package not found" });
+    if ('departures' in req.body) {
+      if (!Array.isArray(req.body.departures)) return res.status(400).json({ error: 'Departures must be a list.' });
+      const existing = new Map(doc.departures.map(d => [String(d._id), d]));
+      const seen = new Set();
+      for (const d of req.body.departures) {
+        if (!d || typeof d !== 'object') return res.status(400).json({ error: 'Invalid departure.' });
+        const id = String(d._id || '');
+        if (id && seen.has(id)) return res.status(400).json({ error: 'Duplicate departure.' });
+        if (id) seen.add(id);
+        const old = existing.get(id);
+        d.seatsBooked = old?.seatsBooked || 0;
+        if (!Number.isSafeInteger(Number(d.seatsTotal)) || Number(d.seatsTotal) < Math.max(1, d.seatsBooked)) return res.status(409).json({ error: 'Capacity cannot be less than reserved seats.' });
+        if (old?.seatsBooked && new Date(d.date).getTime() !== old.date.getTime()) return res.status(409).json({ error: 'A departure with reservations cannot be rescheduled here.' });
+      }
+      if (doc.departures.some(d => d.seatsBooked > 0 && !seen.has(String(d._id)))) return res.status(409).json({ error: 'A departure with reservations cannot be removed.' });
+    }
     for (const f of OWNER_FIELDS) if (f in req.body) doc[f] = req.body[f];
     await doc.save();
     res.json({ message: "Package updated", package: doc });
   } catch (err) {
     console.error("updateMyPackage error:", err.message);
+    if (err.name === 'VersionError') return res.status(409).json({ error: 'Reservations changed. Refresh the package and retry.' });
     res.status(500).json({ error: "Failed to update package" });
   }
 };
@@ -72,8 +90,8 @@ exports.updateMyPackage = async (req, res) => {
 // DELETE /api/agency/packages/:id — delete own package.
 exports.deleteMyPackage = async (req, res) => {
   try {
-    const doc = await TourPackage.findOneAndDelete({ _id: req.params.id, agencyId: req.user.id });
-    if (!doc) return res.status(404).json({ error: "Package not found" });
+    const doc = await TourPackage.findOneAndDelete({ _id: req.params.id, agencyId: req.user.id, departures: { $not: { $elemMatch: { seatsBooked: { $gt: 0 } } } } });
+    if (!doc) return res.status(409).json({ error: 'Package not found or has reservations. Unpublish it instead.' });
     res.json({ message: "Package deleted" });
   } catch (err) {
     console.error("deleteMyPackage error:", err.message);

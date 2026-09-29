@@ -1,69 +1,41 @@
-import { useEffect } from "react";
-
-/**
- * Dependency-free SEO head manager for the SPA. Sets <title>, meta description,
- * Open Graph / Twitter tags, canonical URL, and an optional JSON-LD structured
- * data block (schema.org) — so pages are share-friendly and discoverable by
- * crawlers that execute JS (Google). Each page overwrites the previous one's tags.
- */
-
-const SITE = "Misty Mounts";
-const DEFAULT_DESC =
-  "Discover Northern Pakistan — vetted local guides, stays and group tours with safe escrow booking.";
-
-const setMeta = (attr, key, content) => {
-  if (!content) return;
-  let el = document.head.querySelector(`meta[${attr}="${key}"]`);
-  if (!el) {
-    el = document.createElement("meta");
-    el.setAttribute(attr, key);
-    document.head.appendChild(el);
-  }
-  el.setAttribute("content", content);
-};
-
-const Seo = ({ title, description, image, type = "website", jsonLd }) => {
-  useEffect(() => {
-    const fullTitle = title ? `${title} · ${SITE}` : `${SITE} — Northern Pakistan Travel`;
-    const desc = description || DEFAULT_DESC;
-    const url = window.location.href.split("?")[0];
-
-    document.title = fullTitle;
-    setMeta("name", "description", desc);
-    setMeta("property", "og:title", fullTitle);
-    setMeta("property", "og:description", desc);
-    setMeta("property", "og:type", type);
-    setMeta("property", "og:url", url);
-    setMeta("property", "og:site_name", SITE);
-    if (image) setMeta("property", "og:image", image);
-    setMeta("name", "twitter:card", "summary_large_image");
-    setMeta("name", "twitter:title", fullTitle);
-    setMeta("name", "twitter:description", desc);
-    if (image) setMeta("name", "twitter:image", image);
-
-    let canon = document.head.querySelector('link[rel="canonical"]');
-    if (!canon) {
-      canon = document.createElement("link");
-      canon.rel = "canonical";
-      document.head.appendChild(canon);
-    }
-    canon.href = url;
-
-    let script = document.getElementById("mm-jsonld");
-    if (jsonLd) {
-      if (!script) {
-        script = document.createElement("script");
-        script.id = "mm-jsonld";
-        script.type = "application/ld+json";
-        document.head.appendChild(script);
-      }
-      script.textContent = JSON.stringify(jsonLd);
-    } else if (script) {
-      script.remove();
-    }
-  }, [title, description, image, type, JSON.stringify(jsonLd)]);
-
+import { useEffect } from 'react';
+import { useLocation } from 'react-router-dom';
+import PropTypes from 'prop-types';
+import { pageMetadata, structuredData, safeJsonLd, siteOrigin, isDetailPath } from '../data/seoPages';
+const origin = siteOrigin(import.meta.env.VITE_SITE_URL || 'https://www.mistymounts.pk');
+const indexable = import.meta.env.VITE_SEO_INDEXABLE === 'true' && Boolean(import.meta.env.VITE_API_URL);
+const overrides = new Map();
+function meta(attr, key, content) {
+  let element = document.head.querySelector(`meta[${attr}="${key}"]`);
+  if (!element) { element = document.createElement('meta'); element.setAttribute(attr, key); document.head.appendChild(element); }
+  element.content = content;
+}
+function apply(path) {
+  const override = overrides.get(path) || {};
+  const values = pageMetadata(path, override, origin, indexable);
+  document.title = values.title; meta('name', 'description', values.description); meta('name', 'robots', values.robots);
+  for (const [key, value] of Object.entries({ title: values.title, description: values.description, type: values.type, url: values.canonical, site_name: 'Misty Mounts', image: values.image, 'image:alt': override.title || 'Misty Mounts — Pakistan travel', locale: 'en_PK' })) meta('property', `og:${key}`, value);
+  for (const [key, value] of Object.entries({ card: 'summary_large_image', title: values.title, description: values.description, image: values.image, 'image:alt': override.title || 'Misty Mounts — Pakistan travel' })) meta('name', `twitter:${key}`, value);
+  let canonical = document.head.querySelector('link[rel="canonical"]');
+  if (!canonical) { canonical = document.createElement('link'); canonical.rel = 'canonical'; document.head.appendChild(canonical); }
+  canonical.href = values.canonical;
+  document.getElementById('mm-jsonld')?.remove();
+  const data = structuredData(path, values, override.jsonLd);
+  if (data) { const script = document.createElement('script'); script.id = 'mm-jsonld'; script.type = 'application/ld+json'; script.textContent = safeJsonLd(data); document.head.appendChild(script); }
+  document.documentElement.dataset.seoReady = String(!isDetailPath(path) || overrides.has(path));
+}
+export function RouteSeo() {
+  const { pathname } = useLocation();
+  useEffect(() => { apply(pathname); }, [pathname]);
   return null;
-};
-
-export default Seo;
+}
+export default function Seo(props) {
+  const { pathname } = useLocation();
+  const serialized = JSON.stringify(props);
+  useEffect(() => {
+    overrides.set(pathname, JSON.parse(serialized)); apply(pathname);
+    return () => { overrides.delete(pathname); if (window.location.pathname === pathname) apply(pathname); };
+  }, [pathname, serialized]);
+  return null;
+}
+Seo.propTypes = { title: PropTypes.string, description: PropTypes.string, image: PropTypes.string, type: PropTypes.string, jsonLd: PropTypes.object, noindex: PropTypes.bool };

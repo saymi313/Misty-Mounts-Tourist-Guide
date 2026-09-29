@@ -21,5 +21,10 @@ const messageSchema = new mongoose.Schema(
 
 // Fast lookup of one conversation in chronological order.
 messageSchema.index({ userId: 1, guideId: 1, createdAt: 1 });
+messageSchema.index({ userId: 1, guideId: 1, _id: -1 });
+messageSchema.index({ userId: 1, createdAt: -1 });
+messageSchema.index({ guideId: 1, createdAt: -1 });
+messageSchema.index({ userId: 1, sender: 1, readByUser: 1 });
+messageSchema.index({ guideId: 1, sender: 1, readByGuide: 1 });
 
 module.exports = mongoose.model("Message", messageSchema);

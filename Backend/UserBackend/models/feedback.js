@@ -17,6 +17,8 @@ const feedbackSchema = new mongoose.Schema(
     rating: {
       type: Number,
       required: true,
+      min: 1,
+      max: 5,
     },
     message: {
       type: String,
@@ -33,6 +35,9 @@ const feedbackSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
+feedbackSchema.index({ createdAt: -1, _id: -1 });
+feedbackSchema.index({ guideId: 1, createdAt: -1, _id: -1 });
+feedbackSchema.index({ locationName: 1, createdAt: -1, _id: -1 });
 const Feedback = mongoose.model('Feedback', feedbackSchema);
 
 module.exports = Feedback;

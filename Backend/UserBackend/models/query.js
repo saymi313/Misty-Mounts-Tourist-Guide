@@ -11,6 +11,7 @@ const querySchema = new mongoose.Schema(
     replies: [
       {
         message: { type: String, required: true },
+        status: { type: String, enum: ['queued', 'sent', 'failed'], default: 'sent' },
         sentAt: { type: Date, default: Date.now },
       },
     ],
@@ -18,4 +19,6 @@ const querySchema = new mongoose.Schema(
   { timestamps: true }
 );
 
+querySchema.index({ createdAt: -1, _id: -1 });
+querySchema.index({ isRead: 1, createdAt: -1, _id: -1 });
 module.exports = mongoose.model("Query", querySchema);

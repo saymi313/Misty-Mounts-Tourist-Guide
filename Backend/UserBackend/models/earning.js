@@ -12,4 +12,5 @@ const earningSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
+earningSchema.index({ guideId: 1, createdAt: -1, _id: -1 });
 module.exports = mongoose.model("Earning", earningSchema);

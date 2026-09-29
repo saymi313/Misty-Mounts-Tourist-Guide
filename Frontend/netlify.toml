@@ -1,0 +1,4 @@
+[build]
+  command = "npm run seo:install && npm run build"
+  publish = "dist"
+# Per-build route redirects and noindex headers are generated in dist.

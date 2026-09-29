@@ -53,7 +53,7 @@ exports.getConversations = async (req, res) => {
       },
       { $sort: { lastAt: -1 } },
       { $limit: 100 },
-    ]);
+    ]).option({ maxTimeMS: 5000 });
 
     const partners = await User.find({ _id: { $in: rows.map((r) => r._id) } }).select(PARTNER_FIELDS);
     const byId = Object.fromEntries(partners.map((p) => [p._id.toString(), p]));
@@ -88,21 +88,28 @@ exports.getThread = async (req, res) => {
     const pair = resolvePair(me, partnerId);
     if (!pair) return res.status(403).json({ error: "This account can't use messaging" });
 
-    const docs = await Message.find({ userId: pair.userId, guideId: pair.guideId })
-      .sort({ createdAt: 1 })
-      .limit(500);
+    const before = req.query.before;
+    if (before !== undefined && (typeof before !== 'string' || !/^[a-f0-9]{24}$/i.test(before))) {
+      return res.status(400).json({ error: 'Invalid message cursor' });
+    }
+    const { limit } = require('../../utils/pagination').pagination({ limit: req.query.limit }, 50);
+    const rows = await Message.find({ userId: pair.userId, guideId: pair.guideId,
+      ...(before ? { _id: { $lt: before } } : {}) })
+      .sort({ _id: -1 }).limit(limit + 1).lean().maxTimeMS(5000);
+    const hasMore = rows.length > limit;
+    const docs = rows.slice(0, limit).reverse();
 
     // Mark messages the partner sent to me as read.
     const readField = pair.mySide === "user" ? "readByUser" : "readByGuide";
     const fromPartner = pair.mySide === "user" ? "guide" : "user";
     const marked = await Message.updateMany(
-      { userId: pair.userId, guideId: pair.guideId, sender: fromPartner, [readField]: false },
+      { _id: { $in: docs.map((doc) => doc._id) }, userId: pair.userId, guideId: pair.guideId, sender: fromPartner, [readField]: false },
       { $set: { [readField]: true } }
     );
     // Tell the sender (in real time) that I've read their messages.
     if (marked.modifiedCount > 0) {
       const io = req.app.get("io");
-      if (io) io.to(String(partnerId)).emit("messages:read", { by: String(me.id) });
+      if (io) io.to(String(partnerId)).emit("messages:read", { by: String(me.id), ids: docs.filter((doc) => doc.sender === fromPartner).map((doc) => String(doc._id)) });
     }
 
     const partner = await User.findById(partnerId).select(PARTNER_FIELDS);
@@ -117,9 +124,11 @@ exports.getThread = async (req, res) => {
           }
         : { partnerId },
       messages: docs.map((d) => shapeMessage(d, pair.mySide)),
+      pagination: { hasMore, before: hasMore ? String(docs[0]._id) : null },
     });
   } catch (err) {
     console.error("getThread error:", err.message);
+    if (err.status === 400) return res.status(400).json({ error: err.message });
     res.status(500).json({ error: "Failed to load conversation" });
   }
 };
@@ -133,7 +142,7 @@ exports.sendMessage = async (req, res) => {
     const pair = resolvePair(me, partnerId);
     if (!pair) return res.status(403).json({ error: "This account can't use messaging" });
 
-    const text = (req.body.text || "").trim();
+    const text = (typeof req.body.text === 'string' ? req.body.text : '').trim();
     if (!text) return res.status(400).json({ error: "Message text is required" });
     if (text.length > 4000) return res.status(400).json({ error: "Message is too long" });
 

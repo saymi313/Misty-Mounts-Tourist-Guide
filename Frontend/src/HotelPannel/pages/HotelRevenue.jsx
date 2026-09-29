@@ -1,4 +1,6 @@
-import React, { useState, useEffect } from "react";
+import useServerList from '../../hooks/useServerList';
+import ServerListControls from '../../components/dashboard/ServerListControls';
+import { useState, useEffect } from "react";
 import { Wallet, Banknote, Send, Lock } from "lucide-react";
 import HotelLayout from "../HotelLayout";
 import { Card, SectionHead, StatCard, Btn, BtnGhost, Field, adminInputCls } from "../../components/dashboard/ui";
@@ -17,16 +19,17 @@ const payoutPill = (s) => {
 
 export default function HotelRevenue() {
   const [balance, setBalance] = useState({ earnings: 0, held: 0, withdrawn: 0, available: 0, minPayoutThreshold: 0, commissionPercent: 0 });
-  const [payouts, setPayouts] = useState([]);
+  const payoutList = useServerList(listMyPayouts, 'payouts', LIVE);
+  const payouts = payoutList.items;
   const [open, setOpen] = useState(false);
   const [form, setForm] = useState({ amount: "", accountDetails: "", note: "" });
   const [err, setErr] = useState("");
 
   const load = () => {
     getBalance().then(setBalance).catch(() => {});
-    listMyPayouts().then(setPayouts).catch(() => {});
+    payoutList.reload();
   };
-  useEffect(() => { if (LIVE) load(); }, []);
+  useEffect(() => { if (LIVE) getBalance().then(setBalance).catch(() => {}); }, []);
 
   const canRequest = balance.available >= balance.minPayoutThreshold && balance.available > 0;
 
@@ -90,7 +93,8 @@ export default function HotelRevenue() {
             </table>
           </div>
         )}
-      </Card>
+      <ServerListControls list={payoutList} />
+        </Card>
 
       <Modal
         open={open}

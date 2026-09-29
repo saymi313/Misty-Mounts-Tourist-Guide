@@ -1,4 +1,6 @@
-import React, { useState, useEffect } from "react";
+import useServerList from '../../hooks/useServerList';
+import ServerListControls from '../../components/dashboard/ServerListControls';
+import { useState, useEffect } from "react";
 import { Wallet, Banknote, Send } from "lucide-react";
 import GuideLayout from "../GuideLayout";
 import { Card, SectionHead, StatCard, Btn, BtnGhost, Field, adminInputCls } from "../../components/dashboard/ui";
@@ -17,18 +19,20 @@ const payoutPill = (s) => {
 
 export default function GuideRevenue() {
   const [balance, setBalance] = useState({ earnings: 0, withdrawn: 0, available: 0, minPayoutThreshold: 0 });
-  const [payouts, setPayouts] = useState([]);
-  const [earnings, setEarnings] = useState([]);
+  const payoutList = useServerList(listMyPayouts, 'payouts', LIVE);
+  const payouts = payoutList.items;
+  const earningList = useServerList(listMyEarnings, 'earnings', LIVE);
+  const earnings = earningList.items;
   const [open, setOpen] = useState(false);
   const [form, setForm] = useState({ amount: "", accountDetails: "", note: "" });
   const [err, setErr] = useState("");
 
   const load = () => {
     getBalance().then(setBalance).catch(() => {});
-    listMyPayouts().then(setPayouts).catch(() => {});
-    listMyEarnings().then(setEarnings).catch(() => {});
+    payoutList.reload();
+    earningList.reload();
   };
-  useEffect(() => { if (LIVE) load(); }, []);
+  useEffect(() => { if (LIVE) getBalance().then(setBalance).catch(() => {}); }, []);
 
   const canRequest = balance.available >= balance.minPayoutThreshold && balance.available > 0;
 
@@ -81,6 +85,7 @@ export default function GuideRevenue() {
               ))}
             </div>
           )}
+        <ServerListControls list={earningList} />
         </Card>
 
         {/* Earnings credited */}

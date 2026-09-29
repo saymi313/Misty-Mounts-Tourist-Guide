@@ -7,6 +7,7 @@ import { confirmDialog } from "../utils/confirm";
 import { LIVE, getAdminCounts } from "../data/adminApi";
 
 const NAV = [
+  { to: "/admin/trip-requests", label: "Trip requests", icon: Package },
   { to: "/admin/dashboard", label: "Dashboard", icon: LayoutDashboard, end: true },
   { to: "/admin/analytics", label: "Analytics", icon: BarChart3 },
   { to: "/admin/tourist-spots", label: "Tourist Spots", icon: Map },

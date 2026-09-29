@@ -5,41 +5,36 @@ const Booking = require("../UserBackend/models/booking");
 const TourBooking = require("../UserBackend/models/tourBooking");
 const { createNotification } = require("../UserBackend/controllers/notificationController");
 const gateway = require("../utils/paymentGateway");
+const Trip = require("../models/TripRequest");
+const { paymentMatches } = require("../utils/tripCommerce");
 
 const CLIENT_URL = process.env.CLIENT_URL || "http://localhost:5173";
 const modelFor = (type) => (type === "tour" ? TourBooking : Booking);
 const serverBase = (req) => process.env.SERVER_URL || `${req.protocol}://${req.get("host")}`;
 
-// Mark a booking paid + funds Held in escrow. Idempotent (safe to call twice).
-async function settle(ref, txnId) {
-  let booking = await TourBooking.findOne({ ref });
-  let type = "tour";
-  if (!booking) { booking = await Booking.findOne({ ref }); type = "hotel"; }
-  if (!booking) return null;
-  if (booking.paymentStatus !== "Approved") {
-    booking.paymentStatus = "Approved";
-    booking.status = "Upcoming";
-    booking.escrowStatus = "Held";
-    booking.heldAt = new Date();
-    booking.provider = gateway.provider;
-    if (txnId) booking.gatewayTxnId = txnId;
-    await booking.save();
-    createNotification(booking.userId, {
-      type: "booking",
-      title: "Payment received",
-      body: `Your ${type === "tour" ? "tour" : "stay"} booking ${ref} is confirmed. Your money is held safely in escrow until your trip.`,
-      link: "/bookings",
-    });
-    // Notify the partner.
-    if (type === "tour" && booking.agencyId) {
-      createNotification(booking.agencyId, {
-        type: "booking", title: "New confirmed tour booking",
-        body: `${booking.guestName || "A traveller"} paid for ${booking.seats} seat(s) on ${booking.packageTitle}.`,
-        link: "/travel-agency/bookings",
-      });
-    }
+// Settlement only accepts authenticated evidence matching the server price.
+async function settle(ref, evidence) {
+  const trip = await Trip.findOne({ ref });
+  if (trip) {
+    if (!paymentMatches({ amount: trip.quote?.total }, evidence)) return null;
+    if (trip.paymentReference === evidence.txnId && trip.paidAt) return trip;
+    return Trip.findOneAndUpdate({ _id: trip._id, status: "accepted", __v: trip.__v, "quote.expiresAt": { $gt: new Date() } }, {
+      $set: { status: "paid", paidAt: new Date(), paymentReference: evidence.txnId, paymentProvider: gateway.provider },
+      $inc: { __v: 1 }, $push: { history: { action: "gateway-payment", actor: "gateway", at: new Date() } },
+    }, { new: true });
   }
-  return booking;
+  let Model = TourBooking;
+  let booking = await Model.findOne({ ref });
+  if (!booking) { Model = Booking; booking = await Model.findOne({ ref }); }
+  if (!booking || !paymentMatches(booking, evidence)) return null;
+  if (booking.paymentStatus === "Approved") return booking.gatewayTxnId === evidence.txnId ? booking : null;
+  const updated = await Model.findOneAndUpdate({ _id: booking._id, paymentStatus: "Pending", status: "Upcoming" }, {
+    $set: { paymentStatus: "Approved", escrowStatus: "Held", heldAt: new Date(), provider: gateway.provider, gatewayTxnId: evidence.txnId },
+  }, { new: true });
+  if (updated) await createNotification(updated.userId, {
+    type: "booking", title: "Payment verified", body: `Payment for booking ${ref} has been verified.`, link: "/bookings",
+  });
+  return updated;
 }
 
 // GET /api/pay/config — lets the frontend choose gateway checkout vs manual flow.
@@ -51,22 +46,22 @@ router.post("/checkout", authenticate, async (req, res) => {
   try {
     if (!gateway.enabled) return res.status(503).json({ error: "Online payment isn't set up yet." });
     const { type, ref } = req.body || {};
-    if (!ref || !["tour", "hotel"].includes(type)) return res.status(400).json({ error: "type and ref are required" });
+    if (typeof ref !== 'string' || !ref || ref.length > 100 || !["tour", "hotel", "trip"].includes(type)) return res.status(400).json({ error: "type and ref are required" });
 
-    const booking = await modelFor(type).findOne({ ref, userId: req.user.id });
+    const booking = await (type === "trip" ? Trip : modelFor(type)).findOne({ ref, userId: req.user.id });
     if (!booking) return res.status(404).json({ error: "Booking not found" });
-    if (booking.paymentStatus === "Approved") return res.status(400).json({ error: "This booking is already paid" });
+    if (type === "trip" ? booking.status !== "accepted" || new Date(booking.quote.expiresAt) <= new Date() : booking.paymentStatus !== "Pending" || booking.status !== "Upcoming") return res.status(409).json({ error: "This booking is not payable. Refresh its status or request a new quote." });
 
     // Redirect providers settle server-side via /callback; generic providers use
     // the client redirect + async webhook.
-    const successUrl = gateway.isRedirect ? `${serverBase(req)}/api/pay/callback` : `${CLIENT_URL}/bookings?paid=1`;
+    const successUrl = gateway.isRedirect ? `${serverBase(req)}/api/pay/callback` : `${CLIENT_URL}/${type === "trip" ? "trip-requests" : "bookings"}?payment=pending`;
     const result = await gateway.createCheckout({
-      amount: booking.amount,
+      amount: type === "trip" ? booking.quote.total : booking.amount,
       currency: "PKR",
       orderRef: ref,
       customerEmail: booking.email || "",
       successUrl,
-      cancelUrl: `${CLIENT_URL}/bookings?canceled=1`,
+      cancelUrl: `${CLIENT_URL}/${type === "trip" ? "trip-requests" : "bookings"}?canceled=1`,
       metadata: { type },
     });
     res.json(result); // { url } or { form }
@@ -82,9 +77,10 @@ router.all("/callback", async (req, res) => {
   try {
     if (!gateway.enabled || !gateway.isRedirect) return res.redirect(`${CLIENT_URL}/bookings`);
     const params = { ...(req.query || {}), ...(req.body || {}) };
-    const { ref, success, txnId, valid } = gateway.verifyReturn(params);
-    if (ref && valid && success) await settle(ref, txnId);
-    return res.redirect(`${CLIENT_URL}/bookings?${success && valid ? "paid=1" : "canceled=1"}`);
+    const evidence = gateway.verifyReturn(params);
+    const paid = evidence.ref && evidence.valid && evidence.success && await settle(evidence.ref, evidence);
+    const destination = typeof evidence.ref === 'string' && evidence.ref.startsWith('TR-') ? 'trip-requests' : 'bookings';
+    return res.redirect(`${CLIENT_URL}/${destination}?payment=${paid ? "verified" : "pending"}`);
   } catch (err) {
     console.error("pay callback error:", err.message);
     return res.redirect(`${CLIENT_URL}/bookings?canceled=1`);
@@ -97,13 +93,14 @@ router.post("/webhook", async (req, res) => {
   try {
     if (!gateway.enabled) return res.status(404).json({ error: "not found" });
     const signature = req.headers["x-signature"] || req.headers["x-safepay-signature"] || req.headers["x-webhook-signature"];
-    const raw = req.rawBody || JSON.stringify(req.body || {});
+    const raw = req.rawBody;
     if (!gateway.verifySignature(raw, signature)) return res.status(401).json({ error: "invalid signature" });
 
-    const { ref, success, txnId } = gateway.parseWebhook(req.body || {});
-    if (!ref) return res.status(400).json({ error: "no reference" });
+    const evidence = gateway.parseWebhook(req.body || {});
+    const { ref, success } = evidence;
+    if (typeof ref !== "string" || !ref || ref.length > 100) return res.status(400).json({ error: "invalid reference" });
     if (!success) return res.json({ ok: true }); // ignore non-success events
-    await settle(ref, txnId);
+    if (!await settle(ref, evidence)) return res.status(409).json({ error: "Payment requires reconciliation: amount, currency, reference or booking state did not match." });
     res.json({ ok: true });
   } catch (err) {
     console.error("pay webhook error:", err.message);

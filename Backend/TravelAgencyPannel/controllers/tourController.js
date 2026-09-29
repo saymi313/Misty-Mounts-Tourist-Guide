@@ -21,9 +21,14 @@ const shapeAgency = (a) =>
 exports.listTours = async (req, res) => {
   try {
     const { city, q } = req.query;
+    const { page, limit, skip } = require('../../utils/pagination').pagination(req.query, 200);
+    if ((city !== undefined && typeof city !== 'string') || (q !== undefined && (typeof q !== 'string' || q.length > 200))) return res.status(400).json({ error: 'Invalid search filters' });
     const filter = { isApproved: true, isPublished: true };
     if (city && city !== "all") filter.cities = city;
-    let pkgs = await TourPackage.find(filter).sort({ createdAt: -1 }).limit(200);
+    if (q) filter.$or = ['title', 'summary', 'cities'].map(field => ({ [field]: { $regex: q.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), $options: 'i' } }));
+    let pkgs = await TourPackage.find(filter).sort({ createdAt: -1, _id: -1 }).skip(skip).limit(limit + 1).maxTimeMS(5000).lean();
+    const hasMore = pkgs.length > limit;
+    pkgs = pkgs.slice(0, limit);
 
     // Keep only packages whose agency account is admin-approved.
     const agencyIds = [...new Set(pkgs.map((p) => String(p.agencyId)))];
@@ -32,19 +37,13 @@ exports.listTours = async (req, res) => {
     const okAgency = new Map(agencies.map((a) => [String(a._id), a]));
     pkgs = pkgs.filter((p) => okAgency.has(String(p.agencyId)));
 
-    if (q) {
-      const needle = String(q).toLowerCase();
-      pkgs = pkgs.filter((p) =>
-        `${p.title} ${p.summary} ${(p.cities || []).join(" ")}`.toLowerCase().includes(needle)
-      );
-    }
-
     res.json({
-      tours: pkgs.map((p) => ({ ...p.toObject(), agency: shapeAgency(okAgency.get(String(p.agencyId))) })),
+      pagination: { page, limit, hasMore },
+      tours: pkgs.map((p) => ({ ...p, agency: shapeAgency(okAgency.get(String(p.agencyId))) })),
     });
   } catch (err) {
     console.error("listTours error:", err.message);
-    res.status(500).json({ error: "Failed to load tours" });
+    res.status(err.status || 500).json({ error: err.status ? err.message : "Failed to load tours" });
   }
 };
 
@@ -65,52 +64,8 @@ exports.getTour = async (req, res) => {
 // POST /api/tours/book — authenticated traveller books seats on a departure.
 exports.bookTour = async (req, res) => {
   try {
-    const {
-      packageId, departureId, seats,
-      guestName, email, phone,
-      paymentProof, paymentRef, paymentAccountLabel, senderName,
-    } = req.body;
-
-    const n = Math.max(1, Number(seats) || 1);
-    const pkg = await TourPackage.findById(packageId);
-    if (!pkg || !pkg.isApproved || !pkg.isPublished) return res.status(404).json({ error: "Tour not found" });
-
-    const dep = pkg.departures.id(departureId);
-    if (!dep) return res.status(400).json({ error: "Please select a departure date" });
-    if (dep.status === "closed") return res.status(400).json({ error: "This departure is closed" });
-    const left = dep.seatsTotal - dep.seatsBooked;
-    if (left < n) return res.status(400).json({ error: `Only ${Math.max(0, left)} seat(s) left on this departure` });
-
-    const amount = n * pkg.pricePerPerson;
-    const ref = `MM-${Date.now().toString(36).toUpperCase()}`;
-
-    const booking = await TourBooking.create({
-      userId: req.user.id,
-      agencyId: pkg.agencyId,
-      packageId: pkg._id,
-      packageTitle: pkg.title,
-      city: (pkg.cities || [])[0] || "",
-      image: pkg.coverImage || "",
-      departureId,
-      departureDate: dep.date,
-      seats: n,
-      pricePerPerson: pkg.pricePerPerson,
-      amount,
-      ref,
-      guestName,
-      email,
-      phone,
-      paymentProof,
-      paymentRef,
-      paymentAccountLabel,
-      senderName,
-      paymentStatus: "Pending",
-      status: "Upcoming",
-    });
-
-    // Reserve the seats while the payment is pending admin verification.
-    dep.seatsBooked += n;
-    await pkg.save();
+    const { booking, pkg } = await require('../../utils/tourReservation').reserveTour(req.user.id, req.body);
+    const n = booking.seats, ref = booking.ref;
 
     createNotification(req.user.id, {
       type: "booking",
@@ -134,7 +89,7 @@ exports.bookTour = async (req, res) => {
     res.status(201).json({ success: true, bookingId: ref, booking });
   } catch (err) {
     console.error("bookTour error:", err.message);
-    res.status(500).json({ error: "Failed to book this tour" });
+    res.status(err.status || 500).json({ error: err.status ? err.message : "Failed to book this tour" });
   }
 };
 

@@ -4,8 +4,8 @@ import api from "./api";
 export const getConversations = async () =>
   (await api.get("/messages/conversations")).data.conversations;
 
-export const getThread = async (partnerId) =>
-  (await api.get(`/messages/with/${partnerId}`)).data; // { partner, messages }
+export const getThread = async (partnerId, params = {}) =>
+  (await api.get(`/messages/with/${partnerId}`, { params })).data;
 
 export const sendMessage = async (partnerId, text) =>
   (await api.post(`/messages/with/${partnerId}`, { text })).data.message;

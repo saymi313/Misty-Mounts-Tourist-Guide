@@ -2,6 +2,11 @@ const Feedback = require('../models/feedback');
 const User = require('../../LocalGuidePannel/models/User');
 const Booking = require('../models/booking');
 const TourBooking = require('../models/tourBooking');
+const readReviews = require('../../utils/readReviews');
+function validReview({ rating, message, photo = '' }) {
+  return ['number', 'string'].includes(typeof rating) && Number.isInteger(Number(rating)) && Number(rating) >= 1 && Number(rating) <= 5 &&
+    typeof message === 'string' && message.trim().length > 0 && message.length <= 4000 && typeof photo === 'string' && photo.length <= 2048;
+}
 
 /**
  * Does this traveller have an approved (non-cancelled) booking for the subject?
@@ -26,6 +31,10 @@ async function hasVerifiedBooking(userId, { accId, packageId, locationName }) {
 // Add new feedback (general spot/trip review by a signed-in traveller).
 exports.addFeedback = async (req, res) => {
   const { locationName, rating, message, accId = '', packageId = '' } = req.body;
+  if (!validReview(req.body) || typeof locationName !== 'string' || locationName.length > 200 ||
+      typeof accId !== 'string' || accId.length > 200 || typeof packageId !== 'string' || packageId.length > 200) {
+    return res.status(400).json({ error: 'Invalid review. Use a rating from 1 to 5 and at most 4000 characters.' });
+  }
 
   if (!locationName || !rating || !message) {
     return res.status(400).json({ error: 'All fields are required' });
@@ -64,20 +73,7 @@ exports.addFeedback = async (req, res) => {
 
 // Get feedback by location name
 exports.getFeedbacksByLocation = async (req, res) => {
-  const { locationName } = req.params;
-
-  try {
-    const feedbacks = await Feedback.find({ locationName });
-
-    // Return 200 with an empty array when a location simply has no reviews yet.
-    res.status(200).json({
-      message: feedbacks.length ? 'Feedbacks fetched successfully' : 'No feedback yet for this location',
-      feedbacks,
-    });
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ error: 'Failed to fetch feedbacks' });
-  }
+  return readReviews(req, res, { locationName: req.params.locationName });
 };
 
 // Delete feedback by ID
@@ -102,19 +98,15 @@ exports.deleteFeedback = async (req, res) => {
 
 // GET /api/feedback/guide/:guideId — reviews for a local guide (public).
 exports.getGuideFeedbacks = async (req, res) => {
-  try {
-    const feedbacks = await Feedback.find({ guideId: req.params.guideId }).sort({ createdAt: -1 });
-    res.status(200).json({ feedbacks });
-  } catch (error) {
-    console.error('getGuideFeedbacks error:', error.message);
-    res.status(500).json({ error: 'Failed to fetch feedbacks' });
-  }
+  if (!/^[a-f0-9]{24}$/i.test(req.params.guideId)) return res.status(400).json({ error: 'Invalid guide' });
+  return readReviews(req, res, { guideId: new (require('mongoose').Types.ObjectId)(req.params.guideId) });
 };
 
 // POST /api/feedback/guide/:guideId — a signed-in traveller reviews a guide.
 exports.addGuideFeedback = async (req, res) => {
   const { guideId } = req.params;
   const { rating, message } = req.body;
+  if (!validReview(req.body) || !/^[a-f0-9]{24}$/i.test(guideId)) return res.status(400).json({ error: 'Invalid review details' });
   if (!rating || !message) {
     return res.status(400).json({ error: 'Rating and message are required' });
   }
@@ -139,16 +131,6 @@ exports.addGuideFeedback = async (req, res) => {
 };
 
 exports.getAllFeedbacks = async (req, res) => {
-  try {
-    const feedbacks = await Feedback.find().sort({ createdAt: -1 });
-
-    // Return empty array instead of 404 when no feedbacks exist
-    res.status(200).json({
-      message: feedbacks.length > 0 ? 'All feedbacks fetched successfully' : 'No feedbacks available',
-      feedbacks: feedbacks || [],
-    });
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ error: 'Failed to fetch all feedbacks' });
-  }
+  if (req.query.kind !== undefined && req.query.kind !== 'general') return res.status(400).json({ error: 'Invalid review filter' });
+  return readReviews(req, res, req.query.kind === 'general' ? { guideId: null } : {});
 };

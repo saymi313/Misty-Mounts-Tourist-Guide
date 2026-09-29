@@ -62,9 +62,10 @@ export const provinceOf = (city) => CITY_PROVINCE[city] || "Other";
 /** Resolve [lat,lng] for a spot (own coords) or its city. Data uses
  * latitude/longitude; some records also use lat/lng. Zeros are treated as
  * "unset" and fall back to the city coordinate. */
-export const coordsFor = (spot, city) => {
+export const weatherLocationFor = (spot, city) => {
   const lat = spot?.latitude ?? spot?.lat;
   const lng = spot?.longitude ?? spot?.lng;
-  if (Number.isFinite(lat) && Number.isFinite(lng) && (lat !== 0 || lng !== 0)) return [lat, lng];
-  return CITY_COORDS[city] || null;
+  if (Number.isFinite(lat) && Number.isFinite(lng) && Math.abs(lat) <= 90 && Math.abs(lng) <= 180 && (lat !== 0 || lng !== 0)) return { coordinates: [lat, lng], kind: 'spot', label: spot?.name || city };
+  return CITY_COORDS[city] ? { coordinates: CITY_COORDS[city], kind: 'city', label: city } : null;
 };
+export const coordsFor = (spot, city) => weatherLocationFor(spot, city)?.coordinates || null;

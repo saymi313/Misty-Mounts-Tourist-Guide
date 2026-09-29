@@ -14,9 +14,11 @@ const shape = (n) => ({
 /** Reusable helper so other controllers (e.g. bookings) can push a notification.
  * Also fires a Web-Push to the user's devices (no-op when push isn't configured). */
 const createNotification = (userId, data) =>
-  Notification.create({ userId, ...data })
+  (require('../../utils/deliveryJobs').enabled()
+    ? require('../../utils/deliveryJobs').queueNotification(userId, data)
+    : Notification.create({ userId, ...data }))
     .then((n) => {
-      sendPushToUser(userId, {
+      if (!require('../../utils/deliveryJobs').enabled()) sendPushToUser(userId, {
         title: data.title || "Misty Mounts",
         body: data.body || "",
         link: data.link || "/notifications",
@@ -28,9 +30,12 @@ const createNotification = (userId, data) =>
 // GET /api/notifications
 exports.getNotifications = async (req, res) => {
   try {
-    const items = await Notification.find({ userId: req.user.id }).sort({ createdAt: -1 }).limit(50);
-    res.json({ notifications: items.map(shape) });
+    const { page, limit, skip } = require('../../utils/pagination').pagination(req.query);
+    const items = await Notification.find({ userId: req.user.id }).sort({ createdAt: -1, _id: -1 })
+      .skip(skip).limit(limit + 1).lean().maxTimeMS(5000);
+    res.json({ notifications: items.slice(0, limit).map(shape), pagination: { page, limit, hasMore: items.length > limit } });
   } catch (err) {
+    if (err.status === 400) return res.status(400).json({ error: err.message });
     res.status(500).json({ error: "Failed to load notifications" });
   }
 };

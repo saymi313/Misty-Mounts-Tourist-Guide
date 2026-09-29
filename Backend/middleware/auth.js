@@ -13,6 +13,10 @@ const authenticate = (req, res, next) => {
   try {
     // Pin the algorithm so a forged token can't downgrade to "none"/alg-confusion.
     req.user = jwt.verify(token, process.env.JWT_SECRET, { algorithms: ["HS256"] }); // { id, type, iat, exp }
+    if (typeof req.user.id !== 'string' || !/^[a-f0-9]{24}$/i.test(req.user.id) || !Number.isFinite(req.user.exp) ||
+        !['admin', 'user', 'local guide', 'hotel', 'travel agency'].includes(req.user.type)) {
+      return res.status(401).json({ error: 'Invalid or expired token' });
+    }
     next();
   } catch {
     return res.status(401).json({ error: "Invalid or expired token" });

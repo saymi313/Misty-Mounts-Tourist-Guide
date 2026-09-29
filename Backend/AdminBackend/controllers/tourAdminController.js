@@ -29,7 +29,7 @@ exports.listTours = async (req, res) => {
 exports.approveTour = async (req, res) => {
   try {
     const isApproved = "isApproved" in req.body ? !!req.body.isApproved : true;
-    const pkg = await TourPackage.findByIdAndUpdate(req.params.id, { isApproved }, { new: true });
+    const pkg = await TourPackage.findByIdAndUpdate(req.params.id, { $set: { isApproved }, $inc: { __v: 1 } }, { new: true });
     if (!pkg) return res.status(404).json({ error: "Package not found" });
     if (isApproved) {
       createNotification(pkg.agencyId, {
@@ -49,8 +49,8 @@ exports.approveTour = async (req, res) => {
 // DELETE /api/admin/tours/:id — remove a package.
 exports.deleteTour = async (req, res) => {
   try {
-    const pkg = await TourPackage.findByIdAndDelete(req.params.id);
-    if (!pkg) return res.status(404).json({ error: "Package not found" });
+    const pkg = await TourPackage.findOneAndDelete({ _id: req.params.id, departures: { $not: { $elemMatch: { seatsBooked: { $gt: 0 } } } } });
+    if (!pkg) return res.status(409).json({ error: 'Package not found or has reservations. Unpublish it instead.' });
     res.json({ success: true });
   } catch (err) {
     console.error("deleteTour error:", err.message);

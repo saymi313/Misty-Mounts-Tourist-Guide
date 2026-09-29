@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { ArrowLeft, Save, ImageIcon, AlertCircle } from "lucide-react";
 import GuideLayout from "../GuideLayout";
@@ -8,6 +8,7 @@ import { LIVE, createPlace } from "../../data/adminApi";
 import ImageUploadButton from "../../components/dashboard/ImageUploadButton";
 import { toast } from "../../utils/toast";
 import useCities from "../../hooks/useCities";
+import AiDraftAssistant from "../../components/dashboard/AiDraftAssistant";
 
 const inputCls =
   "w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-800 outline-none [color-scheme:light] focus:border-lime-400";
@@ -190,6 +191,8 @@ export default function AddTouristSpotPage() {
             />
             <p className="text-xs text-slate-400">Separate each activity with a comma.</p>
           </div>
+
+          <AiDraftAssistant facts={{ name: form.name, city: form.city, location: form.location, description: form.description, activities: form.activities }} onApply={text => setForm(previous => ({ ...previous, description: text }))} />
 
           <div className="mt-7 flex items-center justify-end gap-3">
             <BtnGhost type="button" onClick={() => navigate(-1)}>

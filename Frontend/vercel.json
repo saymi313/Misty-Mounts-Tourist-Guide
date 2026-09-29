@@ -1,0 +1,18 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "buildCommand": "npm run seo:install && npm run build",
+  "outputDirectory": "dist",
+  "cleanUrls": true,
+  "trailingSlash": false,
+  "redirects": [{ "source": "/user", "destination": "/", "permanent": true }],
+  "rewrites": [
+    { "source": "/:section(admin|hotel|local-guide|travel-agency|auth|panel-selector|payment|profile|saved|bookings|notifications|messages|trip|trip-requests|wishlist|feedback|discover|map)", "destination": "/app-shell.html" },
+    { "source": "/:section(admin|hotel|local-guide|travel-agency|trip)/:path*", "destination": "/app-shell.html" }
+  ],
+  "headers": [
+    { "source": "/:section(admin|hotel|local-guide|travel-agency|auth|panel-selector|payment|profile|saved|bookings|notifications|messages|trip|trip-requests|wishlist|feedback|discover|map)/:path*", "headers": [{ "key": "X-Robots-Tag", "value": "noindex, follow" }] },
+    { "source": "/app-shell", "headers": [{ "key": "X-Robots-Tag", "value": "noindex, follow" }] },
+    { "source": "/assets/:path*", "headers": [{ "key": "Cache-Control", "value": "public, max-age=31536000, immutable" }] },
+    { "source": "/:file(robots.txt|sitemap.xml|llms.txt|sw.js)", "headers": [{ "key": "Cache-Control", "value": "public, max-age=0, must-revalidate" }] }
+  ]
+}

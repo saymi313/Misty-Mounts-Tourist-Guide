@@ -24,7 +24,8 @@ const columns = [
   {
     title: "Company",
     links: [
-      ["Our guides", "/about"],
+      ["Travel planning help", "/travel-help"],
+      ["Our guides", "/guides"],
       ["Responsible travel", "/about"],
       ["Terms of service", "#"],
       ["Privacy policy", "#"],
@@ -38,7 +39,7 @@ const Footer = () => {
       <div className="mx-auto max-w-7xl px-5 py-16 sm:px-8">
         <div className="grid gap-12 lg:grid-cols-[1.3fr_2fr]">
           <div>
-            <Link to="/user" className="inline-block">
+            <Link to="/" className="inline-block">
               <img loading="lazy" decoding="async"
                 src="/main logo.png"
                 alt="Misty Mounts — explore more, discover hidden"
@@ -87,6 +88,7 @@ const Footer = () => {
         </div>
 
         <div className="mt-14 flex flex-col items-center justify-between gap-4 border-t border-white/5 pt-6 text-sm text-white/40 sm:flex-row">
+          <a href="/site-map" className="inline-flex min-h-11 items-center text-lime-300 underline">Public site directory</a>
           <p>&copy; {new Date().getFullYear()} Misty Mounts. Crafted for the mountains.</p>
           <p>Explore more · Discover hidden</p>
         </div>

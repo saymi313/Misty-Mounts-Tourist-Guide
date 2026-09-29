@@ -1,3 +1,4 @@
+import { LIVE } from "../../data/api";
 import React, { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import {
@@ -188,9 +189,9 @@ const Hero = () => {
           </motion.div>
 
           <motion.div style={{ x: depthNear, y: depthNearY }} initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.9, duration: 0.8 }} className="mt-9 flex flex-wrap items-center gap-x-4 gap-y-2 text-sm text-white/65">
-            <span className="flex items-center gap-1.5"><ShieldCheck className="h-4 w-4 text-lime-400" /> Escrow-protected</span>
+            <span className="flex items-center gap-1.5"><ShieldCheck className="h-4 w-4 text-lime-400" /> Supplier-confirmed quotes</span>
             <span className="text-white/20">·</span>
-            <span className="flex items-center gap-1.5"><Users className="h-4 w-4 text-lime-400" /> Verified guides</span>
+            <span className="flex items-center gap-1.5"><Users className="h-4 w-4 text-lime-400" /> Local guide profiles</span>
             <span className="text-white/20">·</span>
             <span className="flex items-center gap-1.5"><Star className="h-4 w-4 text-lime-400" /> 4.8 · 1,900+ reviews</span>
           </motion.div>
@@ -517,7 +518,7 @@ const STATS = [
   { value: 24, label: "Local guides" },
   { value: 4.8, decimals: 1, label: "Avg. rating" },
 ];
-const StatsBand = () => (
+const StatsBand = () => LIVE ? null : (
   <section className="relative overflow-hidden rounded-[2rem] border border-white/[0.07] bg-night-900/60 px-6 py-12 sm:px-12">
     <div className="pointer-events-none absolute -right-24 -top-24 h-72 w-72 rounded-full bg-lime-400/10 blur-3xl" />
     <div className="pointer-events-none absolute -bottom-24 -left-24 h-72 w-72 rounded-full bg-emerald-500/10 blur-3xl" />
@@ -535,7 +536,7 @@ const StatsBand = () => (
 );
 
 /* ══ Reviews ═══════════════════════════════════════════════════════════════ */
-const Reviews = ({ reviews }) => (
+const Reviews = ({ reviews }) => !reviews.length ? null : (
   <section>
     <div className="mb-8 flex flex-wrap items-end justify-between gap-6">
       <Reveal>
@@ -545,10 +546,10 @@ const Reviews = ({ reviews }) => (
         </h2>
       </Reveal>
       <Reveal delay={0.1} className="flex items-center gap-3">
-        <span className="font-sans text-5xl font-black leading-none text-white sm:text-6xl">4.8</span>
+        <span className="font-sans text-5xl font-black leading-none text-white sm:text-6xl">{(reviews.reduce((sum, review) => sum + Number(review.rating || 0), 0) / reviews.length).toFixed(1)}</span>
         <div>
           <div className="flex gap-0.5">{Array.from({ length: 5 }).map((_, s) => <Star key={s} className="h-4 w-4 fill-lime-400 text-lime-400" />)}</div>
-          <p className="mt-1 text-xs text-white/50">1,900+ reviews</p>
+          <p className="mt-1 text-xs text-white/50">{reviews.length} featured reviews</p>
         </div>
       </Reveal>
     </div>
@@ -629,12 +630,12 @@ const LandingPage = () => {
   const trail = [...new Map([...dest, ...gems].map((p) => [p._id, p])).values()];
   const marquee = ["Hunza", "Skardu", "Naran", "Fairy Meadows", "Deosai", "Swat", "Gilgit", "Chitral", "Kaghan", "Attabad"];
 
-  const [reviews, setReviews] = useState(mockFeedbacks.slice(0, 3));
+  const [reviews, setReviews] = useState(LIVE ? [] : mockFeedbacks.slice(0, 3));
   useEffect(() => {
     getFeedbacks()
       .then((res) => {
         const real = (res?.feedbacks || []).filter((r) => !r.guideId);
-        if (real.length) setReviews(real.slice(0, 3));
+        setReviews(real.slice(0, 3));
       })
       .catch(() => {});
   }, []);

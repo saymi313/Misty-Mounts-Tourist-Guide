@@ -9,9 +9,14 @@ const rateLimit = require("express-rate-limit");
 const mongoSanitize = require("express-mongo-sanitize");
 const { Server } = require("socket.io");
 
-require("dotenv").config();
+require("dotenv").config({ path: path.join(__dirname, '.env') });
+if (process.env.NODE_ENV === 'production' && (!process.env.JWT_SECRET || Buffer.byteLength(process.env.JWT_SECRET) < 32)) {
+  throw new Error('Production requires a JWT_SECRET of at least 32 bytes.');
+}
 
 const connectDB = require("./config/db");
+const sharedLimit = require('./utils/rateLimitStore');
+const { catalogCache } = require('./middleware/catalogCache');
 
 // Importing routes
 const authRoutes = require("./AdminBackend/routes/authRoutes");
@@ -37,11 +42,23 @@ const paymentGatewayRoutes = require("./routes/paymentGatewayRoutes");
 
 const app = express();
 const server = http.createServer(app);
+server.requestTimeout = 120000;
+let realtime;
+app.get('/health/ready', async (_req, res) => {
+  const mongo = !closing && require('mongoose').connection.readyState === 1 && Boolean(realtime?.ready());
+  let redis = !require('./utils/redis').configured;
+  try { if (!redis) redis = await require('./utils/redis').command(['PING']) === 'PONG'; } catch { /* Return readiness only. */ }
+  res.status(mongo && redis ? 200 : 503).json({ ready: mongo && redis });
+});
 
 const PORT = process.env.PORT || 5000;
 const CLIENT_URL = process.env.CLIENT_URL || "http://localhost:5173";
 
+if (process.env.MULTI_INSTANCE === 'true' && (!process.env.REDIS_URL || !require('./config/cloudinary').isUploadConfigured())) {
+  throw new Error('MULTI_INSTANCE requires Redis and Cloudinary configuration.');
+}
 const io = new Server(server, {
+  maxHttpBufferSize: 16384,
   cors: {
     origin: CLIENT_URL,
     methods: ["GET", "POST"],
@@ -57,6 +74,12 @@ app.set("io", io);
 // separate frontend origin to load /uploads images cross-origin.
 app.use(helmet({ crossOriginResourcePolicy: { policy: "cross-origin" } }));
 app.disable("x-powered-by");
+// Set to your exact proxy hop count only when deployed behind a trusted proxy.
+if (process.env.TRUST_PROXY_HOPS) {
+  const hops = Number(process.env.TRUST_PROXY_HOPS);
+  if (!Number.isSafeInteger(hops) || hops < 1 || hops > 10) throw new Error('TRUST_PROXY_HOPS must be an integer from 1 to 10.');
+  app.set('trust proxy', hops);
+}
 
 // Gzip every compressible response (JSON API payloads, etc.). Big win on the
 // weak/slow connections common in remote northern-Pakistan travel areas —
@@ -80,18 +103,25 @@ app.use(mongoSanitize());
 
 // ── Rate limiting ────────────────────────────────────────────────────────────
 const authLimiter = rateLimit({
+  ...sharedLimit('auth'),
   windowMs: 15 * 60 * 1000, max: 30, standardHeaders: true, legacyHeaders: false,
   message: { error: "Too many attempts. Please try again in a few minutes." },
 });
 const publicWriteLimiter = rateLimit({
+  ...sharedLimit('write'),
   windowMs: 15 * 60 * 1000, max: 60, standardHeaders: true, legacyHeaders: false,
   message: { error: "Too many requests. Please slow down." },
 });
 const apiLimiter = rateLimit({
+  ...sharedLimit('api'),
   windowMs: 15 * 60 * 1000, max: 1000, standardHeaders: true, legacyHeaders: false,
   message: { error: "Too many requests. Please try again later." },
 });
 app.use("/api", apiLimiter); // baseline cap for every API route
+app.use('/api', catalogCache());
+app.use('/api', (_req, res, next) => { res.set('X-Robots-Tag', 'noindex'); next(); });
+app.use('/api/features', require('./routes/featureRoutes').router);
+app.use('/api/seo', require('./routes/seoRoutes').router);
 
 // Serve uploaded files (e.g. profile avatars)
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
@@ -119,6 +149,7 @@ app.use("/api/ai", publicWriteLimiter, aiRoutes);
 app.use("/api/push", pushRoutes);
 app.use("/api/waitlist", publicWriteLimiter, waitlistRoutes);
 app.use("/api/pay", paymentGatewayRoutes);
+app.use("/api/trip-requests", publicWriteLimiter, require("./routes/tripRequestRoutes"));
 app.use("/api/natural-disaster", naturalDisasterRoutes);
 
 // 404 for unmatched API routes
@@ -140,50 +171,29 @@ app.use((err, req, res, next) => {
 // authenticated with the same JWT as REST, and joins a private room named by the
 // user's id, so `io.to(userId).emit(...)` reaches exactly that person's tabs.
 // ─────────────────────────────────────────────────────────────────────────────
-io.use((socket, next) => {
-  try {
-    const token = socket.handshake.auth && socket.handshake.auth.token;
-    if (!token) return next(new Error("Authentication required"));
-    const payload = jwt.verify(token, process.env.JWT_SECRET, { algorithms: ["HS256"] });
-    socket.data.user = { id: String(payload.id), type: payload.type };
-    next();
-  } catch {
-    next(new Error("Invalid or expired token"));
-  }
+// Attach the shared adapter before accepting connections.
+(async () => {
+  await connectDB();
+  realtime = await require('./utils/realtime').configureRealtime(io);
+  server.listen(PORT, () => console.log('API and realtime server ready on port ' + PORT));
+})().catch(async () => {
+  console.error('API startup failed. Check MongoDB, Redis and deployment configuration.');
+  await require('./utils/redis').closeRedis();
+  await require('mongoose').disconnect();
+  process.exitCode = 1;
 });
-
-// Reference-counted presence: a user is "online" while ≥1 of their tabs is open.
-const onlinePresence = new Map(); // userId -> open socket count
-
-io.on("connection", (socket) => {
-  const me = socket.data.user;
-  socket.join(me.id);
-
-  onlinePresence.set(me.id, (onlinePresence.get(me.id) || 0) + 1);
-  if (onlinePresence.get(me.id) === 1) io.emit("presence:update", { userId: me.id, online: true });
-  socket.emit("presence:list", [...onlinePresence.keys()]);
-
-  // Let a client (re)sync the online list on demand (e.g. when a chat mounts).
-  socket.on("presence:get", () => socket.emit("presence:list", [...onlinePresence.keys()]));
-
-  // Relay typing state to the person I'm talking to.
-  socket.on("typing", ({ toUserId, isTyping } = {}) => {
-    if (toUserId) io.to(String(toUserId)).emit("typing", { fromUserId: me.id, isTyping: !!isTyping });
+let closing = false;
+async function shutdown() {
+  if (closing) return;
+  closing = true;
+  const deadline = setTimeout(() => process.exit(1), 10000); deadline.unref();
+  server.close(async () => {
+    await realtime?.close();
+    await require('./utils/redis').closeRedis();
+    await require('mongoose').disconnect();
+    clearTimeout(deadline);
   });
-
-  socket.on("disconnect", () => {
-    const left = (onlinePresence.get(me.id) || 1) - 1;
-    if (left <= 0) {
-      onlinePresence.delete(me.id);
-      io.emit("presence:update", { userId: me.id, online: false });
-    } else {
-      onlinePresence.set(me.id, left);
-    }
-  });
-});
-
-// Connect to MongoDB, then start the server
-connectDB();
-server.listen(PORT, () => {
-  console.log(`Server running on port ${PORT} (client: ${CLIENT_URL})`);
-});
+  io.close();
+}
+process.on('SIGTERM', shutdown);
+process.on('SIGINT', shutdown);

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import {
@@ -103,11 +103,12 @@ const MyBookings = () => {
           transition={{ duration: 0.6, ease: EASE }}
         >
           <Eyebrow><Ticket className="h-3.5 w-3.5" /> Trips</Eyebrow>
+          <Link to="/trip-requests" className="inline-flex min-h-11 items-center text-lime-300 underline">View supplier quotes and custom trips</Link>
           <h1 className="mt-3 text-[clamp(2rem,5vw,3.2rem)] font-extrabold leading-[1.02] tracking-tight text-white">
             My <span className="text-lime-400">bookings</span>
           </h1>
           <p className="mt-3 max-w-xl text-lg text-white/70">
-            Every stay you've booked across the north — upcoming, past and cancelled.
+            Every stay you have booked across the north — upcoming, past and cancelled.
           </p>
         </motion.div>
 
@@ -139,7 +140,7 @@ const MyBookings = () => {
             </span>
             <h2 className="mt-4 text-lg font-extrabold text-white">No {filter.toLowerCase()} bookings</h2>
             <p className="mt-2 max-w-sm text-sm text-white/60">
-              When you book a stay it'll show up here with all its details.
+              When you book a stay it will show up here with all its details.
             </p>
             <Link to="/destinations" className="mt-6">
               <Btn><Compass className="h-4 w-4" /> Find a stay</Btn>

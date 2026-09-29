@@ -1,4 +1,5 @@
-import React, { useEffect, useState } from 'react';
+import PropTypes from 'prop-types';
+import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Star, MessageCircle, PenLine, ArrowUpRight } from 'lucide-react';
 import { motion } from 'framer-motion';
@@ -23,22 +24,34 @@ const StatTile = ({ value, label, glow, delay = 0, children }) => (
 
 const FeedbackPage = () => {
   const [reviews, setReviews] = useState([]);
+  const [summary, setSummary] = useState(null);
+  const [page, setPage] = useState(1);
+  const [hasMore, setHasMore] = useState(false);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const [loadError, setLoadError] = useState('');
 
   // Only general spot/trip feedback here — guide-specific reviews live on each
   // guide's detail page, so filter those out (they carry a guideId).
-  const load = () =>
-    getFeedbacks()
-      .then((res) => setReviews((res?.feedbacks || []).filter((r) => !r.guideId)))
-      .catch(() => setReviews([]));
+  const load = (nextPage = 1) => {
+    setLoadingMore(true); setLoadError('');
+    return getFeedbacks({ page: nextPage, kind: 'general' })
+      .then((res) => {
+        const rows = (res?.feedbacks || []).filter((r) => !r.guideId);
+        setReviews((prev) => nextPage === 1 ? rows : [...prev, ...rows.filter((r) => !prev.some((p) => p._id === r._id))]);
+        setSummary(res.summary || null); setPage(nextPage); setHasMore(Boolean(res.pagination?.hasMore));
+      })
+      .catch(() => setLoadError('Could not load reviews. Please try again.'))
+      .finally(() => setLoadingMore(false));
+  };
 
   useEffect(() => { load(); }, []);
 
-  const avgNum = reviews.length
+  const avgNum = summary ? summary.average : reviews.length
     ? reviews.reduce((s, r) => s + r.rating, 0) / reviews.length
     : 0;
   const avg = reviews.length ? avgNum.toFixed(1) : '—';
-  const fiveStar = reviews.filter((r) => r.rating === 5).length;
-  const spotsReviewed = new Set(reviews.map((r) => (r.locationName || '').trim())).size;
+  const fiveStar = summary?.fiveStar ?? reviews.filter((r) => r.rating === 5).length;
+  const spotsReviewed = summary?.spots ?? new Set(reviews.map((r) => (r.locationName || '').trim())).size;
 
   return (
     <div className="min-h-screen bg-night-950 text-white selection:bg-lime-400 selection:text-night-950">
@@ -66,7 +79,7 @@ const FeedbackPage = () => {
           <StatTile value={avg} label="Average rating" glow="lime" delay={0}>
             <Stars value={Math.round(avgNum)} className="mt-1.5" />
           </StatTile>
-          <StatTile value={reviews.length} label="Traveller reviews" glow="green" delay={0.05} />
+          <StatTile value={summary?.total ?? reviews.length} label="Traveller reviews" glow="green" delay={0.05} />
           <StatTile value={fiveStar} label="5-star ratings" glow="sky" delay={0.1} />
           <StatTile value={spotsReviewed} label="Spots reviewed" delay={0.15} />
         </div>
@@ -75,6 +88,8 @@ const FeedbackPage = () => {
       {/* ── Feedback bento ─────────────────────────────────────────────── */}
       <section className="mx-auto max-w-7xl px-5 pt-14 sm:px-8">
         <SectionHead eyebrow="Word from the trail" title="What travellers say." />
+        {loadError && <p role="alert">{loadError}</p>}
+        {hasMore && <button type="button" disabled={loadingMore} onClick={() => load(page + 1)} className="mb-4 text-lime-400">{loadingMore ? 'Loading...' : 'Load more reviews'}</button>}
         {reviews.length === 0 ? (
           <Tile className="flex flex-col items-center justify-center py-16 text-center">
             <MessageCircle className="h-8 w-8 text-lime-400/50" />
@@ -121,7 +136,7 @@ const FeedbackPage = () => {
             </Link>
           </Tile>
 
-          <FeedbackForm onSubmitted={load} />
+          <FeedbackForm onSubmitted={() => load(1)} />
         </div>
       </section>
 
@@ -131,3 +146,5 @@ const FeedbackPage = () => {
 };
 
 export default FeedbackPage;
+
+StatTile.propTypes = { value: PropTypes.oneOfType([PropTypes.string, PropTypes.number]), label: PropTypes.string, glow: PropTypes.string, delay: PropTypes.number, children: PropTypes.node };

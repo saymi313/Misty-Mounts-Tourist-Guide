@@ -3,7 +3,7 @@ import { io } from 'socket.io-client';
 import { socket as mockSocket } from '../data/mockSocket';
 import api, { LIVE, SOCKET_URL } from '../data/api';
 import { hydrateSaved } from '../utils/savedStore';
-import { fetchNotifications } from '../utils/notificationsStore';
+import { fetchNotifications, resetNotifications } from '../utils/notificationsStore';
 
 // Pull per-user lists into their caches so the bell badge, saved hearts, etc.
 // are correct app-wide once a live session is active.
@@ -132,6 +132,7 @@ export const AuthProvider = ({ children }) => {
     setUser(null);
     localStorage.removeItem('token');
     localStorage.removeItem('user');
+    resetNotifications();
     if (socket.connected) socket.disconnect();
   };
 

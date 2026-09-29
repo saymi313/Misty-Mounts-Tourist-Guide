@@ -1,3 +1,4 @@
+import TripDesk from "../../components/TripDesk";
 // src/LocalGuidePannel/routes/LocalGuideRoutes.jsx
 import React from 'react';
 import { Route } from 'react-router-dom';
@@ -13,6 +14,7 @@ import GuideProfile from '../pages/GuideProfile';
 import GuideRevenue from '../pages/GuideRevenue';
 
 const LocalGuideRoutes = () => [
+  <Route key="quotes" path="quotes" element={<TripDesk mode="guide" />} />,
   <Route key="dashboard" index element={<GuideDashboard />} />,
   <Route key="tourist-spot-list" path="spots" element={<TouristSpotListPage />} />,
   <Route key="add-spot" path="add-spot" element={<AddTouristSpotPage />} />,

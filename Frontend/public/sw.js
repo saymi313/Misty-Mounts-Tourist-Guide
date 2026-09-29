@@ -4,7 +4,7 @@
  *   • Google Fonts → cache-first in a dedicated cache (downloaded once, ever)
  *   • navigations & other same-origin GETs → stale-while-revalidate + offline shell
  *   • API (different origin) & map tiles → passed straight to the network */
-const CACHE = "mm-cache-v2";
+const CACHE = "mm-cache-v3";
 const FONT_CACHE = "mm-fonts-v1";
 const IMG_CACHE = "mm-img-v1";     // cross-origin images (Cloudinary etc.) — cache-first
 const TILE_CACHE = "mm-tiles-v1";  // OSM map tiles — cache-first, offline-map ready
@@ -81,6 +81,8 @@ self.addEventListener("fetch", (event) => {
   const { request } = event;
   if (request.method !== "GET") return;
   const url = new URL(request.url);
+  // Live API and crawler directives must never be served from an old app cache.
+  if (url.origin === self.location.origin && (/^\/api(?:\/|$)/.test(url.pathname) || ['/robots.txt', '/sitemap.xml', '/llms.txt'].includes(url.pathname))) return;
 
   // Google Fonts (CSS + font files) — download once, then always from cache.
   if (url.hostname === "fonts.googleapis.com" || url.hostname === "fonts.gstatic.com") {

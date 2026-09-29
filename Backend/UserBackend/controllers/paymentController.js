@@ -47,7 +47,8 @@ exports.createPayment = async (req, res) => {
       paymentProof, paymentRef, paymentAccountLabel, senderName,
     } = req.body;
 
-    const nights = Math.max(1, Number(numberOfDays) || 1);
+    const nights = Number(numberOfDays || 1);
+    if (!Number.isSafeInteger(nights) || nights < 1 || nights > 365) return res.status(400).json({ error: 'Stay length must be 1-365 whole nights.' });
     // Price is recomputed from the authoritative Accommodation record — never
     // trusted from the client (which could send subtotal/fee = 0 to pay nothing).
     const acc = accId ? await Accommodation.findById(accId) : null;
@@ -66,45 +67,48 @@ exports.createPayment = async (req, res) => {
       }
     }
 
-    let amount = Number(acc.price) * nights;
+    const ref = 'MM-' + require('node:crypto').randomUUID();
+    const booking = await require('mongoose').connection.transaction(async session => {
+      let amount = Number(acc.price) * nights;
 
-    // Redeem referral credit (discount-only) if the traveller opted in. Applied
-    // server-side against the authoritative price; the balance is decremented
-    // atomically so it can't be double-spent.
-    let creditApplied = 0;
-    if (req.body.useCredit) {
-      const me = await User.findById(req.user.id).select("referralCredits");
-      const bal = Math.max(0, Number(me?.referralCredits) || 0);
-      creditApplied = Math.min(bal, amount);
-      if (creditApplied > 0) {
-        amount -= creditApplied;
-        await User.updateOne({ _id: req.user.id }, { $inc: { referralCredits: -creditApplied } });
+      // Redeem referral credit (discount-only) if the traveller opted in. Applied
+      // server-side against the authoritative price; the balance is decremented
+      // atomically so it can't be double-spent.
+      let creditApplied = 0;
+      if (req.body.useCredit) {
+        const me = await User.findById(req.user.id).select("referralCredits").session(session);
+        const bal = Math.max(0, Number(me?.referralCredits) || 0);
+        creditApplied = Math.min(bal, amount);
+        if (creditApplied > 0) {
+          amount -= creditApplied;
+          const debit = await User.updateOne({ _id: req.user.id, referralCredits: { $gte: creditApplied } }, { $inc: { referralCredits: -creditApplied } }, { session });
+          if (!debit.modifiedCount) throw new Error('Credit balance changed');
+        }
       }
-    }
-    const ref = `MM-${Date.now().toString(36).toUpperCase()}`;
-
-    const booking = await Booking.create({
-      userId: req.user.id,
-      accId: accId || "",
-      hotel: hotelName || "Your stay",
-      city: city || "",
-      image: hotelImage || "",
-      checkIn: date || undefined,
-      nights,
-      guests: Math.max(1, Number(guests) || 1),
-      amount,
-      creditApplied,
-      status: "Upcoming",
-      ref,
-      guestName: [firstName, lastName].filter(Boolean).join(" "),
-      email: email || "",
-      phone: phone || "",
-      hasPromoCode: !!hasPromoCode,
-      paymentProof: paymentProof || "",
-      paymentRef: paymentRef || "",
-      paymentAccountLabel: paymentAccountLabel || "",
-      senderName: senderName || "",
-      paymentStatus: "Pending",
+      const [created] = await Booking.create([{
+        userId: req.user.id,
+        accId: accId || "",
+        hotel: hotelName || "Your stay",
+        city: city || "",
+        image: hotelImage || "",
+        checkIn: date || undefined,
+        nights,
+        guests: Math.max(1, Number(guests) || 1),
+        amount,
+        creditApplied,
+        status: "Upcoming",
+        ref,
+        guestName: [firstName, lastName].filter(Boolean).join(" "),
+        email: email || "",
+        phone: phone || "",
+        hasPromoCode: !!hasPromoCode,
+        paymentProof: paymentProof || "",
+        paymentRef: paymentRef || "",
+        paymentAccountLabel: paymentAccountLabel || "",
+        senderName: senderName || "",
+        paymentStatus: "Pending",
+      }], { session });
+      return created;
     });
 
     // Traveller: payment received, pending verification.
@@ -143,10 +147,8 @@ exports.getMyBookings = async (req, res) => {
 // PATCH /api/payment/:id/cancel  — user cancels their own booking.
 exports.cancelBooking = async (req, res) => {
   try {
-    const booking = await Booking.findOne({ _id: req.params.id, userId: req.user.id });
-    if (!booking) return res.status(404).json({ error: "Booking not found" });
-    booking.status = "Cancelled";
-    await booking.save();
+    const booking = await Booking.findOneAndUpdate({ _id: req.params.id, userId: req.user.id, status: 'Upcoming', paymentStatus: 'Pending' }, { $set: { status: 'Cancelled' } }, { new: true });
+    if (!booking) return res.status(409).json({ error: 'Only pending bookings can be cancelled here. Contact support for a paid booking.' });
     res.json({ booking: shapeBooking(booking) });
   } catch (err) {
     console.error("cancelBooking error:", err.message);
@@ -190,15 +192,11 @@ exports.getAllPayments = async (req, res) => {
 exports.verifyPayment = async (req, res) => {
   try {
     const approved = !!req.body.approved;
-    const booking = await Booking.findById(req.params.id);
-    if (!booking) return res.status(404).json({ error: "Booking not found" });
-    booking.paymentStatus = approved ? "Approved" : "Rejected";
-    booking.status = approved ? "Upcoming" : "Cancelled";
-    // Approval places the funds in escrow; they're released to the hotel only
-    // after the traveller confirms the stay (or admin/auto-release on check-out).
-    if (approved && booking.escrowStatus !== "Released") { booking.escrowStatus = "Held"; booking.heldAt = new Date(); }
-    if (!approved) booking.escrowStatus = "Refunded";
-    await booking.save();
+    const booking = await Booking.findOneAndUpdate({ _id: req.params.id, paymentStatus: 'Pending', status: 'Upcoming' }, {
+      $set: { paymentStatus: approved ? 'Approved' : 'Rejected', status: approved ? 'Upcoming' : 'Cancelled',
+        escrowStatus: approved ? 'Held' : 'Refunded', ...(approved ? { heldAt: new Date() } : {}) },
+    }, { new: true });
+    if (!booking) return res.status(409).json({ error: 'This booking has already changed. Refresh before trying again.' });
 
     createNotification(
       booking.userId,
@@ -273,24 +271,7 @@ exports.getAllTourPayments = async (req, res) => {
 exports.verifyTourPayment = async (req, res) => {
   try {
     const approved = !!req.body.approved;
-    const booking = await TourBooking.findById(req.params.id);
-    if (!booking) return res.status(404).json({ error: "Tour booking not found" });
-    const wasPending = booking.paymentStatus === "Pending";
-    booking.paymentStatus = approved ? "Approved" : "Rejected";
-    booking.status = approved ? "Upcoming" : "Cancelled";
-    if (approved && booking.escrowStatus !== "Released") { booking.escrowStatus = "Held"; booking.heldAt = new Date(); }
-    if (!approved) booking.escrowStatus = "Refunded";
-    await booking.save();
-
-    // On rejection, release the seats reserved at booking time.
-    if (!approved && wasPending) {
-      const pkg = await TourPackage.findById(booking.packageId);
-      const dep = pkg && pkg.departures.id(booking.departureId);
-      if (dep) {
-        dep.seatsBooked = Math.max(0, dep.seatsBooked - booking.seats);
-        await pkg.save();
-      }
-    }
+    const booking = await require('../../utils/tourReservation').verifyTour(req.params.id, approved);
 
     createNotification(
       booking.userId,
@@ -321,7 +302,7 @@ exports.verifyTourPayment = async (req, res) => {
     res.json({ booking });
   } catch (err) {
     console.error("verifyTourPayment error:", err.message);
-    res.status(500).json({ error: "Failed to verify tour payment" });
+    res.status(err.status || 500).json({ error: err.status ? err.message : "Failed to verify tour payment" });
   }
 };
 
@@ -329,10 +310,11 @@ exports.verifyTourPayment = async (req, res) => {
 // Release held funds so they become withdrawable (computeBalance counts only
 // Released). Triggered by the traveller confirming service, or by an admin.
 const releaseHotel = async (booking) => {
-  booking.escrowStatus = "Released";
-  booking.releasedAt = new Date();
-  if (booking.status === "Upcoming") booking.status = "Completed";
-  await booking.save();
+  const updated = await Booking.findOneAndUpdate({ _id: booking._id, paymentStatus: 'Approved', escrowStatus: { $in: ['Held', 'None'] }, status: { $in: ['Upcoming', 'Completed'] } }, {
+    $set: { escrowStatus: 'Released', releasedAt: new Date(), status: 'Completed' },
+  }, { new: true });
+  if (!updated) throw Object.assign(new Error('Booking changed. Refresh before releasing funds.'), { status: 409 });
+  Object.assign(booking, updated.toObject());
   if (booking.accId) {
     Accommodation.findById(booking.accId).select("ownerId").then((acc) => {
       if (acc?.ownerId) createNotification(acc.ownerId, {
@@ -345,10 +327,11 @@ const releaseHotel = async (booking) => {
 };
 
 const releaseTour = async (booking) => {
-  booking.escrowStatus = "Released";
-  booking.releasedAt = new Date();
-  if (booking.status === "Upcoming") booking.status = "Completed";
-  await booking.save();
+  const updated = await TourBooking.findOneAndUpdate({ _id: booking._id, paymentStatus: 'Approved', escrowStatus: { $in: ['Held', 'None'] }, status: { $in: ['Upcoming', 'Completed'] } }, {
+    $set: { escrowStatus: 'Released', releasedAt: new Date(), status: 'Completed' },
+  }, { new: true });
+  if (!updated) throw Object.assign(new Error('Booking changed. Refresh before releasing funds.'), { status: 409 });
+  Object.assign(booking, updated.toObject());
   if (booking.agencyId) createNotification(booking.agencyId, {
     type: "system", title: "Funds released from escrow",
     body: `Escrow for ${booking.packageTitle} (ref ${booking.ref}) has been released to your balance.`,
@@ -366,7 +349,7 @@ exports.confirmBooking = async (req, res) => {
     res.json({ booking: shapeBooking(booking) });
   } catch (err) {
     console.error("confirmBooking error:", err.message);
-    res.status(500).json({ error: "Failed to confirm booking" });
+    res.status(err.status || 500).json({ error: err.status ? err.message : "Failed to confirm booking" });
   }
 };
 
@@ -380,7 +363,7 @@ exports.releaseEscrow = async (req, res) => {
     res.json({ booking: shapeBooking(booking) });
   } catch (err) {
     console.error("releaseEscrow error:", err.message);
-    res.status(500).json({ error: "Failed to release escrow" });
+    res.status(err.status || 500).json({ error: err.status ? err.message : "Failed to release escrow" });
   }
 };
 
@@ -394,7 +377,7 @@ exports.confirmTourBooking = async (req, res) => {
     res.json({ booking });
   } catch (err) {
     console.error("confirmTourBooking error:", err.message);
-    res.status(500).json({ error: "Failed to confirm tour booking" });
+    res.status(err.status || 500).json({ error: err.status ? err.message : "Failed to confirm tour booking" });
   }
 };
 
@@ -408,7 +391,7 @@ exports.releaseTourEscrow = async (req, res) => {
     res.json({ booking });
   } catch (err) {
     console.error("releaseTourEscrow error:", err.message);
-    res.status(500).json({ error: "Failed to release tour escrow" });
+    res.status(err.status || 500).json({ error: err.status ? err.message : "Failed to release tour escrow" });
   }
 };
 
@@ -418,8 +401,10 @@ exports.updateBookingApproval = async (req, res) => {
     const { bookingId, status } = req.body;
     const allowed = ["Upcoming", "Completed", "Cancelled"];
     if (!allowed.includes(status)) return res.status(400).json({ error: "Invalid status" });
-    const booking = await Booking.findByIdAndUpdate(bookingId, { status }, { new: true });
-    if (!booking) return res.status(404).json({ error: "Booking not found" });
+    const booking = await Booking.findOneAndUpdate({ _id: bookingId, status: 'Upcoming',
+      paymentStatus: status === 'Cancelled' ? 'Pending' : 'Approved',
+    }, { $set: { status } }, { new: true });
+    if (!booking) return res.status(409).json({ error: 'Booking state does not allow this transition.' });
     if (booking.userId) {
       createNotification(booking.userId, {
         type: "booking",
@@ -440,32 +425,27 @@ exports.updateBookingApproval = async (req, res) => {
 // is paid (Approved) but not yet released sits in escrow ("held"). Legacy
 // bookings approved before escrow existed (escrowStatus "None") are treated as
 // held so nothing silently vanishes — an admin/traveller can release them.
-const isReleased = (b) => b.escrowStatus === "Released";
-const isHeld = (b) => b.escrowStatus === "Held" || (b.escrowStatus === "None" && b.paymentStatus === "Approved");
 
 // Compute a partner's balance: released (withdrawable) + held (in escrow).
-const computeBalance = async (userId, type) => {
+const computeBalance = async (userId, type, session = null) => {
   const { commissionPercent, minPayoutThreshold } = await getRevenueConfig();
-  const net = (gross) => Math.round(gross * (1 - commissionPercent / 100));
-  let earnings = 0; // released & net of commission — the base for withdrawals
-  let held = 0;     // in escrow, not yet withdrawable
-
-  if (type === "hotel") {
-    const ids = (await Accommodation.find({ ownerId: userId }).select("_id")).map((a) => a._id);
-    const bookings = (await Booking.find({ accId: { $in: ids } })).filter((b) => b.status !== "Cancelled");
-    earnings = net(bookings.filter(isReleased).reduce((s, b) => s + (b.amount || 0), 0));
-    held = net(bookings.filter(isHeld).reduce((s, b) => s + (b.amount || 0), 0));
-  } else if (type === "local guide") {
-    // Guide credits are admin-issued and immediately withdrawable (no escrow).
-    const credits = await Earning.find({ guideId: userId });
-    earnings = credits.reduce((s, e) => s + (e.amount || 0), 0);
-  } else if (type === "travel agency") {
-    const bookings = (await TourBooking.find({ agencyId: userId })).filter((b) => b.status !== "Cancelled");
-    earnings = net(bookings.filter(isReleased).reduce((s, b) => s + (b.amount || 0), 0));
-    held = net(bookings.filter(isHeld).reduce((s, b) => s + (b.amount || 0), 0));
+  const id = new (require('mongoose').Types.ObjectId)(userId);
+  const net = gross => Math.round(gross * (1 - commissionPercent / 100));
+  const sum = async (Model, match) => {
+    const rows = await Model.aggregate([{ $match: match }, { $group: { _id: null, total: { $sum: '$amount' } } }]).session(session);
+    return rows[0]?.total || 0;
+  };
+  let earnings = 0, held = 0;
+  if (type === 'local guide') earnings = await sum(Earning, { guideId: id });
+  else if (type === 'hotel' || type === 'travel agency') {
+    const Model = type === 'hotel' ? Booking : TourBooking;
+    const match = { status: { $ne: 'Cancelled' } };
+    if (type === 'hotel') match.accId = { $in: (await Accommodation.find({ ownerId: id }).select('_id').session(session).lean()).map(a => a._id) };
+    else match.agencyId = id;
+    earnings = net(await sum(Model, { ...match, escrowStatus: 'Released' }));
+    held = net(await sum(Model, { ...match, $or: [{ escrowStatus: 'Held' }, { escrowStatus: 'None', paymentStatus: 'Approved' }] }));
   }
-  const withdrawals = await Payout.find({ recipientId: userId, status: { $ne: "Rejected" } });
-  const withdrawn = withdrawals.reduce((s, p) => s + (p.amount || 0), 0);
+  const withdrawn = await sum(Payout, { recipientId: id, status: { $ne: 'Rejected' } });
   return { earnings, held, withdrawn, available: Math.max(0, earnings - withdrawn), minPayoutThreshold, commissionPercent };
 };
 
@@ -485,23 +465,22 @@ exports.requestPayout = async (req, res) => {
     if (!["hotel", "local guide", "travel agency"].includes(req.user.type)) {
       return res.status(403).json({ error: "This account can't request payouts" });
     }
-    const amount = Number(req.body.amount) || 0;
-    const { available, minPayoutThreshold } = await computeBalance(req.user.id, req.user.type);
-    if (amount < minPayoutThreshold) {
-      return res.status(400).json({ error: `Minimum payout is Rs ${minPayoutThreshold.toLocaleString()}.` });
-    }
-    if (amount > available) {
-      return res.status(400).json({ error: `You can request at most Rs ${available.toLocaleString()}.` });
-    }
-    const user = await User.findById(req.user.id).select("name username");
-    const payout = await Payout.create({
-      recipientId: req.user.id,
-      recipientName: user?.name || user?.username || "Partner",
-      recipientType: req.user.type,
-      amount,
-      note: req.body.note || "",
-      accountDetails: req.body.accountDetails || "",
-      status: "Requested",
+    const amount = Number(req.body.amount);
+    if (!Number.isFinite(amount) || amount <= 0) return res.status(400).json({ error: 'Enter a positive payout amount.' });
+    const Guard = require('../../models/PayoutGuard');
+    try { await Guard.updateOne({ _id: req.user.id }, { $setOnInsert: { revision: 0 } }, { upsert: true }); }
+    catch (error) { if (error.code !== 11000) throw error; }
+    const payout = await require('mongoose').connection.transaction(async session => {
+      await Guard.updateOne({ _id: req.user.id }, { $inc: { revision: 1 } }, { session });
+      const { available, minPayoutThreshold } = await computeBalance(req.user.id, req.user.type, session);
+      if (amount < minPayoutThreshold || amount > available) throw Object.assign(new Error('Amount is outside your available balance or payout threshold.'), { status: 400 });
+      const user = await User.findById(req.user.id).select('name username').session(session);
+      const [created] = await Payout.create([{
+        recipientId: req.user.id, recipientName: user?.name || user?.username || 'Partner',
+        recipientType: req.user.type, amount, note: req.body.note || '',
+        accountDetails: req.body.accountDetails || '', status: 'Requested',
+      }], { session });
+      return created;
     });
     notifyAdmins({
       type: "system",
@@ -512,7 +491,7 @@ exports.requestPayout = async (req, res) => {
     res.status(201).json({ payout });
   } catch (err) {
     console.error("requestPayout error:", err.message);
-    res.status(500).json({ error: "Failed to submit payout request" });
+    res.status(err.status || 500).json({ error: err.status ? err.message : "Failed to submit payout request" });
   }
 };
 
@@ -520,10 +499,8 @@ exports.requestPayout = async (req, res) => {
 exports.verifyPayout = async (req, res) => {
   try {
     const approved = !!req.body.approved;
-    const payout = await Payout.findById(req.params.id);
-    if (!payout) return res.status(404).json({ error: "Payout request not found" });
-    payout.status = approved ? "Approved" : "Rejected";
-    await payout.save();
+    const payout = await Payout.findOneAndUpdate({ _id: req.params.id, status: 'Requested' }, { $set: { status: approved ? 'Approved' : 'Rejected' } }, { new: true });
+    if (!payout) return res.status(409).json({ error: 'This payout has already been processed.' });
     createNotification(payout.recipientId, {
       type: "system",
       title: approved ? "Payout approved" : "Payout rejected",
@@ -556,8 +533,9 @@ exports.listPayouts = async (req, res) => {
 // GET /api/payment/payouts/me  — the signed-in partner's payout requests.
 exports.listMyPayouts = async (req, res) => {
   try {
-    res.json({ payouts: await Payout.find({ recipientId: req.user.id }).sort({ createdAt: -1 }) });
+    res.json(await require('../../utils/pagedList')(Payout, { recipientId: req.user.id }, req.query, 'payouts'));
   } catch (err) {
+    if (err.status === 400) return res.status(400).json({ error: err.message });
     res.status(500).json({ error: "Failed to load payouts" });
   }
 };
@@ -602,8 +580,9 @@ exports.listEarnings = async (req, res) => {
 // GET /api/payment/earnings/me  — the signed-in guide's credits.
 exports.listMyEarnings = async (req, res) => {
   try {
-    res.json({ earnings: await Earning.find({ guideId: req.user.id }).sort({ createdAt: -1 }) });
+    res.json(await require('../../utils/pagedList')(Earning, { guideId: req.user.id }, req.query, 'earnings'));
   } catch (err) {
+    if (err.status === 400) return res.status(400).json({ error: err.message });
     res.status(500).json({ error: "Failed to load earnings" });
   }
 };

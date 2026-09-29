@@ -3,6 +3,9 @@ const router = express.Router();
 const { authenticate } = require("../middleware/auth");
 const PushSubscription = require("../UserBackend/models/pushSubscription");
 const { publicKey, enabled, sendPushToUser } = require("../utils/webpush");
+const { cleanSubscription, validEndpoint } = require('../utils/pushValidation');
+const rateLimit = require('express-rate-limit');
+router.use(rateLimit({ ...require('../utils/rateLimitStore')('push'), windowMs: 60000, limit: 20, standardHeaders: true, legacyHeaders: false }));
 
 // The VAPID public key the browser needs to subscribe (null when push is off).
 router.get("/public-key", (req, res) => res.json({ key: publicKey, enabled }));
@@ -10,15 +13,16 @@ router.get("/public-key", (req, res) => res.json({ key: publicKey, enabled }));
 // Save (or refresh) a browser push subscription for the signed-in user.
 router.post("/subscribe", authenticate, async (req, res) => {
   try {
-    const sub = req.body && req.body.subscription;
-    if (!sub || !sub.endpoint) return res.status(400).json({ error: "invalid subscription" });
+    const sub = cleanSubscription(req.body?.subscription);
+    if (!sub) return res.status(400).json({ error: "invalid subscription" });
     await PushSubscription.findOneAndUpdate(
-      { endpoint: sub.endpoint },
+      { endpoint: sub.endpoint, userId: req.user.id },
       { userId: req.user.id, endpoint: sub.endpoint, subscription: sub },
       { upsert: true, new: true }
     );
     res.json({ ok: true });
   } catch (err) {
+    if (err.code === 11000) return res.status(409).json({ error: 'Subscription belongs to another account. Reset browser notifications first.' });
     console.error("push subscribe error:", err.message);
     res.status(500).json({ error: "subscribe failed" });
   }
@@ -27,7 +31,8 @@ router.post("/subscribe", authenticate, async (req, res) => {
 router.post("/unsubscribe", authenticate, async (req, res) => {
   try {
     const endpoint = req.body && req.body.endpoint;
-    if (endpoint) await PushSubscription.deleteOne({ endpoint });
+    if (!validEndpoint(endpoint)) return res.status(400).json({ error: 'Invalid endpoint' });
+    await PushSubscription.deleteOne({ endpoint, userId: req.user.id });
     res.json({ ok: true });
   } catch (err) {
     res.status(500).json({ error: "unsubscribe failed" });

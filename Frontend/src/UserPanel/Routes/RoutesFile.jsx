@@ -8,6 +8,9 @@ const Auth = (el) => <ProtectedRoute allowedUserTypes={["user", "local guide"]}>
 
 // Lazy-load every page so each becomes its own chunk — the initial bundle stays
 // small and pages load on demand.
+const TripDesk = lazy(() => import("../../components/TripDesk"));
+const NotFound = lazy(() => import('../pages/NotFound'));
+const TravelHelp = lazy(() => import('../pages/TravelHelp'));
 const Destination = lazy(() => import('../pages/Destination'));
 const CitySpots = lazy(() => import('../pages/CitySpots'));
 const CityDetail = lazy(() => import('../pages/CityDetail'));
@@ -46,6 +49,7 @@ const RoutesFile = () => {
         <Route path="/destinations" element={<Destination />} />
         <Route path="/destinations/:city" element={<CitySpots />} />
         <Route path="/about" element={<About />} />
+        <Route path="/travel-help" element={<TravelHelp />} />
         <Route path="/contact" element={<Contact />} />
         <Route path="/city/:city/spot/:spotId" element={<CityDetail />} />
         <Route path="/accommodations/:id" element={<Hotel />} />
@@ -63,12 +67,14 @@ const RoutesFile = () => {
         <Route path="/discover" element={<Discover />} />
 
         {/* Account & transaction pages — require sign-in */}
+        <Route path="/trip-requests" element={<ProtectedRoute allowedUserTypes={["user"]}><TripDesk /></ProtectedRoute>} />
         <Route path="/payment" element={Auth(<Payment />)} />
         <Route path="/messages" element={Auth(<Messages />)} />
         <Route path="/profile" element={Auth(<Profile />)} />
         <Route path="/saved" element={Auth(<SavedSpots />)} />
         <Route path="/bookings" element={Auth(<MyBookings />)} />
         <Route path="/notifications" element={Auth(<Notifications />)} />
+        <Route path="*" element={<NotFound />} />
       </Routes>
     </Suspense>
   );

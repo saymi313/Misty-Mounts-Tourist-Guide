@@ -26,5 +26,5 @@ export const creditGuide = async (b) => (await api.post("/payment/earnings", b))
 // Partner (hotel / local guide) — balance, requests, credits received.
 export const getBalance = async () => (await api.get("/payment/balance")).data;
 export const requestPayout = async (b) => (await api.post("/payment/payouts/request", b)).data.payout;
-export const listMyPayouts = async () => (await api.get("/payment/payouts/me")).data.payouts;
-export const listMyEarnings = async () => (await api.get("/payment/earnings/me")).data.earnings;
+export const listMyPayouts = async (params = {}) => (await api.get("/payment/payouts/me", { params })).data;
+export const listMyEarnings = async (params = {}) => (await api.get("/payment/earnings/me", { params })).data;

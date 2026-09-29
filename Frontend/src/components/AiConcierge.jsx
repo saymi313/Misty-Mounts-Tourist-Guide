@@ -1,12 +1,15 @@
-import React, { useEffect, useRef, useState } from "react";
+import useFeatures from "../hooks/useFeatures";
+import FeatureNotice from "../components/FeatureNotice";
+import { useEffect, useRef, useState } from "react";
 import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
 import { X, Send, Loader2, Bot } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import api from "../data/api";
+import useTrip from "../hooks/useTrip";
 
 /**
  * "Ask Misty" — a floating AI travel concierge. Talks to /api/ai/chat (Gemini
- * free tier + RAG, with a keyword fallback server-side) so it always answers.
+ * intent classification + approved catalogue selection, with server-controlled replies).
  */
 
 const SUGGESTIONS = [
@@ -38,7 +41,9 @@ const render = (text) =>
   });
 
 const AiConcierge = () => {
+  const features = useFeatures();
   const navigate = useNavigate();
+  const { toggle, isInTrip } = useTrip();
   const [open, setOpen] = useState(false);
   const [messages, setMessages] = useState([GREETING]);
   const [input, setInput] = useState("");
@@ -52,22 +57,24 @@ const AiConcierge = () => {
 
   const send = async (text) => {
     const msg = (text ?? input).trim();
-    if (!msg || busy) return;
+    if (!msg || busy || !features.gemini) return;
     const next = [...messages, { role: "user", text: msg }];
     setMessages(next);
     setInput("");
     setBusy(true);
     try {
       const { data } = await api.post("/ai/chat", {
-        messages: next.filter((m) => m !== GREETING).map((m) => ({ role: m.role, text: m.text })),
-      });
-      setMessages((m) => [...m, { role: "model", text: data?.text || "Sorry, I couldn't answer that. Try rephrasing?" }]);
-    } catch {
-      setMessages((m) => [...m, { role: "model", text: "I'm having trouble connecting right now. Meanwhile, try the Trip Planner or the Safety page." }]);
+        messages: next.filter((m) => m !== GREETING).slice(-10).map((m) => ({ role: m.role, text: m.text })),
+      }, { timeout: 30000 });
+      setMessages((m) => [...m, { role: "model", text: data?.text || "Sorry, I couldn't answer that. Try rephrasing?", sources: data.sources || [], fallback: data.fallback }]);
+    } catch (error) {
+      setMessages((m) => [...m, { role: "model", text: error.response?.data?.error || "I'm having trouble connecting right now. Meanwhile, try the Trip Planner or the Safety page." }]);
     } finally {
       setBusy(false);
     }
   };
+
+  if (!features.gemini) return <div className="fixed bottom-5 right-5 z-[60] max-w-[min(92vw,320px)] rounded-2xl bg-night-900 px-3 text-white shadow-lg"><FeatureNotice feature="Ask Misty" state={features.state}>You can still browse destinations and build a basic itinerary.</FeatureNotice></div>;
 
   return (
     <>
@@ -125,7 +132,7 @@ const AiConcierge = () => {
               <span className="flex h-8 w-8 items-center justify-center rounded-full bg-lime-400 text-night-950"><Bot className="h-4 w-4" /></span>
               <div>
                 <p className="text-sm font-extrabold text-white">Ask Misty</p>
-                <p className="text-[11px] text-white/40">AI travel concierge</p>
+                <p className="text-[11px] text-white/60">Pakistan travel &amp; Misty Mounts help</p>
               </div>
             </div>
             <button onClick={() => setOpen(false)} aria-label="Close" className="rounded-full p-1.5 text-white/50 hover:bg-white/10 hover:text-white">
@@ -141,6 +148,14 @@ const AiConcierge = () => {
                   m.role === "user" ? "bg-lime-400 text-night-950" : "bg-night-700 text-white/90"
                 }`}>
                   {render(m.text)}
+                  {m.fallback && <p className="text-xs text-white/60">Limited assistance · AI unavailable or unverified</p>}
+                  {m.sources?.length > 0 && <div className="space-y-2 border-t border-white/15 pt-2">
+                    <p className="text-xs text-white/60">Explore on Misty Mounts</p>
+                    {m.sources.map(source => <div key={source.href}>
+                      <button onClick={() => { navigate(source.href); setOpen(false); }} className="min-h-11 text-left text-lime-300 underline">{source.title}</button>
+                      {source.spot && <button onClick={() => toggle({ type: 'spot', id: source.id, title: source.title, city: source.spot.city, image: source.spot.picture, href: source.href })} className="block min-h-11 text-xs font-semibold text-white/80">{isInTrip('spot', source.id) ? 'Remove from trip' : 'Save to trip'}</button>}
+                    </div>)}
+                  </div>}
                 </div>
               </div>
             ))}
@@ -180,6 +195,8 @@ const AiConcierge = () => {
           >
             <input
               value={input}
+              aria-label="Message to Misty"
+              maxLength={2000}
               onChange={(e) => setInput(e.target.value)}
               placeholder="Ask about trips, spots, safety…"
               className="min-w-0 flex-1 rounded-full border border-white/10 bg-night-900 px-4 py-2.5 text-sm text-white outline-none placeholder:text-white/30 focus:border-lime-400/50"

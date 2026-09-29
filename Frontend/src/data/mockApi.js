@@ -14,7 +14,6 @@ import {
   transportationBySpot,
   feedbacks,
   disasters,
-  weatherBySpot,
   bookings,
   scheduleItems,
 } from "./mockData";
@@ -71,8 +70,8 @@ export async function getTransportation(spotId) {
 }
 
 /** GET /api/feedback → { feedbacks } */
-export async function getFeedbacks() {
-  if (LIVE) return (await api.get("/feedback")).data;
+export async function getFeedbacks(params = {}) {
+  if (LIVE) return (await api.get("/feedback", { params })).data;
   await delay();
   return { feedbacks };
 }
@@ -89,12 +88,6 @@ export async function getDisasters() {
   if (LIVE) return (await api.get("/natural-disaster/get-disaster")).data;
   await delay();
   return { data: disasters };
-}
-
-/** Weather — no backend endpoint yet; served from the mock either way. */
-export async function getWeather(/* spotId */) {
-  await delay(200);
-  return weatherBySpot.default;
 }
 
 /** POST /api/payment/create → axios response (UI reads res.data.bookingId) */
@@ -132,7 +125,6 @@ export default {
   getFeedbacks,
   submitFeedback,
   getDisasters,
-  getWeather,
   createPayment,
   getBookings,
   getSchedule,

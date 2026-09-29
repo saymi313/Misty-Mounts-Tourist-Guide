@@ -5,7 +5,7 @@ const shape = (c) => ({ _id: c._id, name: c.name, province: c.province || "", ph
 // GET /api/cities — public list (dropdowns + traveller panel).
 exports.listCities = async (req, res) => {
   try {
-    const cities = await City.find().sort({ name: 1 });
+    const cities = await City.find().select('name province photo tagline').sort({ name: 1 }).lean();
     res.json({ cities: cities.map(shape) });
   } catch (err) {
     console.error("listCities error:", err.message);

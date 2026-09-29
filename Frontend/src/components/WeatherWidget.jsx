@@ -1,131 +1,74 @@
-import React, { useEffect, useState } from "react";
-import {
-  Sun, Cloud, CloudSun, CloudFog, CloudDrizzle, CloudRain,
-  CloudSnow, CloudLightning, Wind, Droplets, CalendarClock, MapPin,
-} from "lucide-react";
-import { fetchForecast, describeWeather, bestTimeToVisit } from "../utils/weather";
+import { useEffect, useState } from 'react';
+import PropTypes from 'prop-types';
+import { Cloud, Wind, Droplets, RefreshCw } from 'lucide-react';
+import { fetchForecast, describeWeather, validCoordinates, formatWeatherValue, formatWeatherTime, currentIsFresh, pakistanDate } from '../utils/weather';
 
-const ICONS = {
-  sun: Sun,
-  "cloud-sun": CloudSun,
-  cloud: Cloud,
-  fog: CloudFog,
-  drizzle: CloudDrizzle,
-  rain: CloudRain,
-  snow: CloudSnow,
-  storm: CloudLightning,
-};
-
-const WIcon = ({ icon, className }) => {
-  const Cmp = ICONS[icon] || Cloud;
-  return <Cmp className={className} />;
-};
-
-const dayLabel = (iso, i) =>
-  i === 0 ? "Today" : new Date(iso + "T00:00").toLocaleDateString(undefined, { weekday: "short" });
-
-/**
- * Free 7-day weather + conditions for a coordinate (Open-Meteo). Renders
- * nothing if no valid coordinates are supplied.
- */
-const WeatherWidget = ({ lat, lng, placeName, className = "" }) => {
+export default function WeatherWidget({ lat, lng, placeName, locationKind = 'spot', className = '' }) {
   const [data, setData] = useState(null);
-  const [state, setState] = useState("loading"); // loading | ok | error
-
-  const hasCoords = Number.isFinite(Number(lat)) && Number.isFinite(Number(lng));
-
+  const [state, setState] = useState('loading');
+  const [refresh, setRefresh] = useState(0);
+  const [clock, setClock] = useState(Date.now());
+  const hasCoords = validCoordinates(lat, lng);
   useEffect(() => {
     if (!hasCoords) return;
-    const ctrl = new AbortController();
-    setState("loading");
-    fetchForecast(Number(lat), Number(lng), { signal: ctrl.signal })
-      .then((d) => { setData(d); setState("ok"); })
-      .catch((e) => { if (e.name !== "AbortError") setState("error"); });
-    return () => ctrl.abort();
-  }, [lat, lng, hasCoords]);
-
-  if (!hasCoords) return null;
-
-  return (
-    <section className={`rounded-3xl border border-white/10 bg-night-900/70 p-6 sm:p-7 ${className}`}>
-      <div className="mb-5 flex items-center gap-2 text-xs font-bold uppercase tracking-[0.18em] text-lime-400">
-        <Cloud className="h-3.5 w-3.5" /> Weather &amp; conditions
-      </div>
-
-      {state === "loading" && (
-        <div className="flex items-center gap-3 text-white/50">
-          <div className="h-10 w-10 animate-pulse rounded-full bg-white/10" />
-          <div className="space-y-2">
-            <div className="h-3 w-28 animate-pulse rounded bg-white/10" />
-            <div className="h-3 w-20 animate-pulse rounded bg-white/10" />
+    let active = true;
+    const controller = new AbortController();
+    setData(null); setState('loading');
+    fetchForecast(lat, lng, { signal: controller.signal })
+      .then(result => { if (active) { setData(result); setClock(Date.now()); setState('ok'); } })
+      .catch(() => { if (active) setState('error'); });
+    return () => { active = false; controller.abort(); };
+  }, [lat, lng, hasCoords, refresh]);
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setClock(Date.now());
+      if (!document.hidden) setRefresh(value => value + 1);
+    }, 15 * 60000);
+    const visible = () => { if (!document.hidden) { setClock(Date.now()); setRefresh(value => value + 1); } };
+    document.addEventListener('visibilitychange', visible);
+    return () => { clearInterval(timer); document.removeEventListener('visibilitychange', visible); };
+  }, []);
+  const fresh = currentIsFresh(data, clock);
+  const matchesLocation = data?.meta.requestedLatitude === lat && data?.meta.requestedLongitude === lng;
+  return <section aria-label="Weather forecast" className={`rounded-3xl border border-white/10 bg-night-900/70 p-6 sm:p-7 ${className}`}>
+    <div className="flex flex-wrap items-center justify-between gap-3">
+      <h2 className="flex items-center gap-2 text-sm font-bold text-lime-300"><Cloud className="h-4 w-4" />Weather for {placeName || 'this location'}</h2>
+      {hasCoords && <button type="button" disabled={state === 'loading'} onClick={() => setRefresh(value => value + 1)} className="flex min-h-11 items-center gap-2 rounded-xl border border-white/20 px-3 text-sm focus:outline-lime-400 disabled:opacity-50"><RefreshCw className="h-4 w-4" />Refresh</button>}
+    </div>
+    {!hasCoords ? <p className="mt-4 text-sm text-white/70">Weather unavailable: this destination has no valid spot or city coordinates.</p> : <>
+      <p className="mt-3 text-xs leading-relaxed text-white/70">{locationKind === 'city' ? 'City-centre estimate — spot coordinates are unavailable.' : 'Model estimate for the listed spot coordinates.'} Mountain conditions may differ.</p>
+      <p className="mt-1 text-xs text-white/60">Requested coordinates: {lat}, {lng}</p>
+      {(state === 'loading' || (state === 'ok' && !matchesLocation)) && <p role="status" className="mt-4 text-sm text-white/70">Loading provider weather data…</p>}
+      {state === 'error' && <p role="alert" className="mt-4 text-sm text-amber-200">Weather could not be retrieved or validated. Refresh to try again.</p>}
+      {state === 'ok' && data && matchesLocation && <>
+        <div className="mt-5">
+          <p className="text-xs font-semibold text-white/70">{fresh ? 'Current model estimate' : 'Current conditions unavailable or outdated'}</p>
+          {fresh && <>
+            <p className="mt-2 text-4xl font-extrabold text-white">{formatWeatherValue(data.current.temperature_2m, '°C')}</p>
+            <p className="mt-1 text-sm text-white/75">{describeWeather(data.current.weather_code).label}</p>
+            <div className="mt-3 flex flex-wrap gap-4 text-sm text-white/80">
+              <span className="inline-flex items-center gap-1"><Wind className="h-4 w-4" />Wind (10 m): {formatWeatherValue(data.current.wind_speed_10m, ' km/h')}</span>
+              <span className="inline-flex items-center gap-1"><Droplets className="h-4 w-4" />Humidity: {formatWeatherValue(data.current.relative_humidity_2m, '%')}</span>
+            </div>
+          </>}
+          <p className="mt-2 text-xs text-white/65">Valid at: {formatWeatherTime(data.meta.validAt)}</p>
+        </div>
+        <div className="mt-5 overflow-x-auto">
+          <div className="flex min-w-max gap-2">
+            {data.daily.time.map((date, index) => <div key={date} className="w-36 rounded-xl border border-white/10 bg-white/5 p-3 text-xs text-white/75">
+              <p className="font-semibold text-white">{date === pakistanDate(clock) ? 'Today' : new Date(`${date}T12:00:00Z`).toLocaleDateString('en-GB', { weekday: 'short', timeZone: 'Asia/Karachi' })}</p>
+              <p className="mt-1">{date}</p>
+              <p className="mt-2 min-h-8">{describeWeather(data.daily.weather_code[index]).label}</p>
+              <p className="mt-2">High: {formatWeatherValue(data.daily.temperature_2m_max[index], '°C')}</p>
+              <p>Low: {formatWeatherValue(data.daily.temperature_2m_min[index], '°C')}</p>
+              <p className="mt-1">Max precipitation chance: {formatWeatherValue(data.daily.precipitation_probability_max[index], '%')}</p>
+            </div>)}
           </div>
         </div>
-      )}
-
-      {state === "error" && (
-        <p className="text-sm text-white/50">Weather is unavailable right now — please check back shortly.</p>
-      )}
-
-      {state === "ok" && data && (
-        <>
-          {/* Current */}
-          <div className="flex flex-wrap items-center justify-between gap-4">
-            <div className="flex items-center gap-4">
-              <WIcon icon={describeWeather(data.current?.weather_code).icon} className="h-12 w-12 text-lime-400" />
-              <div>
-                <div className="text-4xl font-extrabold tracking-tight text-white">
-                  {Math.round(data.current?.temperature_2m)}°C
-                </div>
-                <div className="text-sm text-white/60">
-                  {describeWeather(data.current?.weather_code).label}
-                  {placeName ? <span className="text-white/35"> · {placeName}</span> : null}
-                </div>
-              </div>
-            </div>
-            <div className="flex gap-5 text-sm text-white/55">
-              <span className="flex items-center gap-1.5"><Wind className="h-4 w-4 text-white/40" />{Math.round(data.current?.wind_speed_10m)} km/h</span>
-              <span className="flex items-center gap-1.5"><Droplets className="h-4 w-4 text-white/40" />{Math.round(data.current?.relative_humidity_2m)}%</span>
-              {Number.isFinite(data.elevation) && (
-                <span className="flex items-center gap-1.5"><MapPin className="h-4 w-4 text-white/40" />{Math.round(data.elevation)} m</span>
-              )}
-            </div>
-          </div>
-
-          {/* 7-day */}
-          <div className="mt-6 overflow-x-auto">
-            <div className="flex min-w-max gap-2">
-              {data.daily?.time?.map((iso, i) => {
-                const d = describeWeather(data.daily.weather_code[i]);
-                return (
-                  <div key={iso} className="flex min-w-[76px] flex-col items-center gap-1.5 rounded-2xl border border-white/[0.06] bg-white/[0.03] px-3 py-3">
-                    <span className="text-[11px] font-semibold uppercase tracking-wide text-white/50">{dayLabel(iso, i)}</span>
-                    <WIcon icon={d.icon} className="h-6 w-6 text-lime-300" />
-                    <span className="text-sm font-bold text-white">{Math.round(data.daily.temperature_2m_max[i])}°</span>
-                    <span className="text-xs text-white/40">{Math.round(data.daily.temperature_2m_min[i])}°</span>
-                    {Number.isFinite(data.daily.precipitation_probability_max?.[i]) && (
-                      <span className="flex items-center gap-0.5 text-[10px] text-sky-300/80">
-                        <Droplets className="h-3 w-3" />{data.daily.precipitation_probability_max[i]}%
-                      </span>
-                    )}
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-
-          {/* Best time to visit */}
-          {bestTimeToVisit(data.elevation) && (
-            <div className="mt-5 flex items-start gap-2 rounded-2xl bg-lime-400/10 px-4 py-3 text-sm text-lime-200/90">
-              <CalendarClock className="mt-0.5 h-4 w-4 shrink-0 text-lime-400" />
-              <span><span className="font-semibold text-lime-300">Best time to visit:</span> {bestTimeToVisit(data.elevation)}</span>
-            </div>
-          )}
-
-          <p className="mt-3 text-[11px] text-white/30">Live forecast · Open-Meteo</p>
-        </>
-      )}
-    </section>
-  );
-};
-
-export default WeatherWidget;
+        <p className="mt-4 text-xs leading-relaxed text-white/65">Fetched: {formatWeatherTime(data.meta.fetchedAt)}. Model grid: {data.meta.gridLatitude}, {data.meta.gridLongitude}. Model elevation: {formatWeatherValue(data.elevation, ' m')}.</p>
+        <p className="mt-2 text-xs leading-relaxed text-white/65">Source: <a href="https://open-meteo.com/" target="_blank" rel="noreferrer" className="text-lime-300 underline">Open-Meteo</a>. Modelled data, not a local weather-station observation. <a href={data.meta.url} target="_blank" rel="noreferrer" className="text-lime-300 underline">View provider data</a></p>
+      </>}
+    </>}
+  </section>;
+}
+WeatherWidget.propTypes = { lat: PropTypes.number, lng: PropTypes.number, placeName: PropTypes.string, locationKind: PropTypes.oneOf(['spot', 'city']), className: PropTypes.string };

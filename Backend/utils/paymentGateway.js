@@ -49,9 +49,11 @@ const REDIRECT_PROVIDERS = new Set(["jazzcash", "easypaisa"]);
 
 function providerEnabled(p) {
   if (p === "jazzcash") return Boolean(JC.merchantId && JC.password && JC.salt);
-  if (p === "easypaisa") return Boolean(EP.storeId && EP.hashKey);
+  // Hosted-return status alone is not proof of payment. Keep this provider off
+  // until a merchant-specific authenticated status API is integrated.
+  if (p === "easypaisa") return false;
   if (p === "manual") return false;
-  return Boolean(GEN.apiKey && GEN.createUrl); // generic
+  return Boolean(GEN.apiKey && GEN.createUrl && GEN.webhookSecret); // generic
 }
 
 const enabled = providerEnabled(PROVIDER);
@@ -85,7 +87,7 @@ function jazzcashCheckout({ amount, orderRef, customerEmail, successUrl }) {
     pp_Password: JC.password,
     pp_BankID: "",
     pp_ProductID: "",
-    pp_TxnRefNo: `T${stamp(now)}`,
+    pp_TxnRefNo: `T${stamp(now)}${crypto.randomBytes(4).toString('hex')}`,
     pp_Amount: String(Math.round(Number(amount) * 100)), // paisa
     pp_TxnCurrency: "PKR",
     pp_TxnDateTime: stamp(now),
@@ -129,8 +131,9 @@ function easypaisaCheckout({ amount, orderRef, customerEmail, successUrl }) {
 
 async function genericCheckout({ amount, currency, orderRef, customerEmail, successUrl, cancelUrl, metadata }) {
   const res = await fetch(GEN.createUrl, {
+    signal: AbortSignal.timeout(15000),
     method: "POST",
-    headers: { "Content-Type": "application/json", Authorization: `Bearer ${GEN.apiKey}` },
+    headers: { "Content-Type": "application/json", Authorization: `Bearer ${GEN.apiKey}`, "Idempotency-Key": orderRef },
     body: JSON.stringify({
       amount, currency, reference: orderRef, customer_email: customerEmail,
       redirect_url: successUrl, cancel_url: cancelUrl, metadata: { ...metadata, ref: orderRef },
@@ -174,7 +177,10 @@ function parseWebhook(body) {
   const status = String(body?.data?.status || body?.status || "").toLowerCase();
   const success = ["paid", "succeeded", "success", "completed", "captured", "approved"].includes(status);
   const txnId = body?.data?.id || body?.transaction_id || body?.txn_id || "";
-  return { ref, success, status, txnId };
+  const rawAmount = body?.data?.amount ?? body?.amount;
+  const amount = (typeof rawAmount === 'number' || (typeof rawAmount === 'string' && rawAmount.trim())) ? Number(rawAmount) : NaN;
+  const currency = body?.data?.currency || body?.currency;
+  return { ref, success, status, txnId, amount, currency };
 }
 
 /**
@@ -185,24 +191,25 @@ function verifyReturn(params = {}) {
   if (PROVIDER === "jazzcash") {
     const got = String(params.pp_SecureHash || "").toUpperCase();
     const expected = jazzcashHash(params);
-    const valid = got.length > 0 && got === expected;
+    const valid = /^[A-F0-9]{64}$/.test(got) && crypto.timingSafeEqual(Buffer.from(got), Buffer.from(expected)) && params.pp_MerchantID === JC.merchantId;
     return {
       ref: params.pp_BillReference || "",
       success: valid && String(params.pp_ResponseCode) === "000",
       txnId: params.pp_TxnRefNo || "",
       valid,
+      amount: Number(params.pp_Amount) / 100,
+      currency: params.pp_TxnCurrency,
     };
   }
   if (PROVIDER === "easypaisa") {
     // Easypaisa posts back orderRefNum + a status/paymentToken. There is no
     // shared-secret signature on the return, so treat the callback as advisory
     // and reconcile status here; success requires an explicit success flag.
-    const status = String(params.status || params.transactionStatus || "").toUpperCase();
     return {
       ref: params.orderRefNum || params.orderRefNumber || "",
-      success: ["PAID", "SUCCESS", "COMPLETED", "0000"].includes(status),
+      success: false,
       txnId: params.transactionId || params.paymentToken || "",
-      valid: true,
+      valid: false,
     };
   }
   return { ref: "", success: false, txnId: "", valid: false };

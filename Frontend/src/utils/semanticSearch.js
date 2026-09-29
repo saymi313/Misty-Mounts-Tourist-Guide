@@ -7,13 +7,13 @@
  */
 
 const MODEL = "Xenova/all-MiniLM-L6-v2";
-const CACHE_KEY = "mm-embed-cache-v1";
+const CACHE_KEY = "mm-embed-cache-v2";
 
 let libPromise = null;
 let extractorPromise = null;
 
 async function lib() {
-  if (!libPromise) libPromise = import("@xenova/transformers");
+  if (!libPromise) libPromise = import("@huggingface/transformers");
   return libPromise;
 }
 
@@ -21,7 +21,10 @@ async function getExtractor() {
   if (!extractorPromise) {
     const { pipeline, env } = await lib();
     env.allowLocalModels = false; // fetch from CDN, don't look for local files
-    extractorPromise = pipeline("feature-extraction", MODEL, { quantized: true });
+    extractorPromise = pipeline("feature-extraction", MODEL, { dtype: 'q8', device: 'wasm' }).catch(error => {
+      extractorPromise = null;
+      throw error;
+    });
   }
   return extractorPromise;
 }

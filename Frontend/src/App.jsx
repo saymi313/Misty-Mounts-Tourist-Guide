@@ -15,6 +15,7 @@ import TravelAgencyPanel from './TravelAgencyPannel/TravelAgencyPanel';
 import Toaster from './components/Toaster';
 import ConfirmDialog from './components/ConfirmDialog';
 import './App.css';
+import { RouteSeo } from './components/Seo';
 
 function App() {
   return (
@@ -23,16 +24,17 @@ function App() {
     <I18nProvider>
     <AuthProvider>
       <Router>
+        <RouteSeo />
         <Routes>
           {/* Authentication route */}
           <Route path="/auth" element={<Authentication />} />
           
           {/* Root redirect */}
-          <Route path="/" element={<Navigate to="/user" replace />} />
+          <Route path="/" element={<LandingPage />} />
           
           {/* Public landing — the whole traveller panel is browsable without login;
               only account/transaction pages are gated (see RoutesFile). */}
-          <Route path="/user" element={<LandingPage />} />
+          <Route path="/user" element={<Navigate to="/" replace />} />
           
           {/* Local Guide Panel — local guides only */}
           <Route path="/local-guide/*" element={

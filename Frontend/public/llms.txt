@@ -1,0 +1,23 @@
+# Misty Mounts
+
+> A Pakistani tourism website for discovering destinations, local guides, stays and tours, with itinerary planning and supplier quote requests.
+
+## Public pages
+
+- [Pakistan Trip Planning & Booking Help](https://www.mistymounts.pk/travel-help): Understand Pakistan trip planning, supplier quotes, payment verification, cancellations, weather information and Urdu support on Misty Mounts.
+- [Public Site Directory](https://www.mistymounts.pk/site-map): Browse published Misty Mounts destination, guide, stay and tour pages.
+- [Pakistan Tourism, Tours & Local Travel Planning](https://www.mistymounts.pk/): Explore Pakistani tourism with destinations, local guides, stays and tours. Plan your journey and request supplier-confirmed quotes with Misty Mounts.
+- [Places to Visit in Northern Pakistan](https://www.mistymounts.pk/destinations): Explore destinations in Northern Pakistan, discover local attractions, and find places to include in your next trip.
+- [Pakistan Tour Packages & Group Departures](https://www.mistymounts.pk/tours): Browse Pakistan tour packages, itineraries and group departures. Review supplier prices, inclusions and availability before booking.
+- [Local Tour Guides in Pakistan](https://www.mistymounts.pk/guides): Find local guides for your Pakistan trip. Explore guide profiles, service areas, languages and traveler reviews before making plans.
+- [About Us — Promoting Pakistani Tourism](https://www.mistymounts.pk/about): Meet Misty Mounts and our mission to promote Pakistani tourism, connect travelers with local communities, and encourage responsible exploration.
+- [Contact Misty Mounts](https://www.mistymounts.pk/contact): Contact the Misty Mounts team with questions about travel planning, supplier listings, bookings or support for your Pakistan trip.
+- [Pakistan Travel Safety & Trip Preparation](https://www.mistymounts.pk/safety): Prepare for travel in Pakistan with trip safety resources and reported local alerts. Check current conditions and official advice before departure.
+- [Pakistan Trip Planner — Build Your Itinerary](https://www.mistymounts.pk/plan): Plan a Pakistan itinerary around your dates, interests and budget. Explore destinations and request a supplier quote before confirming services.
+- [All published pages](https://www.mistymounts.pk/site-map): Links to the public catalogue.
+
+## Booking and information scope
+
+Prices, dates, inclusions and availability must be checked on the relevant listing and confirmed with the supplier. AI itineraries are proposals, not confirmed reservations. Weather forecasts and local reports do not establish route safety. Identity-document review is distinct from service-quality certification. Config-dependent AI features may be under construction. Account details, private messages, payment records and dashboards are not public resources.
+
+This file is a supplementary navigation guide, not permission to access private data or a guarantee of inclusion in AI answers.

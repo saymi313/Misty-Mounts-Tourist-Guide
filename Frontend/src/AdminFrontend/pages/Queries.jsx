@@ -1,10 +1,9 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { Mail, MailOpen, Trash2, MessageSquare, Check, Reply, Send, CornerDownRight } from "lucide-react";
 import AdminLayout from "../AdminLayout";
 import { Card, SectionHead, StatCard, Btn, BtnGhost, adminInputCls } from "../../components/dashboard/ui";
 import Modal from "../../components/dashboard/Modal";
 import Pagination from "../../components/dashboard/Pagination";
-import usePagination from "../../hooks/usePagination";
 import { LIVE } from "../../data/adminApi";
 import { listQueries, markQueryRead, replyToQuery, deleteQuery } from "../../data/queriesApi";
 import { formatDate } from "../../utils/datetime";
@@ -17,19 +16,33 @@ export default function Queries() {
   const [replyFor, setReplyFor] = useState(null);
   const [replyText, setReplyText] = useState("");
   const [replySending, setReplySending] = useState(false);
+  const [page, setPage] = useState(1);
+  const [counts, setCounts] = useState({ total: 0, unread: 0 });
+  const [total, setTotal] = useState(0);
+  const [revision, setRevision] = useState(0);
 
   useEffect(() => {
-    if (LIVE) listQueries().then(setQueries).catch(() => {});
-  }, []);
+    if (!LIVE) return;
+    let active = true;
+    const load = () => listQueries({ page, limit: 20, filter }).then((data) => {
+      if (!active) return;
+      const last = Math.max(1, Math.ceil(data.pagination.total / 20));
+      if (page > last) { setPage(last); return; }
+      setQueries(data.queries); setCounts(data.counts); setTotal(data.pagination.total);
+    }).catch(() => { if (active) toast.error('Could not refresh queries.'); });
+    load();
+    const timer = setInterval(load, 10000);
+    return () => { active = false; clearInterval(timer); };
+  }, [page, filter, revision]);
 
-  const unread = queries.filter((q) => !q.isRead).length;
-  const shown = filter === "unread" ? queries.filter((q) => !q.isRead) : queries;
-  const pg = usePagination(shown, 8);
+  const unread = counts.unread;
+  const shown = queries;
 
   const toggleRead = async (q) => {
     const next = !q.isRead;
     setQueries((prev) => prev.map((x) => (x._id === q._id ? { ...x, isRead: next } : x)));
     try { await markQueryRead(q._id, next); } catch { toast.error("Couldn't update this query."); }
+    finally { setRevision((value) => value + 1); }
   };
 
   const openReply = (q) => {
@@ -51,9 +64,11 @@ export default function Queries() {
     try {
       const updated = await replyToQuery(replyFor._id, msg);
       setQueries((prev) => prev.map((x) => (x._id === updated._id ? updated : x)));
-      toast.success(`Reply sent to ${replyFor.email}.`);
+      toast.success(updated.replies?.at(-1)?.status === 'queued'
+        ? 'Reply queued for email delivery.' : `Reply sent to ${replyFor.email}.`);
       setReplyFor(null);
       setReplyText("");
+      setRevision((value) => value + 1);
     } catch (err) {
       toast.error(err?.response?.data?.error || "Couldn't send the reply.");
     } finally {
@@ -72,6 +87,7 @@ export default function Queries() {
       await deleteQuery(q._id);
       setQueries((prev) => prev.filter((x) => x._id !== q._id));
       toast.success("Query deleted.");
+      setRevision((value) => value + 1);
     } catch {
       toast.error("Couldn't delete this query.");
     }
@@ -82,9 +98,9 @@ export default function Queries() {
   return (
     <AdminLayout greeting="Queries" subtitle="Messages from the contact page">
       <div className="grid gap-4 sm:grid-cols-3">
-        <StatCard icon={MessageSquare} tone="emerald" label="Total queries" value={queries.length} />
+        <StatCard icon={MessageSquare} tone="emerald" label="Total queries" value={counts.total} />
         <StatCard icon={Mail} tone="apricot" label="Unread" value={unread} />
-        <StatCard icon={MailOpen} tone="sky" label="Read" value={queries.length - unread} />
+        <StatCard icon={MailOpen} tone="sky" label="Read" value={counts.total - unread} />
       </div>
 
       <Card className="mt-6">
@@ -93,10 +109,10 @@ export default function Queries() {
           {["all", "unread"].map((f) => (
             <button
               key={f}
-              onClick={() => setFilter(f)}
+              onClick={() => { setFilter(f); setPage(1); }}
               className={`rounded-full px-4 py-2 text-sm font-semibold transition-colors ${filter === f ? "bg-lime-400 text-night-950" : "bg-slate-100 text-slate-500 hover:text-lime-700"}`}
             >
-              {f === "all" ? "All" : "Unread"} <span className="opacity-70">{f === "all" ? queries.length : unread}</span>
+              {f === "all" ? "All" : "Unread"} <span className="opacity-70">{f === "all" ? counts.total : unread}</span>
             </button>
           ))}
         </div>
@@ -104,7 +120,7 @@ export default function Queries() {
           <p className="py-12 text-center text-sm text-slate-400">No queries{filter === "unread" ? " unread" : " yet"}.</p>
         ) : (
           <div className="space-y-3">
-            {pg.pageItems.map((q) => (
+            {shown.map((q) => (
               <div key={q._id} className={`rounded-2xl border p-4 ${q.isRead ? "border-slate-100 bg-slate-50/60" : "border-lime-300 bg-lime-50"}`}>
                 <div className="flex items-start justify-between gap-3">
                   <div className="min-w-0">
@@ -114,7 +130,7 @@ export default function Queries() {
                       <a href={`mailto:${q.email}`} className="truncate text-xs font-medium text-lime-600 hover:underline">{q.email}</a>
                       {q.replies?.length > 0 && (
                         <span className="inline-flex items-center gap-1 rounded-full bg-lime-100 px-2.5 py-0.5 text-[11px] font-semibold text-lime-700">
-                          <CornerDownRight className="h-3 w-3" /> Replied{q.replies.length > 1 ? ` ×${q.replies.length}` : ""}
+                          <CornerDownRight className="h-3 w-3" /> Replies: {q.replies.length}
                         </span>
                       )}
                     </div>
@@ -126,7 +142,7 @@ export default function Queries() {
                         {q.replies.map((r, i) => (
                           <div key={i} className="rounded-xl bg-lime-50 px-3 py-2">
                             <p className="text-[11px] font-semibold uppercase tracking-wide text-lime-600">
-                              Your reply{r.sentAt ? ` · ${formatDate(r.sentAt)}` : ""}
+                              Your reply — {r.status || 'sent'}{r.sentAt ? ` · ${formatDate(r.sentAt)}` : ""}
                             </p>
                             <p className="mt-1 whitespace-pre-wrap text-sm leading-relaxed text-slate-600">{r.message}</p>
                           </div>
@@ -163,7 +179,7 @@ export default function Queries() {
             ))}
           </div>
         )}
-        <Pagination page={pg.page} pageCount={pg.pageCount} setPage={pg.setPage} />
+        <Pagination page={page} pageCount={Math.ceil(total / 20)} setPage={setPage} />
       </Card>
 
       <Modal
@@ -193,6 +209,7 @@ export default function Queries() {
               <textarea
                 autoFocus
                 rows={6}
+                maxLength={5000}
                 value={replyText}
                 onChange={(e) => setReplyText(e.target.value)}
                 placeholder={`Hi ${replyFor.name?.split(" ")[0] || "there"}, thanks for reaching out…`}

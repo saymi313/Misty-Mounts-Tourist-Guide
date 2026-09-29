@@ -59,21 +59,39 @@ exports.getMe = async (req, res) => {
 exports.updateMe = async (req, res) => {
   try {
     const allowed = [
-      "name", "email", "phone", "city", "bio", "interests", "avatar",
+      "name", "phone", "city", "bio", "interests", "avatar",
       "languages", "specialties", "serviceAreas", "experience", "hotelName", "agencyName",
       "idDocument",
     ];
     const updates = {};
     for (const key of allowed) if (key in req.body) updates[key] = req.body[key];
+    const arrayFields = ['interests', 'languages', 'specialties', 'serviceAreas'];
+    for (const [key, value] of Object.entries(updates)) {
+      if (['avatar', 'idDocument'].includes(key) && value && !/^\/uploads\/[A-Za-z0-9_-][A-Za-z0-9_.-]*$/.test(value)) {
+        try {
+          const url = new URL(value);
+          if (url.protocol !== 'https:' || url.username || url.password) throw new Error('Invalid URL');
+        } catch { return res.status(400).json({ error: 'Profile image and document links must use HTTPS.' }); }
+      }
+      if (arrayFields.includes(key)) {
+        if (!Array.isArray(value) || value.length > 30 || value.some((item) => typeof item !== 'string' || item.length > 100)) {
+          return res.status(400).json({ error: 'Invalid profile list' });
+        }
+      } else if (typeof value !== 'string' || value.length > (['avatar', 'idDocument'].includes(key) ? 2048 : 500)) {
+        return res.status(400).json({ error: 'Invalid profile field' });
+      }
+    }
+    if ('email' in req.body) {
+      const current = await User.findById(req.user.id).select('email').lean();
+      if (!current) return res.status(404).json({ error: 'User not found' });
+      if (typeof req.body.email !== 'string' || req.body.email.trim().toLowerCase() !== current.email) {
+        return res.status(400).json({ error: 'Email changes require verification and are not supported in profile settings.' });
+      }
+    }
 
     // Submitting an ID document moves the account into KYC review (a user can
     // never set 'verified' themselves — only an admin can via /users/:id/verify).
     if (updates.idDocument) updates.verificationStatus = "pending";
-
-    if (updates.email) {
-      const clash = await User.findOne({ email: updates.email, _id: { $ne: req.user.id } });
-      if (clash) return res.status(409).json({ error: "Email already in use" });
-    }
 
     const user = await User.findByIdAndUpdate(req.user.id, updates, {
       new: true,
@@ -99,8 +117,9 @@ exports.uploadAvatar = async (req, res) => {
     ).select("-password");
     res.json({ avatar: result.secure_url, user: publicUser(user) });
   } catch (err) {
-    console.error("uploadAvatar error:", err.message);
-    res.status(500).json({ error: "Failed to upload avatar" });
+    res.status(err.status === 503 ? 503 : 502).json({ error: "Avatar upload could not be completed. Please retry." });
+  } finally {
+    req.releaseUpload?.();
   }
 };
 

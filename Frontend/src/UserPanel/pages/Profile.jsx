@@ -1,4 +1,4 @@
-import React, { useRef, useState, useEffect } from "react";
+import { useRef, useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import {
@@ -331,7 +331,8 @@ const Profile = () => {
                         id="pf-email"
                         type="email"
                         value={form.email}
-                        onChange={(e) => update("email", e.target.value)}
+                        readOnly
+                        title="Email changes require verification and are not currently available."
                         placeholder="you@example.com"
                         aria-invalid={!!errors.email}
                         className={`${inputCls} !pl-11 ${errors.email ? inputErr : ""}`}
